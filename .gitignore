@@ -52,3 +52,64 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# Tệp và thư mục tạm của Visual Studio
+*.csproj.user
+*.suo
+*.user
+*.sln.docstates
+*.vs
+.vscode/
+bin/
+obj/
+[Bb]in/
+[Oo]bj/
+*.cache
+*.log
+*.pdb
+*.bak
+*.tmp
+*.temp
+*.tmp_proj
+*.sln
+
+# Tệp cấu hình nhạy cảm
+appsettings.json
+appsettings.*.json
+web.config
+*.config
+
+# Thư mục chứa gói NuGet
+packages/
+!packages/build/
+
+# Tệp khóa và chứng chỉ
+*.pfx
+*.cer
+*.p12
+*.key
+
+# Tệp môi trường phát triển
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Công cụ build và dependency
+node_modules/
+bower_components/
+wwwroot/lib/
+
+# Tệp kết quả kiểm thử
+TestResults/
+*.trx
+*.xml
+
+# Tệp khóa của Roslyn
+*.lock.json
+
+# Tệp bundle và minify
+*.bundle
+*.min.js
+*.min.css
