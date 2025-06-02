@@ -2,8 +2,8 @@
 CREATE DATABASE PicX;
 Use PicX
 DROP DATABASE PicX;
-
 -- Table: Users (Enhanced with additional fields)
+GO
 CREATE TABLE Users (
     user_id INT IDENTITY(1,1) PRIMARY KEY,
     name NVARCHAR(100) NOT NULL,
@@ -20,6 +20,7 @@ CREATE TABLE Users (
 );
 
 -- Table: ArtistProfiles (Enhanced)
+GO
 CREATE TABLE ArtistProfiles (
     artist_id INT PRIMARY KEY,
     bio NVARCHAR(MAX),
@@ -34,6 +35,7 @@ CREATE TABLE ArtistProfiles (
 );
 
 -- Table: Categories (New - for better product organization)
+GO
 CREATE TABLE Categories (
     category_id INT IDENTITY(1,1) PRIMARY KEY,
     name NVARCHAR(100) NOT NULL,
@@ -44,6 +46,7 @@ CREATE TABLE Categories (
 );
 
 -- Table: Products (Enhanced)
+GO
 CREATE TABLE Products (
     product_id INT IDENTITY(1,1) PRIMARY KEY,
     artist_id INT NOT NULL,
@@ -65,6 +68,7 @@ CREATE TABLE Products (
 );
 
 -- Table: Orders (Enhanced)
+GO
 CREATE TABLE Orders (
     order_id INT IDENTITY(1,1) PRIMARY KEY,
     buyer_id INT NOT NULL,
@@ -74,6 +78,7 @@ CREATE TABLE Orders (
 );
 
 -- Table: OrderDetails (Enhanced)
+GO
 CREATE TABLE OrderDetails (
     order_detail_id INT IDENTITY(1,1) PRIMARY KEY,
     order_id INT NOT NULL,
@@ -84,6 +89,7 @@ CREATE TABLE OrderDetails (
 );
 
 -- Table: Payments (Enhanced)
+GO
 CREATE TABLE Payments (
     payment_id INT IDENTITY(1,1) PRIMARY KEY,
     order_id INT NOT NULL,
@@ -98,6 +104,7 @@ CREATE TABLE Payments (
 );
 
 -- Table: Comments (Enhanced)
+GO
 CREATE TABLE Comments (
     comment_id INT IDENTITY(1,1) PRIMARY KEY,
     user_id INT NOT NULL,
@@ -109,6 +116,7 @@ CREATE TABLE Comments (
 );
 
 -- Table: CommentReplies (Enhanced)
+GO
 CREATE TABLE CommentReplies (
     reply_id INT IDENTITY(1,1) PRIMARY KEY,
     comment_id INT NOT NULL,
@@ -120,6 +128,7 @@ CREATE TABLE CommentReplies (
 );
 
 -- Table: Favorites/Likes (Enhanced)
+GO
 CREATE TABLE Favorites (
     favorite_id INT IDENTITY(1,1) PRIMARY KEY,
     user_id INT NOT NULL,
@@ -131,6 +140,7 @@ CREATE TABLE Favorites (
 );
 
 -- Table: Chats (Enhanced)
+GO
 CREATE TABLE Chats (
     chat_id INT IDENTITY(1,1) PRIMARY KEY,
     sender_id INT NOT NULL,
@@ -145,6 +155,7 @@ CREATE TABLE Chats (
 
 
 -- Table: Sessions (New - for user session management)
+GO
 CREATE TABLE Sessions (
     session_id NVARCHAR(255) PRIMARY KEY,
     user_id INT NOT NULL,
@@ -157,6 +168,7 @@ CREATE TABLE Sessions (
 );
 
 -- Table: Reviews (New - separate from comments for better organization)
+GO
 CREATE TABLE Reporting (
     review_id INT IDENTITY(1,1) PRIMARY KEY,
     product_id INT NOT NULL,
@@ -171,6 +183,7 @@ CREATE TABLE Reporting (
 );
 
 -- Table: Notifications (New)
+GO
 CREATE TABLE Notifications (
     notification_id INT IDENTITY(1,1) PRIMARY KEY,
     user_id INT NOT NULL,
@@ -185,6 +198,7 @@ CREATE TABLE Notifications (
 );
 
 -- Table: FinancialReports (New - for admin finance tracking)
+GO
 CREATE TABLE FinancialReports (
     report_id INT IDENTITY(1,1) PRIMARY KEY,
     artist_id INT,

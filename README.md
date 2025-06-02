@@ -6,6 +6,6 @@ https://trello.com/b/vInmEUYB/picx
 
 | 3 package | Name | Version |
 |----------|--------------------------------------------|----------|
-|    1     | microsoft.entityFrameworkCore | 8.0.0 |
-|    2     | microsoft.entityFrameworkCore.tools | 8.0.0  |
-|    3     | microsoft.entityFrameworkCore.sqlserver | 8.0.0 |
+|    1     | microsoft.entityFrameworkCore | 8.0.16 |
+|    2     | microsoft.entityFrameworkCore.tools | 8.0.16  |
+|    3     | microsoft.entityFrameworkCore.sqlserver | 8.0.16 |
