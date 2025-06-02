@@ -1,0 +1,120 @@
+export interface User {
+  user_id: number;
+  name: string;
+  email: string;
+  role: 'guest' | 'buyer' | 'artist' | 'admin';
+  phone?: string;
+  address?: string;
+  is_active: boolean;
+  email_verified: boolean;
+  last_login?: Date;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface ArtistProfile {
+  artist_id: number;
+  bio?: string;
+  profile_picture?: string;
+  specialization?: string;
+  experience_years?: number;
+  website_url?: string;
+  social_media_links?: Record<string, string>;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface Product {
+  product_id: number;
+  artist_id: number;
+  category_id?: number;
+  title: string;
+  description?: string;
+  price: number;
+  image_url?: string;
+  additional_images?: string[];
+  dimensions?: string;
+  medium?: string;
+  is_available: boolean;
+  tags?: string[];
+  like_count: number;
+  created_at: Date;
+  updated_at: Date;
+  artist?: User;
+  category?: Category;
+}
+
+export interface Category {
+  category_id: number;
+  name: string;
+  description?: string;
+  parent_category_id?: number;
+  is_active: boolean;
+}
+
+export interface Order {
+  order_id: number;
+  buyer_id: number;
+  total_amount: number;
+  order_date: Date;
+  buyer?: User;
+  details?: OrderDetail[];
+}
+
+export interface OrderDetail {
+  order_detail_id: number;
+  order_id: number;
+  product_id: number;
+  total_price: number;
+  product?: Product;
+}
+
+export interface Comment {
+  comment_id: number;
+  user_id: number;
+  product_id: number;
+  content: string;
+  created_at: Date;
+  user?: User;
+  replies?: CommentReply[];
+}
+
+export interface CommentReply {
+  reply_id: number;
+  comment_id: number;
+  user_id: number;
+  content: string;
+  created_at: Date;
+  user?: User;
+}
+
+export interface Favorite {
+  favorite_id: number;
+  user_id: number;
+  product_id: number;
+  created_at: Date;
+  product?: Product;
+}
+
+export interface Chat {
+  chat_id: number;
+  sender_id: number;
+  receiver_id: number;
+  message: string;
+  is_read: boolean;
+  sent_at: Date;
+  sender?: User;
+  receiver?: User;
+}
+
+export interface Notification {
+  notification_id: number;
+  user_id: number;
+  type: string;
+  title: string;
+  message: string;
+  entity_type?: string;
+  entity_id?: number;
+  is_read: boolean;
+  created_at: Date;
+}
