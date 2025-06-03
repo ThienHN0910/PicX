@@ -70,13 +70,19 @@ namespace PicXAPI
             });
 
             builder.Services.AddCors(options =>
-            {
-                options.AddPolicy("AllowReact",
-                    policy => policy.WithOrigins("http://localhost:5173") // Thay đổi URL này nếu cần
-                        .AllowAnyHeader()
-                        .AllowAnyMethod()
-                        .AllowCredentials()); // Quan trọng: cần cho cookie
-            });
+{
+    options.AddPolicy("AllowReact", policy =>
+        policy
+            .WithOrigins(
+                "http://localhost:5173", // local dev
+                "https://picx-client.onrender.com/" ,// đổi theo domain thật sau khi frontend deploy
+                "https://picx-jwnq.onrender.com/" 
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials());
+});
+
 
             var app = builder.Build();
 
