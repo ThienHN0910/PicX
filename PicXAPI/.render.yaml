@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: PicXAPI
+    env: docker
+    plan: free
+    branch: oregon  # main
+    repo: https://github.com/Meoleodeo/PicX
+    buildCommand: ""
+    startCommand: ""
+    autoDeploy: true
