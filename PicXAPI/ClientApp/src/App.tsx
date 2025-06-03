@@ -22,7 +22,8 @@ import Chat from './pages/Chat';
 import UserList from './pages/UserList';
 import Finance from './pages/Finance';
 import { AuthProvider, useAuth } from './components/AuthProvider';
-
+import ArtistProfile from './pages/ArtistProfile';
+import ArtistFinanceReport from './pages/ArtistFinanceReport';
 const ProtectedRoute = ({ children }) => {
     const { isAuthenticated, loading } = useAuth();
 
@@ -94,6 +95,7 @@ function App() {
                             />
                             <Route path="/forgot-password" element={<ForgotPassword />} />
                             <Route path="/art/:id" element={<ArtDetail />} />
+            <Route path="/artist/:id" element={<ArtistProfile />} />
 
                             {/* Protected routes - Buyer & Artist */}
                             <Route
@@ -149,6 +151,11 @@ function App() {
                             <Route path="/products/edit/:id" element={
                                 // <ProtectedRoute allowedRoles={['artist', 'admin']}>
                                 <EditProduct />
+                                /* </ProtectedRoute> */
+                            } />
+                            <Route path="/ArtistFinanceReport" element={
+                                // <ProtectedRoute allowedRoles={['artist', 'admin']}>
+                                <ArtistFinanceReport />
                                 /* </ProtectedRoute> */
                             } />
 
