@@ -1,0 +1,6 @@
+@PicXAPI_HostAddress = http://localhost:5296
+
+GET {{PicXAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
