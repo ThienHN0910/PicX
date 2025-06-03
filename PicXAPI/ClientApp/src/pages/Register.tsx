@@ -30,7 +30,7 @@ const Register = () => {
 
             if (response.ok) {
                 toast.success(data.message || "Đăng ký thành công");
-                setTimeout(() => navigate("/login"), 2000); // đợi 2 giây rồi chuyển
+                setTimeout(() => navigate("/login"), 500); 
             } else {
                 toast.error(data.message || "Đăng ký thất bại");
             }

@@ -1,5 +1,4 @@
-﻿
-using System.Text;
+﻿using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -15,14 +14,16 @@ namespace PicXAPI
             var builder = WebApplication.CreateBuilder(args);
             var jwtSettings = builder.Configuration.GetSection("Jwt");
             var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
-            // Add services to the container.
 
+            // Add services to the container.
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
             builder.Services.AddDbContext<AppDbContext>(option =>
                 option.UseSqlServer(builder.Configuration.GetConnectionString("PicX")));
+
             builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
             builder.Services.AddAuthentication(options =>
@@ -43,14 +44,38 @@ namespace PicXAPI
                     ValidAudience = jwtSettings["Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(key)
                 };
+
+                // Cấu hình để đọc token từ cookie
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        // Kiểm tra token trong cookie trước
+                        if (context.Request.Cookies.ContainsKey("authToken"))
+                        {
+                            context.Token = context.Request.Cookies["authToken"];
+                        }
+                        // Nếu không có trong cookie, kiểm tra Authorization header
+                        else if (string.IsNullOrEmpty(context.Token))
+                        {
+                            var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+                            if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
+                            {
+                                context.Token = authHeader.Substring(7);
+                            }
+                        }
+                        return Task.CompletedTask;
+                    }
+                };
             });
+
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowReact",
                     policy => policy.WithOrigins("http://localhost:5173") // Thay đổi URL này nếu cần
                         .AllowAnyHeader()
                         .AllowAnyMethod()
-                        .AllowCredentials());
+                        .AllowCredentials()); // Quan trọng: cần cho cookie
             });
 
             var app = builder.Build();
@@ -63,10 +88,9 @@ namespace PicXAPI
             }
 
             app.UseHttpsRedirection();
-
             app.UseCors("AllowReact");
+            app.UseAuthentication();
             app.UseAuthorization();
-
             app.MapControllers();
 
             app.Run();
