@@ -76,7 +76,7 @@ namespace PicXAPI
             .WithOrigins(
                 "http://localhost:5173", // local dev
                 "https://picx-client.onrender.com/" ,// đổi theo domain thật sau khi frontend deploy
-                "https://picx-jwnq.onrender.com/" 
+                "https://picxapi.onrender.com/" 
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
