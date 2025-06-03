@@ -44,8 +44,8 @@ namespace PicXAPI.Controllers
                 CreatedAt = DateTime.UtcNow,
                 Role = "buyer"  // Gán role mặc định
             };
-            user.Password = _passwordHasher.HashPassword(user, dto.Password);
 
+            user.Password = _passwordHasher.HashPassword(user, dto.Password);
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
@@ -68,7 +68,83 @@ namespace PicXAPI.Controllers
 
             var token = GenerateJwtToken(user);
 
-            return Ok(new { token });
+            // Set token in HTTP-only cookie
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true, // Không thể truy cập từ JavaScript
+                Secure = true,   // Chỉ gửi qua HTTPS (set false nếu dev không dùng HTTPS)
+                SameSite = SameSiteMode.Strict, // CSRF protection
+                Expires = DateTime.UtcNow.AddHours(int.Parse(_config.GetSection("Jwt")["ExpireHours"])),
+                Path = "/"
+            };
+
+            Response.Cookies.Append("authToken", token, cookieOptions);
+
+            // Trả về thông tin user (không bao gồm token)
+            var userInfo = new
+            {
+                id = user.UserId.ToString(),
+                name = user.Name,
+                email = user.Email,
+                role = user.Role
+            };
+
+            return Ok(new { user = userInfo, message = "Đăng nhập thành công" });
+        }
+
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            // Xóa cookie
+            Response.Cookies.Delete("authToken", new CookieOptions
+            {
+                Path = "/",
+                SameSite = SameSiteMode.Strict
+            });
+
+            return Ok(new { message = "Đăng xuất thành công" });
+        }
+
+        [HttpGet("me")]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            // Lấy token từ cookie
+            if (!Request.Cookies.TryGetValue("authToken", out var token) || string.IsNullOrEmpty(token))
+            {
+                return Unauthorized(new { message = "Không tìm thấy token xác thực" });
+            }
+
+            try
+            {
+                var handler = new JwtSecurityTokenHandler();
+                var jwtToken = handler.ReadJwtToken(token);
+
+                var userIdClaim = jwtToken.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
+                if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+                {
+                    return Unauthorized(new { message = "Token không hợp lệ" });
+                }
+
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null)
+                {
+                    return Unauthorized(new { message = "Người dùng không tồn tại" });
+                }
+
+                var userInfo = new
+                {
+                    id = user.UserId.ToString(),
+                    name = user.Name,
+                    email = user.Email,
+                    role = user.Role
+                };
+
+                return Ok(new { user = userInfo });
+            }
+            catch (Exception)
+            {
+                return Unauthorized(new { message = "Token không hợp lệ" });
+            }
         }
 
         // Hàm tạo token JWT
@@ -82,8 +158,9 @@ namespace PicXAPI.Controllers
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                new Claim(ClaimTypes.Name, user.Email),
-                new Claim(ClaimTypes.Role, user.Role ?? "buyer")
+                new Claim(ClaimTypes.Name, user.Name),
+                new Claim(ClaimTypes.Role, user.Role ?? "buyer"),
+                new Claim("email", user.Email)
             };
 
             var token = new JwtSecurityToken(
