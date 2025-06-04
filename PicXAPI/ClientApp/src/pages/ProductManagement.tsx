@@ -18,7 +18,7 @@ export default function ProductManagement() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Product Management</h1>
         <Link
-          to="/add-product"
+                  to="/products/add"
           className="inline-flex items-center gap-2 bg-indigo-600 px-4 py-2 text-white rounded-lg hover:bg-indigo-700"
         >
           <Plus className="h-5 w-5" />
