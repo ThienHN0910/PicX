@@ -128,25 +128,6 @@ export default function AddProduct() {
               />
             </div>
 
-            <div className="flex space-x-4">
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  {...register('isDigital')}
-                  className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                />
-                <span className="text-sm text-gray-700">Digital Artwork</span>
-              </label>
-
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  {...register('isOriginal')}
-                  className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                />
-                <span className="text-sm text-gray-700">Original Piece</span>
-              </label>
-            </div>
           </div>
         </div>
 

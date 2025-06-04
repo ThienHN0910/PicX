@@ -157,6 +157,7 @@ namespace PicXAPI.Controllers
 
             var claims = new[]
             {
+                new Claim(JwtRegisteredClaimNames.Sub, user.UserId.ToString()),
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                 new Claim(ClaimTypes.Name, user.Name),
                 new Claim(ClaimTypes.Role, user.Role ?? "buyer"),

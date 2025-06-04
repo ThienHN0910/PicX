@@ -12,7 +12,8 @@ export default defineConfig({
             '/api': {
                 target: 'https://localhost:7162',
                 changeOrigin: true,
-                secure: false, // nếu dùng HTTPS tự ký thì cần dòng này
+                secure: false,
+                cookieDomainRewrite: "localhost", // Ghi đè domain cookie để client nhận được
             },
         },
     },
