@@ -113,3 +113,5 @@ TestResults/
 *.bundle
 *.min.js
 *.min.css
+
+/test

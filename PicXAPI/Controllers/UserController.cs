@@ -50,12 +50,11 @@ namespace PicXAPI.Controllers
             var user = await _context.Users.FindAsync(Id);
             if (user == null)
                 return NotFound();
-            var currentRole = user.Role;
             user.Name = profile.Name;
             user.Email = profile.Email;
             user.Phone = profile.Phone;
             user.Address = profile.Address;
-            user.Role = currentRole;
+            user.Role = profile.Role;
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
             return NoContent();

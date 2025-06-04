@@ -12,8 +12,6 @@ interface ProductForm {
   category: string;
   medium: string;
   dimensions: string;
-  isDigital: boolean;
-  isOriginal: boolean;
   tags: string;
 }
 
