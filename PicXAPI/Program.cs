@@ -74,9 +74,9 @@ namespace PicXAPI
     options.AddPolicy("AllowReact", policy =>
         policy
             .WithOrigins(
-                "http://localhost:5173", // local dev
-                "https://picx-client.onrender.com" ,// đổi theo domain thật sau khi frontend deploy
-                "https://picxapi.onrender.com" 
+                "http://localhost:5173" // local dev
+                //,"https://picx-client.onrender.com"
+                //,"https://picxapi.onrender.com" 
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
