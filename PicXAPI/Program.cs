@@ -1,9 +1,11 @@
-﻿using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PicX.Models;
+using System.Text;
+using DotNetEnv;
 
 namespace PicXAPI
 {
@@ -12,6 +14,7 @@ namespace PicXAPI
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            DotNetEnv.Env.Load();
             var jwtSettings = builder.Configuration.GetSection("Jwt");
             var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
 
@@ -82,10 +85,15 @@ namespace PicXAPI
             .AllowAnyMethod()
             .AllowCredentials());
 });
+            builder.Services.AddControllers().AddNewtonsoftJson();
+            builder.Services.Configure<FormOptions>(options =>
+            {
+                options.MultipartBodyLengthLimit = 104857600; // 100MB limit
+            });
 
 
             var app = builder.Build();
-
+            Console.WriteLine($"GOOGLE_APPLICATION_CREDENTIALS: {Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS")}");
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {

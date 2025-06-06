@@ -37,7 +37,7 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Payment> Payments { get; set; }
 
-    public virtual DbSet<Product> Products { get; set; }
+    public virtual DbSet<Products> Products { get; set; }
 
     public virtual DbSet<Reporting> Reportings { get; set; }
 
@@ -340,7 +340,7 @@ public partial class AppDbContext : DbContext
                 .HasConstraintName("FK__Payments__order___45F365D3");
         });
 
-        modelBuilder.Entity<Product>(entity =>
+        modelBuilder.Entity<Products>(entity =>
         {
             entity.HasKey(e => e.ProductId).HasName("PK__Products__47027DF59C2B42B3");
 
@@ -356,7 +356,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Dimensions)
                 .HasMaxLength(100)
                 .HasColumnName("dimensions");
-            entity.Property(e => e.ImageUrl)
+            entity.Property(e => e.ImageDriveId)
                 .HasMaxLength(255)
                 .HasColumnName("image_url");
             entity.Property(e => e.IsAvailable)

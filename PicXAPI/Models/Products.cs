@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace PicX.Models;
 
-public partial class Product
+public partial class Products
 {
     public int ProductId { get; set; }
 
@@ -17,7 +17,7 @@ public partial class Product
 
     public decimal Price { get; set; }
 
-    public string? ImageUrl { get; set; }
+    public string? ImageDriveId { get; set; }
 
     public string? AdditionalImages { get; set; }
 
