@@ -73,7 +73,7 @@ const ArtDetail = () => {
             return;
         }
 
-        // Gi? l?p thêm vào gi? hàng
+        // Gi? l?p thï¿½m vï¿½o gi? hï¿½ng
         setProduct({ ...product, isInCart: true });
         alert('Artwork added to cart!');
     };
@@ -82,10 +82,10 @@ const ArtDetail = () => {
         if (!product) return;
 
         if (product.isLiked) {
-            // Gi? l?p b? thích
+            // Gi? l?p b? thï¿½ch
             setProduct({ ...product, isLiked: false, likeCount: product.likeCount - 1 });
         } else {
-            // Gi? l?p thích
+            // Gi? l?p thï¿½ch
             setProduct({ ...product, isLiked: true, likeCount: product.likeCount + 1 });
         }
     };
