@@ -35,7 +35,7 @@ export default function AddProduct() {
                 const response = await axios.get('/api/product/categories', {
                     withCredentials: true
                 });
-                setCategories(response.data.map((c: { Name: string }) => c.Name));
+                setCategories(response.data.map((c: { name: string }) => c.name));
                 setIsLoadingCategories(false);
             } catch (error) {
                 console.error('Error fetching categories:', error);

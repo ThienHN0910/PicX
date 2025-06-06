@@ -114,4 +114,4 @@ TestResults/
 *.min.js
 *.min.css
 
-/test
+/test/
