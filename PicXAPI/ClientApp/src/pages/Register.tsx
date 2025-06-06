@@ -3,7 +3,7 @@ import { UserPlus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-
+import { Modal } from '../components/ui/Modal';
 
 const Register = () => {
     const navigate = useNavigate();
@@ -11,6 +11,8 @@ const Register = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [name, setName] = useState('');
+    const [acceptTerms, setAcceptTerms] = useState(false);
+    const [showTerms, setShowTerms] = useState(false);
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         console.log("Submit clicked");
@@ -18,7 +20,10 @@ const Register = () => {
             alert("Mật khẩu xác nhận không khớp!");
             return;
         }
-
+        if (!acceptTerms) {
+            alert("Bạn cần đồng ý với điều khoản và điều kiện!");
+            return;
+        }
         try {
             const response = await fetch('/api/auth/register', {
                 method: 'POST',
@@ -30,7 +35,7 @@ const Register = () => {
 
             if (response.ok) {
                 toast.success(data.message || "Đăng ký thành công");
-                setTimeout(() => navigate("/login"), 500); 
+                setTimeout(() => navigate("/login"), 500);
             } else {
                 toast.error(data.message || "Đăng ký thất bại");
             }
@@ -162,7 +167,27 @@ const Register = () => {
                         required
                     />
                 </div>
-
+                <div className="flex items-start">
+                    <div className="flex items-center h-5">
+                        <input
+                            id="terms"
+                            type="checkbox"
+                            checked={acceptTerms}
+                            onChange={(e) => setAcceptTerms(e.target.checked)}
+                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                    </div>
+                    <div className="ml-3 text-sm text-gray-600">
+                        Tôi đồng ý với{' '}
+                        <button
+                            type="button"
+                            onClick={() => setShowTerms(true)}
+                            className="text-indigo-600 hover:text-indigo-500 underline"
+                        >
+                            điều khoản và điều kiện
+                        </button>
+                    </div>
+                </div>
                 <button
                     type="submit"
                     className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
@@ -177,6 +202,33 @@ const Register = () => {
                     Sign in here
                 </Link>
             </p>
+            <Modal
+                isOpen={showTerms}
+                onClose={() => setShowTerms(false)}
+                title="Điều Khoản và Quy Định Sử Dụng Dịch Vụ PicX"
+            >
+                <div className="prose prose-sm max-w-none">
+                    <p className="font-medium">Bằng việc tạo tài khoản, bạn đồng ý với các điều khoản sau:</p>
+
+                    <h3 className="text-lg font-semibold mt-4">Cam kết thông tin</h3>
+                    <p>Bạn xác nhận các thông tin cá nhân cung cấp là chính xác và đầy đủ. Việc cung cấp thông tin sai có thể dẫn đến việc khóa tài khoản hoặc từ chối dịch vụ.</p>
+
+                    <h3 className="text-lg font-semibold mt-4">Sở hữu nội dung</h3>
+                    <p>Mọi hình ảnh, dữ liệu bạn tải lên PicX phải thuộc quyền sở hữu hợp pháp của bạn. PicX không chịu trách nhiệm với nội dung do người dùng đăng tải.</p>
+
+                    <h3 className="text-lg font-semibold mt-4">Sử dụng hợp pháp</h3>
+                    <p>Bạn đồng ý không sử dụng dịch vụ của PicX cho các hoạt động vi phạm pháp luật, bao gồm nhưng không giới hạn ở việc phát tán nội dung khiêu dâm, độc hại, phân biệt chủng tộc hoặc xâm phạm quyền riêng tư của người khác.</p>
+
+                    <h3 className="text-lg font-semibold mt-4">Bảo mật tài khoản</h3>
+                    <p>Bạn có trách nhiệm bảo mật tài khoản của mình và chịu trách nhiệm cho mọi hoạt động diễn ra thông qua tài khoản đó.</p>
+
+                    <h3 className="text-lg font-semibold mt-4">Xử lý dữ liệu cá nhân</h3>
+                    <p>Thông tin cá nhân của bạn được thu thập và xử lý theo Chính sách Bảo mật của PicX. Chúng tôi cam kết không chia sẻ thông tin của bạn cho bên thứ ba nếu không có sự cho phép.</p>
+
+                    <h3 className="text-lg font-semibold mt-4">Chấm dứt dịch vụ</h3>
+                    <p>PicX có quyền tạm ngưng hoặc chấm dứt tài khoản của người dùng nếu vi phạm các điều khoản sử dụng hoặc gây ảnh hưởng tiêu cực đến cộng đồng.</p>
+                </div>
+            </Modal>
         </div>
     );
 };
