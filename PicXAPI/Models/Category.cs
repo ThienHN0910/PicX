@@ -19,5 +19,5 @@ public partial class Category
 
     public virtual Category? ParentCategory { get; set; }
 
-    public virtual ICollection<Product> Products { get; set; } = new List<Product>();
+    public virtual ICollection<Products> Products { get; set; } = new List<Products>();
 }
