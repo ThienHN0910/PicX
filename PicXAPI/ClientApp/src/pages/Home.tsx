@@ -1,62 +1,88 @@
-import { useState } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import { Input } from '../components/ui/Input';
 import { ProductCard } from '../components/ProductCard';
 import { CategoryFilter } from '../components/CategoryFilter';
 import { useStore } from '../lib/store';
+import InfiniteScroll from 'react-infinite-scroll-component';
+import Masonry from 'react-masonry-css';
+import { Product } from '../lib/types';
 
 export default function Home() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<number>();
-  
-  const { products, categories, addToCart } = useStore();
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
+    const { products, categories, fetchProducts, fetchCategories, hasMore, page } = useStore();
 
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = !selectedCategory || product.category_id === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+    useEffect(() => {
+        fetchCategories();
+        fetchProducts(true); // Initial fetch
+    }, [fetchCategories, fetchProducts]);
 
-  return (
-    <div className="space-y-8">
-      <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold text-gray-900">
-          Discover Amazing Artwork
-        </h1>
-        <p className="text-xl text-gray-600">
-          Find and collect unique digital and physical artwork from talented artists
-        </p>
-        
-        <div className="max-w-2xl mx-auto">
-          <div className="relative">
-            <Input
-              type="text"
-              placeholder="Search for artwork..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12"
-            />
-            <Search className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
-          </div>
+    const filteredProducts = products.filter((product) => {
+        const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            product.description?.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesCategory = !selectedCategory || product.category_id === selectedCategory;
+        return matchesSearch && matchesCategory;
+    });
+
+    console.log('hasMore:', hasMore, 'Page:', page, 'Filtered Products:', filteredProducts.length);
+
+    const handleAddToCart = (product: Product) => {
+        // Implement add to cart logic here, e.g., using the store
+        useStore.getState().addToCart(product);
+    };
+
+    const handleLike = (product: Product) => {
+        // Implement like logic here if needed
+        console.log('Liked product:', product.product_id);
+    };
+
+    return (
+        <div className="min-h-screen bg-gray-100 p-4">
+            <div className="max-w-6xl mx-auto">
+                <div className="mb-6">
+                    <div className="relative">
+                        <Input
+                            type="text"
+                            placeholder="Tìm kiếm..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        />
+                        <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                    </div>
+                </div>
+
+                <CategoryFilter
+                    categories={categories}
+                    selectedCategory={selectedCategory}
+                    onSelect={setSelectedCategory}
+                />
+
+                <InfiniteScroll
+                    dataLength={filteredProducts.length}
+                    next={() => fetchProducts()}
+                    hasMore={hasMore}
+                    loader={<h4 className="text-center text-gray-500">Loading...</h4>}
+                    endMessage={<p className="text-center text-gray-500">No more products</p>}
+                    scrollableTarget="html" // Use browser scrollbar
+                >
+                    <Masonry
+                        breakpointCols={{ default: 4, 1100: 3, 700: 2, 500: 1 }}
+                        className="flex animate-fade-in"
+                        columnClassName="pl-2"
+                    >
+                        {filteredProducts.map((product) => (
+                            <ProductCard
+                                key={product.product_id}
+                                product={product}
+                                onLike={() => handleLike(product)}
+                                onAddToCart={() => handleAddToCart(product)}
+                            />
+                        ))}
+                    </Masonry>
+                </InfiniteScroll>
+            </div>
         </div>
-      </div>
-
-      <CategoryFilter
-        categories={categories}
-        selectedCategory={selectedCategory}
-        onSelect={setSelectedCategory}
-      />
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProducts.map((product) => (
-          <ProductCard
-            key={product.product_id}
-            product={product}
-            onAddToCart={() => addToCart(product)}
-          />
-        ))}
-      </div>
-    </div>
-  );
+    );
 }

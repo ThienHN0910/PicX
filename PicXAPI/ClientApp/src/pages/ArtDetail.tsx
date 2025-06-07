@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Heart, Share2, ShoppingCart } from 'lucide-react';
+import { Heart, Share2, ShoppingCart, Edit } from 'lucide-react';
 import axios from 'axios';
 import { Button } from '../components/ui/Button';
 
@@ -30,10 +30,15 @@ interface Product {
     imageFileId: string;
     additionalImages: string;
     artist: Artist;
-    isInCart: boolean;
-    likeCount: number;
-    isLiked: boolean;
-    comments: Comment[];
+    likeCount?: number;
+    comments?: Comment[];
+    permissions?: {
+        canView: boolean;
+        canLike: boolean;
+        canComment: boolean;
+        canAddToCart: boolean;
+        canEdit: boolean;
+    };
 }
 
 const ArtDetail = () => {
@@ -66,33 +71,38 @@ const ArtDetail = () => {
     }, [id, navigate]);
 
     const handleAddToCart = () => {
-        if (!product) return;
-
-        if (product.isInCart) {
-            alert('Artwork is already in your cart!');
+        if (!product?.permissions?.canAddToCart) {
+            navigate('/login');
             return;
         }
-
-        // Gi? l?p th�m v�o gi? h�ng
-        setProduct({ ...product, isInCart: true });
-        alert('Artwork added to cart!');
+        // Placeholder: Replace with actual cart API call
+        alert('Added to cart! (API call needed)');
     };
 
     const handleLike = () => {
-        if (!product) return;
-
-        if (product.isLiked) {
-            // Gi? l?p b? th�ch
-            setProduct({ ...product, isLiked: false, likeCount: product.likeCount - 1 });
-        } else {
-            // Gi? l?p th�ch
-            setProduct({ ...product, isLiked: true, likeCount: product.likeCount + 1 });
+        if (!product?.permissions?.canLike) {
+            navigate('/login');
+            return;
         }
+        // Placeholder: Replace with actual like API call
+        alert('Liked! (API call needed)');
     };
 
     const handleShare = () => {
+        if (!product?.permissions?.canComment) {
+            navigate('/login');
+            return;
+        }
         navigator.clipboard.writeText(window.location.href);
         alert('Link copied to clipboard!');
+    };
+
+    const handleEdit = () => {
+        if (!product?.permissions?.canEdit) {
+            console.log('Edit not allowed');
+            return;
+        }
+        navigate(`/edit/${id}`);
     };
 
     if (isLoading) {
@@ -156,7 +166,7 @@ const ArtDetail = () => {
                 <div className="space-y-6">
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900">{product.title}</h1>
-                        <p className="mt-2 text-lg text-gray-900">${product.price.toLocaleString()}</p>
+                        <p className="mt-2 text-lg text-gray-900">${product.price?.toLocaleString() || 'N/A'}</p>
                     </div>
 
                     <div className="space-y-2">
@@ -189,17 +199,20 @@ const ArtDetail = () => {
                             <Button
                                 onClick={handleAddToCart}
                                 className="flex-1"
-                                disabled={!product.isAvailable || product.isInCart}
+                                disabled={!product.isAvailable || !product.permissions?.canAddToCart}
                             >
                                 <ShoppingCart className="h-5 w-5 mr-2" />
-                                {product.isInCart ? 'In Cart' : product.isAvailable ? 'Add to Cart' : 'Unavailable'}
+                                {!product.permissions?.canAddToCart ? 'Login to Add' : product.isAvailable ? 'Add to Cart' : 'Unavailable'}
                             </Button>
-                            <Button variant="outline" onClick={handleLike}>
-                                <Heart className={`h-5 w-5 ${product.isLiked ? 'fill-red-500 text-red-500' : ''}`} />
-                                <span className="ml-2">{product.likeCount}</span>
+                            <Button variant="outline" onClick={handleLike} disabled={!product.permissions?.canLike}>
+                                <Heart className={`h-5 w-5 ${product.likeCount === 0 ? 'fill-red-500 text-red-500' : ''}`} />
+                                <span className="ml-2">{product.likeCount || 0}</span>
                             </Button>
-                            <Button variant="outline" onClick={handleShare}>
+                            <Button variant="outline" onClick={handleShare} disabled={!product.permissions?.canComment}>
                                 <Share2 className="h-5 w-5" />
+                            </Button>
+                            <Button variant="outline" onClick={handleEdit} disabled={!product.permissions?.canEdit}>
+                                <Edit className="h-5 w-5" />
                             </Button>
                         </div>
                     </div>

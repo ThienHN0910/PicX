@@ -134,7 +134,7 @@ namespace PicXAPI.Controllers
             try
             {
                 var categories = await _context.Categories
-                    .Select(c => new { c.Name })
+                    .Select(c => new { categoryId = c.CategoryId, name = c.Name })
                     .ToListAsync();
                 return Ok(categories);
             }
@@ -142,6 +142,53 @@ namespace PicXAPI.Controllers
             {
                 _logger.LogError(ex, "Failed to retrieve categories.");
                 return StatusCode(500, new { error = "An error occurred while retrieving categories", details = ex.Message });
+            }
+        }
+
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAllProducts([FromQuery] int page = 1, [FromQuery] int limit = 10)
+        {
+            try
+            {
+                var skip = (page - 1) * limit;
+                var products = await _context.Products
+                    .Include(p => p.Category)
+                    .Include(p => p.Artist)
+                    .Select(p => new
+                    {
+                        ProductId = p.ProductId,
+                        Title = p.Title,
+                        Description = p.Description,
+                        Price = p.Price,
+                        CategoryId = p.Category.CategoryId,
+                        CategoryName = p.Category.Name,
+                        Medium = p.Medium,
+                        Dimensions = p.Dimensions,
+                        IsAvailable = p.IsAvailable,
+                        Tags = p.Tags,
+                        ImageFileId = p.ImageDriveId,
+                        AdditionalImages = p.AdditionalImages,
+                        Artist = new
+                        {
+                            Id = p.Artist.UserId,
+                            Name = p.Artist.Name
+                        },
+                        CreatedAt = p.CreatedAt,
+                        LikeCount = p.LikeCount
+                    })
+                    .Skip(skip)
+                    .Take(limit)
+                    .ToListAsync();
+
+                var totalProducts = await _context.Products.CountAsync();
+                var hasMore = skip + products.Count < totalProducts;
+
+                return Ok(new { products, hasMore, totalPages = (int)Math.Ceiling((double)totalProducts / limit) });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve all products.");
+                return StatusCode(500, new { error = "An error occurred while retrieving products", details = ex.Message });
             }
         }
 
@@ -191,28 +238,18 @@ namespace PicXAPI.Controllers
             }
         }
 
-        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetProduct(int id)
         {
             try
             {
                 var userId = await GetAuthenticatedUserId();
-                if (userId == null)
-                {
-                    _logger.LogWarning("User ID not found in token.");
-                    return Unauthorized(new { error = "User not authenticated" });
-                }
-
-                if (!await IsArtistOrAdmin(userId.Value))
-                {
-                    return Forbid();
-                }
+                var isAuthenticated = userId != null;
 
                 var product = await _context.Products
-                    .Where(p => p.ProductId == id && p.ArtistId == userId.Value)
+                    .Where(p => p.ProductId == id) // Use column name from schema
                     .Include(p => p.Category)
-                    .Include(p => p.Artist) // Join với bảng Users qua ArtistId
+                    .Include(p => p.Artist)
                     .Select(p => new
                     {
                         ProductId = p.ProductId,
@@ -224,29 +261,39 @@ namespace PicXAPI.Controllers
                         Dimensions = p.Dimensions,
                         IsAvailable = p.IsAvailable,
                         Tags = p.Tags,
-                        ImageFileId = p.ImageDriveId,
+                        ImageFileId = p.ImageDriveId, // Updated to match schema
                         AdditionalImages = p.AdditionalImages,
                         Artist = new
                         {
                             Id = p.Artist.UserId,
-                            Name = p.Artist.Name, // Giả định bảng Users có trường UserName
-                            CreatedAt = p.Artist.CreatedAt // Giả định bảng Users có trường CreatedAt
+                            Name = p.Artist.Name,
+                            CreatedAt = p.Artist.CreatedAt
                         },
-                        // Fake data cho cart, like, comment
-                        IsInCart = false, // Giả lập sản phẩm chưa có trong giỏ hàng
-                        LikeCount = 42, // Giả lập số lượt thích
-                        IsLiked = false, // Giả lập người dùng chưa thích
-                        Comments = new[]
+                        LikeCount = p.LikeCount, // Fetch from database
+                        Comments = _context.Comments
+                            .Where(c => c.ProductId == p.ProductId)
+                            .Select(c => new
+                            {
+                                Id = c.CommentId,
+                                UserName = c.User.Name, // Assuming Users table has a name field
+                                Content = c.Content,
+                                CreatedAt = c.CreatedAt
+                            })
+                            .ToList(),
+                        Permissions = new
                         {
-                    new { Id = 1, UserName = "ArtLover123", Content = "Amazing artwork!", CreatedAt = DateTime.UtcNow.AddDays(-5) },
-                    new { Id = 2, UserName = "CreativeMind", Content = "Love the colors!", CreatedAt = DateTime.UtcNow.AddDays(-3) }
+                            CanView = true, // All users can view
+                            CanLike = isAuthenticated, // Only authenticated users can like (placeholder until roles)
+                            CanComment = isAuthenticated, // Only authenticated users can comment (placeholder)
+                            CanAddToCart = isAuthenticated, // Only authenticated users can add to cart (placeholder)
+                            CanEdit = false // Edit disabled until role checks are added
                         }
                     })
                     .FirstOrDefaultAsync();
 
                 if (product == null)
                 {
-                    _logger.LogWarning($"Product with ID {id} not found or not owned by user {userId}.");
+                    _logger.LogWarning($"Product with ID {id} not found.");
                     return NotFound(new { error = "Product not found" });
                 }
 
