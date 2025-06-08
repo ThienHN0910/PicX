@@ -211,18 +211,3 @@ CREATE TABLE FinancialReports (
     generated_at DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (artist_id) REFERENCES Users(user_id) ON DELETE SET NULL
 );
-
-
--- Insert sample categories
-INSERT INTO Categories (name, description) VALUES 
-('Paintings', 'Traditional and digital paintings'),
-('Photography', 'Artistic photography and prints'),
-('Digital Art', 'Computer-generated and digital artwork'),
-('Sculptures', '3D artistic creations'),
-('Mixed Media', 'Artwork combining multiple mediums');
-
--- Sample data for testing
-INSERT INTO Users (name, email, password, role) VALUES 
-('Admin User', 'admin@picx.com', 'hashed_password', 'admin'),
-('John Artist', 'john@artist.com', 'hashed_password', 'artist'),
-('Jane Buyer', 'jane@buyer.com', 'hashed_password', 'buyer');
