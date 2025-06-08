@@ -46,13 +46,25 @@ export default function AddProduct() {
         fetchCategories();
     }, []);
 
+    // Function to get image dimensions
+    const getImageDimensions = (file: File): Promise<{ width: number; height: number }> => {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.src = URL.createObjectURL(file);
+            img.onload = () => {
+                resolve({ width: img.width, height: img.height });
+                URL.revokeObjectURL(img.src);
+            };
+        });
+    };
+
     // Handle drag and drop for main image
     const handleMainImageDragOver = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         e.stopPropagation();
     };
 
-    const handleMainImageDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    const handleMainImageDrop = async (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         e.stopPropagation();
         const files = e.dataTransfer.files;
@@ -61,13 +73,37 @@ export default function AddProduct() {
             if (file.type.startsWith('image/')) {
                 setValue('image', files);
                 setPreview(URL.createObjectURL(file));
+                // Get and set dimensions
+                const dimensions = await getImageDimensions(file);
+                setValue('dimensions', `${dimensions.width} x ${dimensions.height} pixels`);
             } else {
                 alert('Please drop an image file.');
             }
         }
     };
 
-    // Handle drag and drop for additional images
+    // Handle click to open file picker
+    const openMainImagePicker = () => {
+        mainImageInputRef.current?.click();
+    };
+
+    const openAdditionalImagesPicker = () => {
+        additionalImagesInputRef.current?.click();
+    };
+
+    // Handle main image change
+    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (files && files.length > 0) {
+            setValue('image', files);
+            setPreview(URL.createObjectURL(files[0]));
+            // Get and set dimensions
+            const dimensions = await getImageDimensions(files[0]);
+            setValue('dimensions', `${dimensions.width} x ${dimensions.height} pixels`);
+        }
+    };
+
+    // Handle additional images drag and drop
     const handleAdditionalImagesDragOver = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         e.stopPropagation();
@@ -86,24 +122,6 @@ export default function AddProduct() {
                 setValue('additionalImages', files);
                 setAdditionalPreviews(validFiles.map(file => URL.createObjectURL(file)));
             }
-        }
-    };
-
-    // Handle click to open file picker
-    const openMainImagePicker = () => {
-        mainImageInputRef.current?.click();
-    };
-
-    const openAdditionalImagesPicker = () => {
-        additionalImagesInputRef.current?.click();
-    };
-
-    // Handle main image change
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files;
-        if (files && files.length > 0) {
-            setValue('image', files);
-            setPreview(URL.createObjectURL(files[0]));
         }
     };
 
@@ -291,6 +309,7 @@ export default function AddProduct() {
                                     {...register('dimensions')}
                                     placeholder="e.g., 24 x 36 inches"
                                     error={errors.dimensions?.message}
+                                    readOnly // Make the dimensions field read-only since it's auto-filled
                                 />
                             </div>
                         </div>
