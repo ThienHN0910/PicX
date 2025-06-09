@@ -23,8 +23,6 @@ public partial class Products
 
     public string? Dimensions { get; set; }
 
-    public string? Medium { get; set; }
-
     public bool? IsAvailable { get; set; }
 
     public string? Tags { get; set; }

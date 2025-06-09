@@ -12,7 +12,6 @@ namespace PicXAPI.Models
         public decimal Price { get; set; }
         [Required]
         public string CategoryName { get; set; } // Use category name instead of ID
-        public string Medium { get; set; }
         public string Dimensions { get; set; }
         public bool IsAvailable { get; set; } = true;
         public string Tags { get; set; }

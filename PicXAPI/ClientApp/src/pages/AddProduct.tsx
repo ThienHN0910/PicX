@@ -140,7 +140,6 @@ export default function AddProduct() {
         formData.append('description', data.description);
         formData.append('price', data.price.toString());
         formData.append('categoryName', data.categoryName);
-        formData.append('medium', data.medium);
         formData.append('dimensions', data.dimensions);
         formData.append('tags', data.tags);
         if (data.image && data.image.length > 0) {
@@ -164,7 +163,7 @@ export default function AddProduct() {
             navigate('/products');
         } catch (error) {
             console.error('Error creating product:', error);
-            alert('Failed to create product. Ensure you are logged in as an artist and category is valid.');
+            alert(error);
         }
     };
 
@@ -294,15 +293,6 @@ export default function AddProduct() {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700">Medium</label>
-                                <Input
-                                    {...register('medium')}
-                                    placeholder="e.g., Oil on canvas"
-                                    error={errors.medium?.message}
-                                />
-                            </div>
-
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">Dimensions</label>
                                 <Input

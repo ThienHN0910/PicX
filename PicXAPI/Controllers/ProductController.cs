@@ -162,7 +162,6 @@ namespace PicXAPI.Controllers
                         Price = p.Price,
                         CategoryId = p.Category.CategoryId,
                         CategoryName = p.Category.Name,
-                        Medium = p.Medium,
                         Dimensions = p.Dimensions,
                         IsAvailable = p.IsAvailable,
                         Tags = p.Tags,
@@ -220,7 +219,6 @@ namespace PicXAPI.Controllers
                         Description = p.Description,
                         Price = p.Price,
                         CategoryName = p.Category.Name,
-                        Medium = p.Medium,
                         Dimensions = p.Dimensions,
                         IsAvailable = p.IsAvailable,
                         Tags = p.Tags,
@@ -257,7 +255,6 @@ namespace PicXAPI.Controllers
                         Description = p.Description,
                         Price = p.Price,
                         CategoryName = p.Category.Name,
-                        Medium = p.Medium,
                         Dimensions = p.Dimensions,
                         IsAvailable = p.IsAvailable,
                         Tags = p.Tags,
@@ -347,7 +344,6 @@ namespace PicXAPI.Controllers
                 product.Description = dto.Description;
                 product.Price = dto.Price;
                 product.CategoryId = category.CategoryId;
-                product.Medium = dto.Medium;
                 product.Dimensions = dto.Dimensions;
                 product.IsAvailable = dto.IsAvailable;
                 product.Tags = dto.Tags;
@@ -526,7 +522,6 @@ namespace PicXAPI.Controllers
                     ImageDriveId = mainImageFileId,
                     AdditionalImages = additionalImageIds.Any() ? JsonSerializer.Serialize(additionalImageIds) : null,
                     Dimensions = dto.Dimensions,
-                    Medium = dto.Medium,
                     IsAvailable = dto.IsAvailable,
                     Tags = dto.Tags,
                     LikeCount = 0,
@@ -547,7 +542,6 @@ namespace PicXAPI.Controllers
                         product.Description,
                         product.Price,
                         CategoryName = category.Name,
-                        product.Medium,
                         product.Dimensions,
                         product.IsAvailable,
                         product.Tags,
