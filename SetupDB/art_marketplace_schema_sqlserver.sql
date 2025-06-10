@@ -211,3 +211,22 @@ CREATE TABLE FinancialReports (
     generated_at DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (artist_id) REFERENCES Users(user_id) ON DELETE SET NULL
 );
+
+
+
+-- delete medium
+go
+ALTER TABLE Products
+DROP COLUMN medium;
+
+-- add table Cart
+go
+CREATE TABLE Carts (
+    cart_id INT IDENTITY(1,1) PRIMARY KEY,
+    user_id INT NOT NULL,
+    product_id INT NOT NULL,
+    added_at DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE NO ACTION,
+    FOREIGN KEY (product_id) REFERENCES Products(product_id) ON DELETE NO ACTION,
+    CONSTRAINT UQ_UserProduct UNIQUE (user_id, product_id) -- Prevent duplicate entries in cart
+);

@@ -11,7 +11,6 @@ interface ProductForm {
     description: string;
     price: number;
     categoryName: string;
-    medium: string;
     dimensions: string;
     tags: string;
     image: FileList;

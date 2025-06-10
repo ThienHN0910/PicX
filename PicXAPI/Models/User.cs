@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PicXAPI.Models;
+using System;
 using System.Collections.Generic;
 
 namespace PicX.Models;
@@ -52,4 +53,6 @@ public partial class User
     public virtual ICollection<Reporting> Reportings { get; set; } = new List<Reporting>();
 
     public virtual ICollection<Session> Sessions { get; set; } = new List<Session>();
+
+    public virtual ICollection<Cart> Carts { get; set; } = new List<Cart>();
 }

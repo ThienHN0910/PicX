@@ -62,7 +62,6 @@ export default function EditProduct() {
                     description: product.description || '',
                     price: product.price,
                     categoryName: product.categoryName,
-                    medium: product.medium || '',
                     dimensions: product.dimensions || '',
                     isAvailable: product.isAvailable,
                     tags: product.tags || '',
@@ -101,7 +100,6 @@ export default function EditProduct() {
             formData.append('description', data.description || '');
             formData.append('price', data.price.toString());
             formData.append('categoryName', data.categoryName);
-            formData.append('medium', data.medium || '');
             formData.append('dimensions', data.dimensions || '');
             formData.append('isAvailable', data.isAvailable.toString());
             formData.append('tags', data.tags || '');
