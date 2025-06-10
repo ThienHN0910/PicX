@@ -72,7 +72,7 @@ namespace PicXAPI.Controllers
                         productId = c.Product.ProductId,
                         title = c.Product.Title,
                         price = c.Product.Price,
-                        imageUrl = c.Product.ImageDriveId,
+                        image_url = c.Product.ImageDriveId != null ? $"/api/product/image/{c.Product.ImageDriveId}" : null,
                         artist = new { name = c.Product.Artist != null ? c.Product.Artist.Name : null }
                     }
                 })
@@ -82,7 +82,7 @@ namespace PicXAPI.Controllers
         }
 
         // --- POST: /api/cart - Add a product to the authenticated user's cart ---
-        [HttpPost]
+        [HttpPost("add")]
         public async Task<IActionResult> AddToCart([FromBody] CartDto cartDto)
         {
             var userId = await GetAuthenticatedUserId();
