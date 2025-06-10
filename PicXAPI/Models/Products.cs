@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PicXAPI.Models;
+using System;
 using System.Collections.Generic;
 
 namespace PicX.Models;
@@ -44,4 +45,6 @@ public partial class Products
     public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
 
     public virtual ICollection<Reporting> Reportings { get; set; } = new List<Reporting>();
+
+    public virtual ICollection<Cart> Carts { get; set; } = new List<Cart>();
 }

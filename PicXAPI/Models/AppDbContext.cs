@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using PicXAPI.Models;
 
 namespace PicX.Models;
 
@@ -44,6 +45,8 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<Session> Sessions { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
+
+    public virtual DbSet<Cart> Carts { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -365,9 +368,6 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.LikeCount)
                 .HasDefaultValue(0)
                 .HasColumnName("like_count");
-            entity.Property(e => e.Medium)
-                .HasMaxLength(100)
-                .HasColumnName("medium");
             entity.Property(e => e.Price)
                 .HasColumnType("decimal(10, 2)")
                 .HasColumnName("price");
@@ -497,6 +497,41 @@ public partial class AppDbContext : DbContext
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
                 .HasColumnName("updated_at");
+        });
+
+        modelBuilder.Entity<Cart>(entity =>
+        {
+            entity.HasKey(e => e.CartId).HasName("PK__Carts__51BCD7B7A8B1C5D9");
+
+            entity.ToTable("Carts");
+
+            entity.Property(e => e.CartId)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("cart_id");
+            entity.Property(e => e.UserId)
+                .HasColumnName("user_id");
+            entity.Property(e => e.ProductId)
+                .HasColumnName("product_id");
+            entity.Property(e => e.AddedAt)
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnName("added_at");
+
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.Carts)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .HasConstraintName("FK__Carts__user_id__4B7734EA");
+
+            entity.HasOne(d => d.Product)
+                .WithMany(p => p.Carts)
+                .HasForeignKey(d => d.ProductId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .HasConstraintName("FK__Carts__product_id__4C6B5933");
+
+            entity.HasIndex(e => new { e.UserId, e.ProductId })
+                .IsUnique()
+                .HasDatabaseName("UQ_UserProduct");
         });
 
         OnModelCreatingPartial(modelBuilder);

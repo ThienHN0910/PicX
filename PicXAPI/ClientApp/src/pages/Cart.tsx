@@ -7,7 +7,7 @@ import { Button } from '../components/ui/Button';
 const Cart = () => {
   const { cart, removeFromCart } = useStore();
   
-  const total = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const total = cart.reduce((sum, item) => sum + item.product.price, 0);
 
   if (cart.length === 0) {
     return (
@@ -58,22 +58,7 @@ const Cart = () => {
                   </button>
                 </div>
 
-                <div className="mt-4 flex items-end justify-between">
-                  <div className="flex items-center">
-                    <span className="text-gray-500 mr-2">Quantity:</span>
-                    <span className="font-medium">{item.quantity}</span>
-                  </div>
-                  <div className="flex items-baseline">
-                    <span className="text-lg font-medium text-gray-900">
-                      ${(item.product.price * item.quantity).toLocaleString()}
-                    </span>
-                    {item.quantity > 1 && (
-                      <span className="text-sm text-gray-500 ml-2">
-                        (${item.product.price.toLocaleString()} each)
-                      </span>
-                    )}
-                  </div>
-                </div>
+               
               </div>
             </div>
           ))}
