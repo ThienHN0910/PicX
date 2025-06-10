@@ -34,7 +34,6 @@ export interface Product {
   image_url?: string;
   additional_images?: string[];
   dimensions?: string;
-  medium?: string;
   is_available: boolean;
   tags?: string[];
   like_count: number;
@@ -117,4 +116,11 @@ export interface Notification {
   entity_id?: number;
   is_read: boolean;
   created_at: Date;
+}
+
+export interface Cart {
+    cart_id: number;
+    user_id: number;
+    product_id: number;
+    created_at: Date;
 }

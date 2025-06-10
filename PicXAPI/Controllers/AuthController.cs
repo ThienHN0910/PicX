@@ -29,42 +29,42 @@ namespace PicXAPI.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
-            if (string.IsNullOrEmpty(dto.Email) || string.IsNullOrEmpty(dto.Password))
-                return BadRequest(new { message = "Email và password không được để trống" });
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            // Kiểm tra email đã tồn tại chưa
-            var userExists = await _context.Users.AnyAsync(u => u.Email == dto.Email);
+            // Check if email already exists (case-insensitive)
+            var userExists = await _context.Users.AnyAsync(u => u.Email.ToLower() == dto.Email.ToLower());
             if (userExists)
-                return BadRequest(new { message = "Email đã được đăng ký" });
+                return BadRequest(new { message = "Email is already registed" });
 
             var user = new User
             {
-                Email = dto.Email,
+                Email = dto.Email.ToLower(), // Normalize email
                 Name = dto.Name,
                 CreatedAt = DateTime.UtcNow,
-                Role = "buyer"  // Gán role mặc định
+                Role = "buyer"
             };
 
             user.Password = _passwordHasher.HashPassword(user, dto.Password);
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Đăng ký thành công" });
+            return Ok(new { message = "Registor successfully" });
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
-            if (string.IsNullOrEmpty(dto.Email) || string.IsNullOrEmpty(dto.Password))
-                return BadRequest(new { message = "Email và password không được để trống" });
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
             var user = await _context.Users.SingleOrDefaultAsync(u => u.Email == dto.Email);
             if (user == null)
-                return Unauthorized(new { message = "Email hoặc mật khẩu không đúng" });
+                return Unauthorized(new { message = "Email or password is incorrect" });
 
             var result = _passwordHasher.VerifyHashedPassword(user, user.Password, dto.Password);
             if (result == PasswordVerificationResult.Failed)
-                return Unauthorized(new { message = "Email hoặc mật khẩu không đúng" });
+                return Unauthorized(new { message = "Email or password is incorrect" });
 
             var token = GenerateJwtToken(user);
 
@@ -89,7 +89,7 @@ namespace PicXAPI.Controllers
                 role = user.Role
             };
 
-            return Ok(new { user = userInfo, message = "Đăng nhập thành công" });
+            return Ok(new { user = userInfo, message = "Login success" });
         }
 
         [HttpPost("logout")]
@@ -102,7 +102,7 @@ namespace PicXAPI.Controllers
                 SameSite = SameSiteMode.Strict
             });
 
-            return Ok(new { message = "Đăng xuất thành công" });
+            return Ok(new { message = "Logout success" });
         }
 
         [HttpGet("me")]
@@ -111,7 +111,7 @@ namespace PicXAPI.Controllers
             // Lấy token từ cookie
             if (!Request.Cookies.TryGetValue("authToken", out var token) || string.IsNullOrEmpty(token))
             {
-                return Unauthorized(new { message = "Không tìm thấy token xác thực" });
+                return Unauthorized(new { message = "Not found token" });
             }
 
             try
@@ -122,13 +122,13 @@ namespace PicXAPI.Controllers
                 var userIdClaim = jwtToken.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
                 if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
                 {
-                    return Unauthorized(new { message = "Token không hợp lệ" });
+                    return Unauthorized(new { message = "Token invalid" });
                 }
 
                 var user = await _context.Users.FindAsync(userId);
                 if (user == null)
                 {
-                    return Unauthorized(new { message = "Người dùng không tồn tại" });
+                    return Unauthorized(new { message = "User not found" });
                 }
 
                 var userInfo = new
@@ -143,7 +143,7 @@ namespace PicXAPI.Controllers
             }
             catch (Exception)
             {
-                return Unauthorized(new { message = "Token không hợp lệ" });
+                return Unauthorized(new { message = "Token invalid" });
             }
         }
 

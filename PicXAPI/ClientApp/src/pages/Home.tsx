@@ -7,6 +7,7 @@ import { useStore } from '../lib/store';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import Masonry from 'react-masonry-css';
 import { Product } from '../lib/types';
+import axios from 'axios';
 
 export default function Home() {
     const [searchQuery, setSearchQuery] = useState('');
@@ -27,9 +28,23 @@ export default function Home() {
 
     console.log('hasMore:', hasMore, 'Page:', page, 'Filtered Products:', filteredProducts.length);
 
-    const handleAddToCart = (product: Product) => {
-        // Implement add to cart logic here, e.g., using the store
-        useStore.getState().addToCart(product);
+    const handleAddToCart = async (product: Product) => {
+        const cartDto = {
+            ProductId: product.product_id
+        }
+        try {
+            const res = await axios.post('/api/cart/add', cartDto, {
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                withCredentials: true,
+            })
+            console.log(res.data)
+        } catch(er) {
+            console.log(er)
+        }
+        
+
     };
 
     const handleLike = (product: Product) => {
