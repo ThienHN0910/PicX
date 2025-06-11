@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using PicX.Models;
 using PicXAPI.Dtos;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 
 namespace PicXAPI.Controllers;
@@ -51,12 +52,12 @@ public class OrdersController : ControllerBase
 
         var orders = await _context.Orders
             .Where(o => o.BuyerId == userId)
-            .Select(o => new OrderDto
+            .Select(o => new GetOrderDto
             {
                 OrderId = o.OrderId,
                 TotalAmount = o.TotalAmount,
                 OrderDate = o.OrderDate,
-                Details = o.OrderDetails.Select(od => new OrderDetailDto
+                Details = o.OrderDetails.Select(od => new GetOrderDetailDto
                 {
                     ProductTitle = od.Product.Title,
                     ImageUrl = od.Product.ImageDriveId,
@@ -77,10 +78,20 @@ public class OrdersController : ControllerBase
             return Unauthorized(new { message = "Login first" });
 
         var order = await _context.Orders
-            .Include(o => o.OrderDetails)
-                .ThenInclude(od => od.Product)
-            .Include(o => o.Payments)
-            .FirstOrDefaultAsync(o => o.OrderId == id && o.BuyerId == userId);
+            .Where(o => o.OrderId == id && o.BuyerId == userId)
+            .Select(o => new GetOrderDto
+            {
+                OrderId = o.OrderId,
+                TotalAmount = o.TotalAmount,
+                OrderDate = o.OrderDate,
+                Details = o.OrderDetails.Select(od => new GetOrderDetailDto
+                {
+                    ProductTitle = od.Product.Title,
+                    ImageUrl = od.Product.ImageDriveId,
+                    ArtistName = od.Product.Artist.Name
+                }).ToList()
+            })
+            .FirstOrDefaultAsync();
 
         if (order == null)
             return NotFound(new { message = "Order not found" });
@@ -90,22 +101,36 @@ public class OrdersController : ControllerBase
 
     // POST: api/orders
     [HttpPost]
-    public async Task<IActionResult> CreateOrder([FromBody] List<OrderDetail> orderDetails)
+    public async Task<IActionResult> CreateOrder([FromBody]  CreateOrderDto createOrder)
     {
         var userId = await GetAuthenticatedUserId();
         if (!userId.HasValue)
             return Unauthorized(new { message = "Login first" });
 
-        if (orderDetails == null || orderDetails.Count == 0)
+        if (createOrder == null || createOrder.Details.Count == 0)
             return BadRequest(new { message = "No order details provided" });
 
-        decimal total = orderDetails.Sum(od => od.TotalPrice);
+        var productId = createOrder.Details.Select(d => d.ProductId).ToList();
+        var products = await _context.Products
+                       .Where(p => productId.Contains(p.ProductId))
+                       .ToListAsync();
+
+        if(products.Count != productId.Count)
+            return BadRequest(new {message = "Some picture are invalid or no longer avaliable"});
+
+        var totalAmount = products.Sum(p => p.Price);
+        var orderDetails = products.Select(p => new OrderDetail
+        {
+            ProductId = p.ProductId,
+            TotalPrice = p.Price
+            
+        }).ToList();
 
         var order = new Order
         {
             BuyerId = userId.Value,
             OrderDate = DateTime.Now,
-            TotalAmount = total,
+            TotalAmount = totalAmount,
             OrderDetails = orderDetails
         };
 
@@ -114,6 +139,7 @@ public class OrdersController : ControllerBase
 
         return Ok(new { message = "Order created", orderId = order.OrderId });
     }
+
 
     // DELETE: api/orders/5
     [HttpDelete("{id}")]
@@ -134,6 +160,11 @@ public class OrdersController : ControllerBase
         _context.Orders.Remove(order);
         await _context.SaveChangesAsync();
 
-        return Ok(new { message = "Order deleted" });
+        return Ok(new 
+        { 
+            message = "Order deleted",
+            deletedOrderId = order.OrderId,
+            deletedProducts = order.OrderDetails.Select(od => od.ProductId).ToList()
+        });
     }
 }
