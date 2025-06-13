@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PicX.Models;
-using PicXAPI.Models;
+using PicXAPI.DTO;
 using System.IO;
 using System.Security.Claims;
 using System.Text.Json;
