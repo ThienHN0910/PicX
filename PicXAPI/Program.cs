@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using PicX.Models;
 using System.Text;
 using DotNetEnv;
+using System.Text.Json;
 
 namespace PicXAPI
 {
@@ -78,14 +79,14 @@ namespace PicXAPI
         policy
             .WithOrigins(
                 "http://localhost:5173" // local dev
-                //,"https://picx-client.onrender.com"
-                //,"https://picxapi.onrender.com" 
+                                        //,"https://picx-client.onrender.com"
+                                        //,"https://picxapi.onrender.com" 
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials());
 });
-            builder.Services.AddControllers().AddNewtonsoftJson();
+            //builder.Services.AddControllers().AddNewtonsoftJson();
             builder.Services.Configure<FormOptions>(options =>
             {
                 options.MultipartBodyLengthLimit = 104857600; // 100MB limit

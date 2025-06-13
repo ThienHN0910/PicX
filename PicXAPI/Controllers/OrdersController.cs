@@ -5,6 +5,8 @@ using PicXAPI.Dtos;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
+using System.Text.Json;
+using static NuGet.Packaging.PackagingConstants;
 
 namespace PicXAPI.Controllers;
 
@@ -57,11 +59,13 @@ public class OrdersController : ControllerBase
                 OrderId = o.OrderId,
                 TotalAmount = o.TotalAmount,
                 OrderDate = o.OrderDate,
-                Details = o.OrderDetails.Select(od => new GetOrderDetailDto
+                Items = o.OrderDetails.Select(od => new GetOrderDetailDto
                 {
+                    ProductId = od.ProductId,
                     ProductTitle = od.Product.Title,
+                    TotalPrice = od.Product.Price,
                     ImageUrl = od.Product.ImageDriveId,
-                    ArtistName = od.Product.Artist.Name
+                    ArtistName = od.Product.Artist.Name,
                 }).ToList()
             })
             .ToListAsync();
@@ -84,15 +88,17 @@ public class OrdersController : ControllerBase
                 OrderId = o.OrderId,
                 TotalAmount = o.TotalAmount,
                 OrderDate = o.OrderDate,
-                Details = o.OrderDetails.Select(od => new GetOrderDetailDto
+                Items = o.OrderDetails.Select(od => new GetOrderDetailDto
                 {
+                    ProductId = od.ProductId,
                     ProductTitle = od.Product.Title,
+                    TotalPrice = od.Product.Price,
                     ImageUrl = od.Product.ImageDriveId,
-                    ArtistName = od.Product.Artist.Name
+                    ArtistName = od.Product.Artist.Name,                    
                 }).ToList()
             })
             .FirstOrDefaultAsync();
-
+        
         if (order == null)
             return NotFound(new { message = "Order not found" });
 
@@ -107,10 +113,10 @@ public class OrdersController : ControllerBase
         if (!userId.HasValue)
             return Unauthorized(new { message = "Login first" });
 
-        if (createOrder == null || createOrder.Details.Count == 0)
+        if (createOrder == null || createOrder.Items.Count == 0)
             return BadRequest(new { message = "No order details provided" });
 
-        var productId = createOrder.Details.Select(d => d.ProductId).ToList();
+        var productId = createOrder.Items.Select(d => d.ProductId).ToList();
         var products = await _context.Products
                        .Where(p => productId.Contains(p.ProductId))
                        .ToListAsync();

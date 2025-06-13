@@ -38,12 +38,12 @@ const Cart: React.FC = () => {
         }
     };
 
-    const removeFromCart = async (productId: number) => {
+    const removeFromCart = async (cartId: number) => {
         try {
-            await axios.delete(`/api/cart/${productId}`, {
+            await axios.delete(`/api/cart/${cartId}`, {
                 headers: { 'Content-Type': 'application/json' },
             });
-            setCart(prevCart => prevCart.filter(item => item.productId !== productId));
+            setCart(prevCart => prevCart.filter(item => item.cartId !== cartId));
         } catch (err: any) {
             alert('Failed to remove item from cart. Please try again.');
         }
@@ -90,6 +90,33 @@ const Cart: React.FC = () => {
             </div>
         );
     }
+
+    const handleCheckout = async () => {
+        if (cart.length === 0) return;
+
+        const orderDto = {
+            items: cart.map(item => ({
+                productId: item.productId,
+                totalPrice: item.product.price
+            }))
+        };
+
+        try {
+            await axios.post('/api/orders', orderDto, {
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                withCredentials: true
+            });
+
+            alert("Order placed successfully!");
+            window.location.href = "/orders";
+        } catch (error: any) {
+            console.error("Checkout error:", error.response?.data || error);
+            alert("Failed to place order. " + (error.response?.data?.message || "Please try again."));
+        }
+    };
+
 
     return (
         <div className="max-w-4xl mx-auto py-8 px-4">
@@ -140,7 +167,7 @@ const Cart: React.FC = () => {
                         </p>
                     </div>
                     <div className="mt-6">
-                        <Button className="w-full">Proceed to Checkout</Button>
+                        <Button className="w-full" onClick={handleCheckout}>Proceed to Checkout</Button>
                     </div>
                 </div>
             </div>
