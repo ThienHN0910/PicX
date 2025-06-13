@@ -8,7 +8,7 @@ using System.Text;
 using DotNetEnv;
 using Microsoft.AspNetCore.SignalR;
 using PicXAPI.Controllers;
-
+using PicXAPI.Services;
 namespace PicXAPI
 {
     public class Program
@@ -25,6 +25,9 @@ namespace PicXAPI
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddSignalR();
+
+            builder.Services.AddHttpClient(); 
+            builder.Services.AddScoped<CrawlExhibitionService>(); 
 
             builder.Services.AddDbContext<AppDbContext>(option =>
                 option.UseSqlServer(builder.Configuration.GetConnectionString("PicX")));
