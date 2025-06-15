@@ -9,7 +9,7 @@ const OrderDetail = () => {
     
     interface OrderItem {
         productId: number;
-        title: string;
+        productTitle: string;
         totalPrice: number;
         imageUrl: string;
         artistName: string;
@@ -90,10 +90,6 @@ const OrderDetail = () => {
                             <Package className="h-5 w-5 text-gray-400" />
                             <span className="text-gray-600">Items: {order.items.length}</span>
                         </div>
-                        <div className="flex items-center space-x-2">
-                            <Truck className="h-5 w-5 text-gray-400" />
-                            <span className="text-gray-600">Shipping not implemented</span>
-                        </div>
                     </div>
                 </div>
 
@@ -104,12 +100,12 @@ const OrderDetail = () => {
                             <div key={item.productId} className="flex items-center space-x-4">
                                 <img
                                     src={item.imageUrl}
-                                    alt={item.title}
+                                    alt={item.productTitle}
                                     className="h-20 w-20 object-cover rounded-lg"
                                     onError={(e) => e.currentTarget.src = '/placeholder-image.jpg'}
                                 />
                                 <div className="flex-1">
-                                    <h3 className="text-lg font-medium text-gray-900">{item.title}</h3>
+                                    <h3 className="text-lg font-medium text-gray-900"> Picture Name: {item.productTitle}</h3>
                                     <p className="text-gray-600">Artist: {item.artistName ?? 'Unknown'}</p>
                                 </div>
                                 <p className="text-lg font-medium text-gray-900">${item.totalPrice.toFixed(2)}</p>
