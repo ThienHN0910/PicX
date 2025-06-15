@@ -5,6 +5,7 @@ using PicXAPI.Models;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.IdentityModel.Tokens.Jwt;
+using PicXAPI.DTO;
 
 namespace PicXAPI.Controllers
 {
