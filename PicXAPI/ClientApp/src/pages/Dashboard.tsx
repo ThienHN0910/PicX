@@ -71,6 +71,17 @@ const Dashboard = () => {
         fetchOrders();
     }, []);
 
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'Complete':
+                return 'text-green-600';
+            case 'Pending':
+                return 'text-yellow-500';
+            default:
+                return 'text-red-500';
+        }
+    };
+
 
     return (
         <div className="space-y-6">
@@ -100,16 +111,22 @@ const Dashboard = () => {
                         <ul className="space-y-3">
                             {orders.map(order => (
                                 <li key={order.orderId} className="bg-gray-50 rounded-md px-4 py-2 hover:bg-gray-100">
-                                    <Link to={`/orders/${order.orderId}`} className="flex justify-between items-center">
+                                    <Link to={`/orders/${order.orderId}`} className="block">
                                         <div>
-                                            <p className="text-sm font-medium text-indigo-700">
-                                                Order #{order.orderId}
-                                            </p>
-                                            <p className="text-sm text-gray-500">
-                                                {new Date(order.orderDate).toLocaleDateString()} — ${order.totalAmount}
+                                            <div className="flex justify-between items-center text-xs text-gray-500">
+                                                <p>
+                                                    OrderId: #{order.orderId} — {new Date(order.orderDate).toLocaleDateString()}
+                                                </p>
+                                                <p className={`font-medium text-sm ${getStatusColor("Complete")}`}>
+                                                    Complete
+                                                </p>
+                                            </div>
+
+                                            <p className="text-sm font-semibold text-gray-700 mt-1">
+                                                ${order.totalAmount.toLocaleString()}
                                             </p>
                                         </div>
-                                        <span className="text-sm text-gray-400">&gt;</span>
+
                                     </Link>
                                 </li>
                             ))}

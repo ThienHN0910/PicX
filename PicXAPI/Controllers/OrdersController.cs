@@ -64,7 +64,7 @@ public class OrdersController : ControllerBase
                     ProductId = od.ProductId,
                     ProductTitle = od.Product.Title,
                     TotalPrice = od.Product.Price,
-                    ImageUrl = od.Product.ImageDriveId,
+                    ImageUrl = "/api/product/image/" + od.Product.ImageDriveId,
                     ArtistName = od.Product.Artist.Name,
                 }).ToList()
             })
@@ -93,7 +93,7 @@ public class OrdersController : ControllerBase
                     ProductId = od.ProductId,
                     ProductTitle = od.Product.Title,
                     TotalPrice = od.Product.Price,
-                    ImageUrl = od.Product.ImageDriveId,
+                    ImageUrl = "/api/product/image/" + od.Product.ImageDriveId,
                     ArtistName = od.Product.Artist.Name,                    
                 }).ToList()
             })

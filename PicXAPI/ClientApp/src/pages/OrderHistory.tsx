@@ -86,7 +86,7 @@ const OrderHistory = () => {
                                                     Placed on {new Date(order.orderDate).toLocaleDateString()}
                                                 </p>
                                                 <p className="mt-1 sm:mt-0 sm:ml-6 text-sm text-gray-500">
-                                                    {order.orderDetails?.length || 0} {order.orderDetails?.length === 1 ? 'item' : 'items'}
+                                                    {order.items?.length || 0} {order.items?.length === 1 ? 'item' : 'items'}
                                                 </p>
                                             </div>
                                             <p className="text-sm font-medium text-gray-900">

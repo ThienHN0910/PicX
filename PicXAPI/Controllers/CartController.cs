@@ -23,7 +23,7 @@ namespace PicXAPI.Controllers
         {
             if (!Request.Cookies.TryGetValue("authToken", out var token) || string.IsNullOrEmpty(token))
             {
-                return null; 
+                return null;
             }
 
             try
@@ -35,7 +35,7 @@ namespace PicXAPI.Controllers
 
                 if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
                 {
-                    return null; 
+                    return null;
                 }
 
                 var user = await _context.Users.FindAsync(userId);
@@ -59,9 +59,9 @@ namespace PicXAPI.Controllers
             }
 
             var cartItems = await _context.Carts
-                .Where(c => c.UserId == userId.Value) 
+                .Where(c => c.UserId == userId.Value)
                 .Include(c => c.Product)
-                    .ThenInclude(p => p.Artist) 
+                    .ThenInclude(p => p.Artist)
                 .Select(c => new
                 {
                     cartId = c.CartId,
@@ -120,7 +120,7 @@ namespace PicXAPI.Controllers
             await _context.SaveChangesAsync();
 
 
-            return Ok(new { message = "Cart added success", cart = new Cart { UserId = cartItem.UserId, ProductId = cartItem.ProductId }  });
+            return Ok(new { message = "Cart added success", cart = new Cart { UserId = cartItem.UserId, ProductId = cartItem.ProductId } });
         }
 
         // --- DELETE: /api/cart/{cartId} - Remove an item from the authenticated user's cart ---
@@ -146,5 +146,26 @@ namespace PicXAPI.Controllers
 
             return Ok(new { message = "Remove successful" });
         }
+
+
+        [HttpPost("remove-multiple")]
+        public async Task<IActionResult> RemoveMultipleFromCart([FromBody] List<int> productIds)
+        {
+            var userId = await GetAuthenticatedUserId();
+            if (!userId.HasValue)
+            {
+                return Unauthorized(new { message = "Login first." });
+            }
+
+            var cartItemsToRemove = await _context.Carts
+                .Where(c => c.UserId == userId.Value && productIds.Contains(c.ProductId))
+                .ToListAsync();
+
+            _context.Carts.RemoveRange(cartItemsToRemove);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Selected cart items removed" });
+        }
+
     }
 }
