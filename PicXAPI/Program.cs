@@ -6,7 +6,9 @@ using Microsoft.IdentityModel.Tokens;
 using PicX.Models;
 using System.Text;
 using DotNetEnv;
-using System.Text.Json;
+using Microsoft.AspNetCore.SignalR;
+using PicXAPI.Controllers;
+using PicXAPI.Services;
 
 namespace PicXAPI
 {
@@ -19,11 +21,14 @@ namespace PicXAPI
             var jwtSettings = builder.Configuration.GetSection("Jwt");
             var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
 
-            // Add services to the container.
+            // Thêm dịch vụ
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddSignalR();
+
+            builder.Services.AddHttpClient(); 
+            builder.Services.AddScoped<CrawlExhibitionService>(); 
 
             builder.Services.AddDbContext<AppDbContext>(option =>
                 option.UseSqlServer(builder.Configuration.GetConnectionString("PicX")));
@@ -49,17 +54,14 @@ namespace PicXAPI
                     IssuerSigningKey = new SymmetricSecurityKey(key)
                 };
 
-                // Cấu hình để đọc token từ cookie
                 options.Events = new JwtBearerEvents
                 {
                     OnMessageReceived = context =>
                     {
-                        // Kiểm tra token trong cookie trước
                         if (context.Request.Cookies.ContainsKey("authToken"))
                         {
                             context.Token = context.Request.Cookies["authToken"];
                         }
-                        // Nếu không có trong cookie, kiểm tra Authorization header
                         else if (string.IsNullOrEmpty(context.Token))
                         {
                             var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
@@ -68,34 +70,39 @@ namespace PicXAPI
                                 context.Token = authHeader.Substring(7);
                             }
                         }
+                        if (string.IsNullOrEmpty(context.Token))
+                        {
+                            var accessToken = context.Request.Query["access_token"];
+                            if (!string.IsNullOrEmpty(accessToken))
+                            {
+                                context.Token = accessToken;
+                            }
+                        }
                         return Task.CompletedTask;
                     }
                 };
             });
 
             builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowReact", policy =>
-        policy
-            .WithOrigins(
-                "http://localhost:5173" // local dev
-                                        //,"https://picx-client.onrender.com"
-                                        //,"https://picxapi.onrender.com" 
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials());
-});
-            //builder.Services.AddControllers().AddNewtonsoftJson();
-            builder.Services.Configure<FormOptions>(options =>
             {
-                options.MultipartBodyLengthLimit = 104857600; // 100MB limit
+                options.AddPolicy("AllowReact", policy =>
+                    policy
+                        .WithOrigins("https://localhost:5173", "https://localhost:5174")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials());
             });
 
+            builder.Services.AddControllers().AddNewtonsoftJson();
+
+            builder.Services.Configure<FormOptions>(options =>
+            {
+                options.MultipartBodyLengthLimit = 104857600; // 100MB
+            });
 
             var app = builder.Build();
             Console.WriteLine($"GOOGLE_APPLICATION_CREDENTIALS: {Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS")}");
-            // Configure the HTTP request pipeline.
+
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -107,6 +114,7 @@ namespace PicXAPI
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
+            app.MapHub<PrivateChatHub>("/chatHub");
 
             app.Run();
         }

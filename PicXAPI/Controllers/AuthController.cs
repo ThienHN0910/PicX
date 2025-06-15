@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PicX.Models;
-using PicXAPI.Models;
+using PicXAPI.DTO;
 
 namespace PicXAPI.Controllers
 {
@@ -71,9 +71,9 @@ namespace PicXAPI.Controllers
             // Set token in HTTP-only cookie
             var cookieOptions = new CookieOptions
             {
-                HttpOnly = true, // Không thể truy cập từ JavaScript
-                Secure = true,   // Chỉ gửi qua HTTPS (set false nếu dev không dùng HTTPS)
-                SameSite = SameSiteMode.Strict, // CSRF protection
+                HttpOnly = true,
+                Secure = true, // BẮT BUỘC khi SameSite=None
+                SameSite = SameSiteMode.None, // Cho phép gửi cookie cross-origin
                 Expires = DateTime.UtcNow.AddHours(int.Parse(_config.GetSection("Jwt")["ExpireHours"])),
                 Path = "/"
             };
