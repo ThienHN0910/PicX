@@ -1,6 +1,5 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -8,6 +7,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PicX.Models;
 using PicXAPI.DTO;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace PicXAPI.Controllers
 {
@@ -145,6 +147,75 @@ namespace PicXAPI.Controllers
             {
                 return Unauthorized(new { message = "Token invalid" });
             }
+        }
+
+        [HttpGet("google")]
+        public IActionResult GoogleLogin()
+        {
+            var properties = new AuthenticationProperties
+            {
+                RedirectUri = "https://localhost:5173/api/auth/google/callback" // Buộc redirect_uri
+            };
+            Console.WriteLine($"Initiating Google OAuth with RedirectUri: {properties.RedirectUri}");
+            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+        }
+
+        [HttpGet("google/callback")]
+        public async Task<IActionResult> GoogleCallback()
+        {
+            var authenticateResult = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
+            if (!authenticateResult.Succeeded)
+            {
+                Console.WriteLine($"Authentication failed: {authenticateResult.Failure?.Message}");
+                Console.WriteLine($"Request Query: {HttpContext.Request.QueryString}");
+                Console.WriteLine($"Cookies: {string.Join(", ", HttpContext.Request.Cookies.Keys)}");
+                return BadRequest(new { message = "Google authentication failed", details = authenticateResult.Failure?.Message });
+            }
+            var tokens = authenticateResult.Properties.GetTokens();
+            var scope = tokens.FirstOrDefault(t => t.Name == "scope")?.Value;
+            Console.WriteLine($"Scopes granted: {scope}");
+
+            var claims = authenticateResult.Principal.Claims;
+            var email = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            var name = claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+
+            if (string.IsNullOrEmpty(email))
+                return BadRequest(new { message = "Email not provided by Google" });
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
+            if (user == null)
+            {
+                // Đăng ký người dùng mới
+                user = new User
+                {
+                    Email = email.ToLower(),
+                    Name = name ?? "Google User",
+                    Role = "buyer",
+                    Password = "", // Không cần mật khẩu
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    EmailVerified = true // Email từ Google được coi là đã xác minh
+                };
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+            }
+
+            // Tạo JWT token
+            var token = GenerateJwtToken(user);
+
+            // Lưu token vào cookie
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTime.UtcNow.AddHours(int.Parse(_config.GetSection("Jwt")["ExpireHours"])),
+                Path = "/"
+            };
+            Response.Cookies.Append("authToken", token, cookieOptions);
+
+            // Trả về URL redirect cho frontend
+            return Redirect("https://localhost:5173");
         }
 
         // Hàm tạo token JWT
