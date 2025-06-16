@@ -1,14 +1,15 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using DotNetEnv;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PicX.Models;
-using System.Text;
-using DotNetEnv;
-using Microsoft.AspNetCore.SignalR;
 using PicXAPI.Controllers;
 using PicXAPI.Services;
+using System.Text;
 namespace PicXAPI
 {
     public class Program
@@ -38,6 +39,13 @@ namespace PicXAPI
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            })
+            .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+            {
+                options.Cookie.SameSite = SameSiteMode.None;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.Cookie.HttpOnly = true;
             })
             .AddJwtBearer(options =>
             {
@@ -80,6 +88,19 @@ namespace PicXAPI
                         return Task.CompletedTask;
                     }
                 };
+            })
+            .AddGoogle(options =>
+            {
+                options.ClientId = builder.Configuration["Google:ClientId"];
+                options.ClientSecret = builder.Configuration["Google:ClientSecret"];
+                options.CallbackPath = "/api/auth/google/callback";
+                options.SaveTokens = true;
+                options.Scope.Add("https://www.googleapis.com/auth/userinfo.email");
+                options.Scope.Add("https://www.googleapis.com/auth/userinfo.profile");
+                options.CorrelationCookie.SameSite = SameSiteMode.None;
+                options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.CorrelationCookie.Domain = "localhost";
+                options.CorrelationCookie.HttpOnly = true;
             });
 
             builder.Services.AddCors(options =>

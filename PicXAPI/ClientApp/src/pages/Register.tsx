@@ -47,8 +47,7 @@ const Register = () => {
 
 
     const handleGoogleRegister = () => {
-        // TODO: Implement Google OAuth registration
-        console.log('Google register clicked');
+        window.location.href = 'https://localhost:5173/api/auth/google'
     };
 
     const handleFacebookRegister = () => {

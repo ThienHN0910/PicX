@@ -2,25 +2,32 @@
 import react from '@vitejs/plugin-react';
 import fs from 'fs';
 
-// https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
-  optimizeDeps: {
-    exclude: ['lucide-react'],
-  },
-  server: {
-    https: {
-      key: fs.readFileSync('./localhost-key.pem'),
-      cert: fs.readFileSync('./localhost-cert.pem'),
+    plugins: [react()],
+    optimizeDeps: {
+        exclude: ['lucide-react'],
     },
-    port: 5173,
-    proxy: {
-      '/api': {
-        target: 'https://localhost:7162',
-        changeOrigin: true,
-        secure: false,
-        cookieDomainRewrite: "localhost", // Ghi đè domain cookie để client nhận được
-      },
+    server: {
+        https: {
+            key: fs.readFileSync('./localhost-key.pem'),
+            cert: fs.readFileSync('./localhost-cert.pem'),
+        },
+        port: 5173,
+        proxy: {
+            '/api': {
+                target: 'https://localhost:7162',
+                changeOrigin: true,
+                secure: false,
+                cookieDomainRewrite: "localhost",
+                configure: (proxy, options) => {
+                    proxy.on('proxyReq', (proxyReq, req, res) => {
+                        console.log(`Proxying ${req.url} to ${options.target}${req.url}`);
+                    });
+                    proxy.on('error', (err, req, res) => {
+                        console.error(`Proxy error: ${err.message}`);
+                    });
+                },
+            },
+        },
     },
-  },
 });
