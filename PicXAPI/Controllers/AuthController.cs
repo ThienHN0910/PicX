@@ -155,13 +155,16 @@ namespace PicXAPI.Controllers
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var expireHours = int.Parse(jwtSettings["ExpireHours"]);
 
+
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.UserId.ToString()),
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                 new Claim(ClaimTypes.Name, user.Name),
                 new Claim(ClaimTypes.Role, user.Role ?? "buyer"),
-                new Claim("email", user.Email)
+                new Claim("email", user.Email),
+                new Claim("user_id", user.UserId.ToString())
+
             };
 
             var token = new JwtSecurityToken(

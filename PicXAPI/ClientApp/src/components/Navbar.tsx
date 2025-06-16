@@ -67,19 +67,33 @@ const Navbar = () => {
                                     </button>
 
                                     {/* Dropdown Menu */}
-                                    <div className={`absolute right-0 w-48 mt-2 py-2 bg-white rounded-lg shadow-xl border border-gray-200 z-50 transition-all duration-200 ${isDropdownOpen ? 'opacity-100 visible transform translate-y-0' : 'opacity-0 invisible transform -translate-y-2'
-                                        }`}>
+                                    <div className={`absolute right-0 w-48 mt-2 py-2 bg-white rounded-lg shadow-xl border border-gray-200 z-50 transition-all duration-200 ${isDropdownOpen ? 'opacity-100 visible transform translate-y-0' : 'opacity-0 invisible transform -translate-y-2'}`}>
+
+                                        {/* Common to all users */}
                                         <Link to="/profile" className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors">
                                             Profile
                                         </Link>
-                                        <Link to="/dashboard" className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors">
-                                            Dashboard
-                                        </Link>
-                                        {['artist', 'admin'].includes(user.role) && (
-                                            <Link to="/products" className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors">
-                                                Manage Products
+
+                                        {/* Buyer-specific */}
+                                        {user.role === 'buyer' && (
+                                            <Link to="/orders" className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors">
+                                                View Orders
                                             </Link>
                                         )}
+
+                                        {/* Artist & Admin */}
+                                        {['artist', 'admin'].includes(user.role) && (
+                                            <>
+                                                <Link to="/dashboard" className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors">
+                                                    Dashboard
+                                                </Link>
+                                                <Link to="/products" className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors">
+                                                    Manage Products
+                                                </Link>
+                                            </>
+                                        )}
+
+                                        {/* Admin-only */}
                                         {user.role === 'admin' && (
                                             <>
                                                 <Link to="/users" className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors">
@@ -90,6 +104,7 @@ const Navbar = () => {
                                                 </Link>
                                             </>
                                         )}
+
                                         <hr className="my-1 border-gray-200" />
                                         <button
                                             onClick={handleLogout}
@@ -117,6 +132,7 @@ const Navbar = () => {
             </div>
         </nav>
     );
+    
 };
 
 export default Navbar;
