@@ -9,6 +9,7 @@ using DotNetEnv;
 using Microsoft.AspNetCore.SignalR;
 using PicXAPI.Controllers;
 using PicXAPI.Services;
+using PicXAPI.Helper;
 namespace PicXAPI
 {
     public class Program
@@ -33,6 +34,7 @@ namespace PicXAPI
                 option.UseSqlServer(builder.Configuration.GetConnectionString("PicX")));
 
             builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+            builder.Services.AddScoped<IEmailService, EmailService>();
 
             builder.Services.AddAuthentication(options =>
             {
