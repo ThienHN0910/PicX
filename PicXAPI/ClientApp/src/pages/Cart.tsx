@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Trash2, ShoppingCart } from 'lucide-react';
 import axios from 'axios';
@@ -13,10 +13,21 @@ interface CartItem {
     product: Product;
 }
 
+
 const Cart: React.FC = () => {
     const [cart, setCart] = useState<CartItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
+
+    const toggleProduct = (productId: number) => {
+        setSelectedProductIds(prev =>
+            prev.includes(productId)
+                ? prev.filter(id => id !== productId)
+                : [...prev, productId]
+        );
+    };
 
     const fetchCart = async () => {
         try {
@@ -38,12 +49,12 @@ const Cart: React.FC = () => {
         }
     };
 
-    const removeFromCart = async (productId: number) => {
+    const removeFromCart = async (cartId: number) => {
         try {
-            await axios.delete(`/api/cart/${productId}`, {
+            await axios.delete(`/api/cart/${cartId}`, {
                 headers: { 'Content-Type': 'application/json' },
             });
-            setCart(prevCart => prevCart.filter(item => item.productId !== productId));
+            setCart(prevCart => prevCart.filter(item => item.cartId !== cartId));
         } catch (err: any) {
             alert('Failed to remove item from cart. Please try again.');
         }
@@ -53,7 +64,10 @@ const Cart: React.FC = () => {
         fetchCart();
     }, []);
 
-    const total = cart.reduce((sum, item) => sum + item.product.price, 0);
+    const total = cart
+        .filter(item => selectedProductIds.includes(item.productId))
+        .reduce((sum, item) => sum + item.product.price, 0);
+
 
     if (loading) {
         return (
@@ -91,6 +105,77 @@ const Cart: React.FC = () => {
         );
     }
 
+    //const handleCheckout = async () => {
+    //    if (cart.length === 0) return;
+
+    //    const orderDto = {
+    //        items: cart.map(item => ({
+    //            productId: item.productId,
+    //            totalPrice: item.product.price
+    //        }))
+    //    };
+
+    //    try {
+    //        await axios.post('/api/orders', orderDto, {
+    //            headers: {
+    //                'Content-Type': 'application/json'
+    //            },
+    //            withCredentials: true
+    //        });
+
+    //        alert("Order placed successfully!");
+    //        window.location.href = "/orders";
+    //    } catch (error: any) {
+    //        console.error("Checkout error:", error.response?.data || error);
+    //        alert("Failed to place order. " + (error.response?.data?.message || "Please try again."));
+    //    }
+    //};
+
+    const handleCheckout = async () => {
+        const selectedItems = cart.filter(item =>
+            selectedProductIds.includes(item.productId)
+        );
+
+        if (selectedItems.length === 0) {
+            alert("Please select product to checkout.");
+            return;
+        }
+
+        const orderDto = {
+            items: selectedItems.map(item => ({
+                productId: item.productId,
+                totalPrice: item.product.price
+            }))
+        };
+
+        try {
+            await axios.post('/api/orders', orderDto, {
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                withCredentials: true
+            });
+
+            await axios.post('/api/cart/remove-multiple', selectedProductIds, {
+                headers: { 'Content-Type': 'application/json' },
+                withCredentials: true
+            });
+
+            setCart(prev => prev.filter(item =>
+                !selectedProductIds.includes(item.productId)
+            ));
+            setSelectedProductIds([]);
+
+            alert("Thanh toán thành công!");
+            window.location.href = "/orders";
+        } catch (error: any) {
+            console.error("Checkout error:", error.response?.data || error);
+            alert("Có lỗi xảy ra khi thanh toán.");
+        }
+    };
+
+
+
     return (
         <div className="max-w-4xl mx-auto py-8 px-4">
             <h1 className="text-2xl font-bold text-gray-900 mb-8">Shopping Cart</h1>
@@ -98,6 +183,12 @@ const Cart: React.FC = () => {
                 <div className="divide-y divide-gray-200">
                     {cart.map((item) => (
                         <div key={item.cartId} className="p-6 flex items-center">
+                            <input
+                                type="checkbox"
+                                className="mr-4"
+                                checked={selectedProductIds.includes(item.productId)}
+                                onChange={() => toggleProduct(item.productId)}
+                            />
                             <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md">
                                 <img
                                     src={item.product.image_url}
@@ -107,7 +198,7 @@ const Cart: React.FC = () => {
                                         e.currentTarget.src = '/placeholder-image.jpg';
                                     }}
                                 />
-                            </div>
+                                input</div> 
                             <div className="ml-6 flex-1">
                                 <div className="flex items-start justify-between">
                                     <div>
@@ -122,7 +213,7 @@ const Cart: React.FC = () => {
                                         </p>
                                     </div>
                                     <button
-                                        onClick={() => removeFromCart(item.productId)}
+                                        onClick={() => removeFromCart(item.cartId)}
                                         className="text-gray-400 hover:text-red-500"
                                     >
                                         <Trash2 className="h-5 w-5" />
@@ -140,7 +231,7 @@ const Cart: React.FC = () => {
                         </p>
                     </div>
                     <div className="mt-6">
-                        <Button className="w-full">Proceed to Checkout</Button>
+                        <Button className="w-full" onClick={handleCheckout}>Proceed to Checkout</Button>
                     </div>
                 </div>
             </div>

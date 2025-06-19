@@ -1,6 +1,8 @@
 ﻿import React from 'react';
 import { useStore } from '../lib/store';
+
 import ArtistFinanceReport from '../pages/ArtistFinanceReport';
+
 
 const Dashboard = () => {
     const { user } = useStore();

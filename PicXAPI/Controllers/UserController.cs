@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PicX.Models;
-using PicXAPI.Models;
+using PicXAPI.DTO;
 
 namespace PicXAPI.Controllers
 {

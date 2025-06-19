@@ -1,4 +1,4 @@
-﻿namespace PicXAPI.Models
+﻿namespace PicXAPI.DTO
 {
     public class ProfileDto
     {
