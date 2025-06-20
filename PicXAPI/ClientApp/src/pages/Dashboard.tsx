@@ -2,7 +2,7 @@
 import { useStore } from '../lib/store';
 
 import ArtistFinanceReport from '../pages/ArtistFinanceReport';
-
+import AdminFinanceReport from '../pages/AdminFinanceReport';
 
 const Dashboard = () => {
     const { user } = useStore();
@@ -14,14 +14,14 @@ const Dashboard = () => {
                 <p className="text-gray-600">Welcome back, {user?.name || 'User'}</p>
             </div>
 
-           
             <div className="space-y-6">
-                { user?.role === 'artist' ? (
+                {user?.role === 'admin' ? (
+                    <AdminFinanceReport />
+                ) : user?.role === 'artist' ? (
                     <ArtistFinanceReport />
                 ) : (
-                    <p className="text-gray-500"> </p>
+                    <p className="text-gray-500">No dashboard available for this role.</p>
                 )}
-
             </div>
         </div>
     );

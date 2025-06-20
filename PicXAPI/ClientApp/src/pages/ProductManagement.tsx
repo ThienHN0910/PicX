@@ -258,7 +258,7 @@ export default function ProductManagement() {
                                     Cancel
                                 </Button>
                                 <Button
-                                    variant="destructive"
+                                    variant="outline"
                                     disabled={deleting}
                                     onClick={async () => {
                                         try {
