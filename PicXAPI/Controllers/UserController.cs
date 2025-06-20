@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using PicX.Models;
-using PicXAPI.DTO;
+using PicXAPI.Models;
+using PicXAPI.DTOs;
 
 namespace PicXAPI.Controllers
 {

@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { Upload, Plus, X } from 'lucide-react';
+import { Upload, Plus } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import axios from 'axios';
+import Loading from '../components/Loading';
 
 interface ProductForm {
     title: string;
@@ -27,7 +28,7 @@ export default function AddProduct() {
     const [categories, setCategories] = useState<string[]>([]);
     const [isLoadingCategories, setIsLoadingCategories] = useState(true);
     const [categoryError, setCategoryError] = useState<string | null>(null);
-
+    const [isLoading, setIsLoading] = useState(false); 
     useEffect(() => {
         const fetchCategories = async () => {
             try {
@@ -134,6 +135,7 @@ export default function AddProduct() {
     };
 
     const onSubmit = async (data: ProductForm) => {
+        setIsLoading(true);
         const formData = new FormData();
         formData.append('title', data.title);
         formData.append('description', data.description);
@@ -163,6 +165,8 @@ export default function AddProduct() {
         } catch (error) {
             console.error('Error creating product:', error);
             alert(error);
+        } finally {
+            setIsLoading(false); 
         }
     };
 
@@ -322,9 +326,13 @@ export default function AddProduct() {
                     >
                         Cancel
                     </Button>
-                    <Button type="submit">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Create Listing
+                     <Button type="submit" disabled={isLoading}>
+                        {isLoading ? <Loading /> : (
+                            <>
+                                <Plus className="h-4 w-4 mr-2" />
+                                Create Listing
+                            </>
+                        )}
                     </Button>
                 </div>
             </form>

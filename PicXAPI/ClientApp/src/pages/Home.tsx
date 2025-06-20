@@ -8,6 +8,7 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import Masonry from 'react-masonry-css';
 import { Product } from '../lib/types';
 import axios from 'axios';
+import Loading from '../components/Loading';
 
 export default function Home() {
     const [searchQuery, setSearchQuery] = useState('');
@@ -78,7 +79,7 @@ export default function Home() {
                     dataLength={filteredProducts.length}
                     next={() => fetchProducts()}
                     hasMore={hasMore}
-                    loader={<h4 className="text-center text-gray-500">Loading...</h4>}
+                    loader={<Loading />}
                     endMessage={<p className="text-center text-gray-500">No more products</p>}
                     scrollableTarget="html" // Use browser scrollbar
                 >

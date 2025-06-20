@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using PicX.Models;
+using PicXAPI.Models;
 using System.Text;
 using DotNetEnv;
 using Microsoft.AspNetCore.SignalR;
