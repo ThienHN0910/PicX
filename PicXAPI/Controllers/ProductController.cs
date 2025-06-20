@@ -3,17 +3,13 @@ using Google.Apis.Drive.v3;
 using Google.Apis.Drive.v3.Data;
 using Google.Apis.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using PicX.Models;
-using PicXAPI.DTO;
-using System.IO;
+using PicXAPI.Models;
+using PicXAPI.DTOs;
 using System.Security.Claims;
 using System.Text.Json;
-using static System.Net.WebRequestMethods;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+
 
 namespace PicXAPI.Controllers
 {

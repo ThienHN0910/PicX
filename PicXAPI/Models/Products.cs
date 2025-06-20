@@ -1,8 +1,5 @@
-﻿using PicXAPI.Models;
-using System;
-using System.Collections.Generic;
-
-namespace PicX.Models;
+﻿
+namespace PicXAPI.Models;
 
 public partial class Products
 {
@@ -28,7 +25,7 @@ public partial class Products
 
     public string? Tags { get; set; }
 
-    public int? LikeCount { get; set; }
+    public int LikeCount { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 
