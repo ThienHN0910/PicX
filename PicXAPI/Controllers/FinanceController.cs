@@ -63,7 +63,7 @@ namespace PicXAPI.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine("❌ Admin API Error: " + ex.Message);
+                Console.WriteLine("Admin API Error: " + ex.Message);
                 return StatusCode(500, new { message = ex.Message });
             }
         }
