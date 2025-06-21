@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using PicX.Models;
+using PicXAPI.Models;
 using System.Security.Claims;
 
 namespace PicXAPI.Controllers
