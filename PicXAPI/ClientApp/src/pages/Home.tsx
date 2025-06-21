@@ -13,7 +13,7 @@ import Loading from '../components/Loading';
 export default function Home() {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
-    const { products, categories, fetchProducts, fetchCategories, hasMore, page } = useStore();
+    const { products, categories, fetchProducts, fetchCategories, hasMore, page, user, setProducts } = useStore();
 
     useEffect(() => {
         fetchCategories();
@@ -44,13 +44,38 @@ export default function Home() {
         } catch(er) {
             console.log(er)
         }
-        
-
     };
 
-    const handleLike = (product: Product) => {
-        // Implement like logic here if needed
-        console.log('Liked product:', product.product_id);
+    const handleLike = async (product: Product) => {
+        if (!user?.user_id) {
+            console.error('User not logged in');
+            // Optionally: Show a toast or redirect to login
+            return;
+        }
+
+        const favoriteDto = {
+            userId: user.user_id,
+            productId: product.product_id
+        };
+
+        try {
+            const res = await axios.post('/api/favorites', favoriteDto, {
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                withCredentials: true,
+            });
+            console.log('Liked product:', res.data);
+
+            // Update local products state to increment like_count
+            setProducts(products.map(p =>
+                p.product_id === product.product_id
+                    ? { ...p, like_count: p.like_count + 1 }
+                    : p
+            ));
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     return (
