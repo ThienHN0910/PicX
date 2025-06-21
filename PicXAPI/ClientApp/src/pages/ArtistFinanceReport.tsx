@@ -11,6 +11,7 @@ import {
     Bar
 } from 'recharts';
 import { DollarSign, TrendingUp, LineChart, PiggyBank } from 'lucide-react';
+import Loading from '../components/Loading';
 
 type FinanceData = {
     month: string;
@@ -56,7 +57,7 @@ const ArtistFinanceReport: React.FC = () => {
             .finally(() => setLoading(false));
     }, []);
 
-    if (loading) return <p className="text-gray-500">Loading data...</p>;
+    if (loading) return <Loading />;
 
     if (!stats || stats.length === 0) {
         return (
