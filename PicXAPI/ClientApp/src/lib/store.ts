@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import axios from 'axios';
-import type { User, Product, Category } from './types';
+import type { User, Product, Category, Favorite } from './types';
 
 interface AppState {
     user: User | null;
@@ -9,6 +9,7 @@ interface AppState {
     cart: { product: Product; quantity: number }[];
     hasMore: boolean;
     page: number;
+    favorites: Favorite[];
     setUser: (user: User | null) => void;
     setProducts: (products: Product[]) => void;
     setCategories: (categories: Category[]) => void;
@@ -17,15 +18,18 @@ interface AppState {
     clearCart: () => void;
     fetchProducts: (initial?: boolean) => Promise<void>;
     fetchCategories: () => Promise<void>;
+    setFavorites: (favorites: Favorite[]) => void;
+    fetchFavorites: (id: number) => Promise<void>;
 }
 
-export const useStore = create<AppState>((set) => ({
+export const useStore = create<AppState>((set, get) => ({
     user: null,
     products: [],
     categories: [],
     cart: [],
     hasMore: true,
     page: 1,
+    favorites: [],
     setUser: (user) => set({ user }),
     setProducts: (products) => set({ products }),
     setCategories: (categories) => set({ categories }),
@@ -52,7 +56,7 @@ export const useStore = create<AppState>((set) => ({
         if (!initial && !get().hasMore) return;
         try {
             const currentPage = initial ? 1 : get().page + 1;
-            console.log('Fetching products, page:', currentPage); // Debug log
+            console.log('Fetching products, page:', currentPage);
             const response = await axios.get('/api/product/all', {
                 params: { page: currentPage, limit: 10 },
             });
@@ -62,7 +66,7 @@ export const useStore = create<AppState>((set) => ({
                 set({ hasMore: false });
                 return;
             }
-            const { products, hasMore = false } = data; // Default hasMore to false if undefined
+            const { products, hasMore = false } = data;
             const mappedProducts: Product[] = products.map((item: any) => ({
                 product_id: item.productId,
                 title: item.title,
@@ -70,7 +74,6 @@ export const useStore = create<AppState>((set) => ({
                 price: item.price,
                 category_id: item.categoryId,
                 category_name: item.categoryName,
-                medium: item.medium,
                 dimensions: item.dimensions,
                 is_available: item.isAvailable,
                 tags: item.tags ? (typeof item.tags === 'string' ? item.tags.split(',').map((tag: string) => tag.trim()) : item.tags) : [],
@@ -83,16 +86,17 @@ export const useStore = create<AppState>((set) => ({
                 },
                 created_at: item.createdAt ? new Date(item.createdAt) : new Date(),
                 like_count: item.likeCount || 0,
+                is_favorited: false
             }));
             set((state) => ({
                 products: initial ? mappedProducts : [...state.products, ...mappedProducts],
                 hasMore,
                 page: currentPage,
             }));
-            console.log('Fetched products, hasMore:', hasMore); // Debug log
+            console.log('Fetched products, hasMore:', hasMore);
         } catch (error) {
             console.error('Error fetching products:', error);
-            set({ hasMore: false }); // Stop further fetches on error
+            set({ hasMore: false });
         }
     },
     fetchCategories: async () => {
@@ -105,6 +109,45 @@ export const useStore = create<AppState>((set) => ({
             set({ categories });
         } catch (error) {
             console.error('Error fetching categories:', error);
+        }
+    },
+    setFavorites: (favorites) => set({ favorites }),
+    fetchFavorites: async (id) => {
+        try {
+            console.log('Fetching favorites for user:', id);
+            const response = await axios.get(`/api/favorites/user/${id}`, {
+                withCredentials: true,
+            });
+            const favorites = response.data;
+            if (!favorites || !Array.isArray(favorites)) {
+                console.error('Invalid favorites response:', favorites);
+                set({ favorites: [] });
+                return;
+            }
+            const mappedFavorites: Favorite[] = favorites.map((item: any) => ({
+                favorite_id : item.favoriteId,
+                product_id: item.productId,
+                title: item.productName,
+                description: item.description,
+                price: item.price,
+                dimensions: item.dimensions,
+                is_available: item.isAvailable,
+                tags: item.tags || [],
+                image_url: item.imageUrl ? `/api/product/image/${item.imageUrl}` : undefined,
+                additional_images: item.additionalImages ? JSON.parse(item.additionalImages) : [],
+                artist: {
+                    id: item.artist.id,
+                    name: item.artist.name,
+                },
+                created_at: item.createdAt ? new Date(item.createdAt) : new Date(),
+                like_count: item.likeCount || 0,
+                is_favorited: true
+            }));
+            set({ favorites: mappedFavorites });
+            console.log('Fetched favorites:', mappedFavorites);
+        } catch (error) {
+            console.error('Error fetching favorites:', error);
+            set({ favorites: [] });
         }
     },
 }));

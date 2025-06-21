@@ -27,7 +27,7 @@ export default function Home() {
         return matchesSearch && matchesCategory;
     });
 
-    console.log('hasMore:', hasMore, 'Page:', page, 'Filtered Products:', filteredProducts.length);
+    console.log('hasMore:', hasMore, 'Page:', page, 'Filtered Products:', filteredProducts);
 
     const handleAddToCart = async (product: Product) => {
         const cartDto = {
@@ -47,14 +47,14 @@ export default function Home() {
     };
 
     const handleLike = async (product: Product) => {
-        if (!user?.user_id) {
-            console.error('User not logged in');
+        if (!user?.id) {
+            console.error('User not logged in', user );
             // Optionally: Show a toast or redirect to login
             return;
         }
 
         const favoriteDto = {
-            userId: user.user_id,
+            userId: user.id,
             productId: product.product_id
         };
 

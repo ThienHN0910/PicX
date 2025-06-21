@@ -35,9 +35,11 @@ namespace PicXAPI.Controllers
             var products = await _context.Favorites
                 .Where(f => f.UserId == userId)
                 .Include(f => f.Product)
+                .Include(p => p.Product.Artist) // Include artist details
                 .OrderByDescending(f => f.CreatedAt) // Newest first
                 .Select(f => new
                 {
+                    FavoriteId = f.FavoriteId,
                     ProductId = f.Product.ProductId,
                     ProductName = f.Product.Title,
                     Description = f.Product.Description,
@@ -50,7 +52,12 @@ namespace PicXAPI.Controllers
                         : null,
                     IsAvailable = f.Product.IsAvailable,
                     LikeCount = f.Product.LikeCount,
-                    CreatedAt = f.CreatedAt // When the product was favorited
+                    CreatedAt = f.CreatedAt, // When the product was favorited
+                    Artist = new
+                    {
+                        Id = f.Product.Artist.UserId,
+                        Name = f.Product.Artist.Name,
+                    },
                 })
                 .ToListAsync();
 
@@ -107,7 +114,6 @@ namespace PicXAPI.Controllers
                 message = "Favorite created successfully",
                 favorite = new
                 {
-                    favorite.FavoriteId,
                     favorite.UserId,
                     favorite.ProductId,
                     CreatedAt = favorite.CreatedAt
@@ -135,18 +141,32 @@ namespace PicXAPI.Controllers
             _context.Favorites.Remove(favorite);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok();
         }
 
         // Helper method to get a favorite by ID (used for CreatedAtAction)
-        private async Task<ActionResult<FavoriteDto>> GetFavorite(int id)
+        [HttpGet("{id}")]
+        private async Task<ActionResult<Favorite>> GetFavorite(int id)
         {
             var favorite = await _context.Favorites
-                .Select(f => new FavoriteDto
+                .Include(f => f.Product)
+                .Select(f => new Favorite
                 {
                     FavoriteId = f.FavoriteId,
                     UserId = f.UserId,
-                    ProductId = f.ProductId,
+                    Product = new Products
+                    {
+                        ProductId = f.Product.ProductId,
+                        Title = f.Product.Title,
+                        Description = f.Product.Description,
+                        Price = f.Product.Price,
+                        ImageDriveId = f.Product.ImageDriveId,
+                        AdditionalImages = f.Product.AdditionalImages,
+                        Dimensions = f.Product.Dimensions,
+                        Tags = f.Product.Tags,
+                        IsAvailable = f.Product.IsAvailable,
+                        LikeCount = f.Product.LikeCount
+                    },
                     CreatedAt = f.CreatedAt
                 })
                 .FirstOrDefaultAsync(f => f.FavoriteId == id);
