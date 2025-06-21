@@ -1,5 +1,5 @@
 export interface User {
-  user_id: number;
+  id: number;
   name: string;
   email: string;
   role: 'guest' | 'buyer' | 'artist' | 'admin';
