@@ -24,6 +24,8 @@ import Finance from './pages/Finance';
 import { AuthProvider, useAuth } from './components/AuthProvider';
 import ArtistProfile from './pages/ArtistProfile';
 import ArtistFinanceReport from './pages/ArtistFinanceReport';
+import AdminOrders from './pages/AdminOrders';
+import ArtistOrders from './pages/ArtistOrders';
 const ProtectedRoute = ({ children }) => {
     const { isAuthenticated, loading } = useAuth();
 
@@ -159,6 +161,9 @@ function App() {
                                 /* </ProtectedRoute> */
                             } />
 
+                            <Route path="/artist/orders" element={<ArtistOrders />} />
+                            <Route path="/artist/order/:id" element={<OrderDetail />} />
+
             /* Admin only routes */
                             <Route path="/users" element={
                                 // <ProtectedRoute allowedRoles={['admin']}>
@@ -170,6 +175,8 @@ function App() {
                                 <Finance />
                                 /* </ProtectedRoute> */
                             } />
+                            <Route path="/admin/orders" element={<AdminOrders />} />
+                            <Route path="/admin/order/:id" element={<OrderDetail />} />
                         </Routes>
                     </main>
                     <ToastContainer position="top-right" autoClose={3000} />

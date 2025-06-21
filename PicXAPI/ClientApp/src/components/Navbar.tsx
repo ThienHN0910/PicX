@@ -93,11 +93,23 @@ const Navbar = () => {
                                             </>
                                         )}
 
+                                        {/* Artist-only */}
+                                        {['artist'].includes(user.role) && (
+                                            <>
+                                                <Link to="/artist/orders" className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors">
+                                                    Orders List
+                                                </Link>
+                                            </>
+                                        )}
+
                                         {/* Admin-only */}
                                         {user.role === 'admin' && (
                                             <>
                                                 <Link to="/users" className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors">
                                                     User List
+                                                </Link>
+                                                <Link to="/admin/orders" className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors">
+                                                    Orders Management
                                                 </Link>
                                                 <Link to="/finance" className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors">
                                                     Finance
