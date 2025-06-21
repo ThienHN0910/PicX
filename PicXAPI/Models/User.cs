@@ -51,7 +51,7 @@ public partial class User
     public virtual ICollection<Session> Sessions { get; set; } = new List<Session>();
 
     public virtual ICollection<Cart> Carts { get; set; } = new List<Cart>();
-    public string? ResetToken { get; set; }
-    public DateTime? ResetTokenExpiry { get; set; }
+    // public string? ResetToken { get; set; }
+    // public DateTime? ResetTokenExpiry { get; set; }
 
 }
