@@ -1,12 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using PicX.Models;
-using PicXAPI.Dtos;
+using PicXAPI.Models;
+using PicXAPI.DTOs;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
-using System.Text.Json;
-using static NuGet.Packaging.PackagingConstants;
 
 namespace PicXAPI.Controllers;
 
@@ -122,7 +119,7 @@ public class OrdersController : ControllerBase
         return Ok(result);
     }
 
-
+    //HttpGet for only Artist
     [HttpGet("artist")]
     public async Task<IActionResult> GetOrdersForArtist()
     {
@@ -156,6 +153,7 @@ public class OrdersController : ControllerBase
         return Ok(new { orders });
     }
 
+    //HttpGet for only Admin
     [HttpGet("admin")]
     public async Task<IActionResult> GetAllOrdersForAdmin()
     {
@@ -187,6 +185,7 @@ public class OrdersController : ControllerBase
         return Ok(new { orders });
     }
 
+    //HttpGet Artist list for Admin
     [HttpGet("admin/artists")]
     public async Task<IActionResult> GetAllArtists()
     {
@@ -208,6 +207,7 @@ public class OrdersController : ControllerBase
         return Ok(artists);
     }
 
+    //HttpGet specific Artist for Admin
     [HttpGet("admin/by-artist/{artistId}")]
     public async Task<IActionResult> GetOrdersByArtist(int artistId)
     {

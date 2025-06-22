@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace PicX.Models;
+namespace PicXAPI.Models;
 
 public partial class User
 {

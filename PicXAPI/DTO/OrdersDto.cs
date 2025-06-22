@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace PicXAPI.Dtos
+namespace PicXAPI.DTOs
 {
     public class GetOrderDto
     {

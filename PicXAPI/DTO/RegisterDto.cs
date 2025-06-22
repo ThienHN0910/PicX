@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace PicXAPI.DTO
+namespace PicXAPI.DTOs
 {
     public class RegisterDto
     {

@@ -1,4 +1,4 @@
-﻿using PicX.Models;
+﻿using PicXAPI.Models;
 
 namespace PicXAPI.Models
 {
