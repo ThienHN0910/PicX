@@ -1,11 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using PicX.Models;
 using PicXAPI.Models;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using System.IdentityModel.Tokens.Jwt;
-using PicXAPI.DTO;
+using PicXAPI.DTOs;
 
 namespace PicXAPI.Controllers
 {
