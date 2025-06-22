@@ -1,6 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-
 namespace PicXAPI.Models;
 
 public partial class ArtistProfile

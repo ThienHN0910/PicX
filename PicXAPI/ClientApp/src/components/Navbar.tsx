@@ -73,6 +73,9 @@ const Navbar = () => {
                                         <Link to="/profile" className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors">
                                             Profile
                                         </Link>
+                                        <Link to="/favorite" className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors">
+                                            Favorite Picture
+                                        </Link>
 
                                         {/* Buyer-specific */}
                                         {user.role === 'buyer' && (
@@ -80,7 +83,13 @@ const Navbar = () => {
                                                 View Orders
                                             </Link>
                                         )}
-
+                                         {['artist'].includes(user.role) && (
+                                            <>
+                                                <Link to="/products" className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors">
+                                                    Manage Products
+                                                </Link>
+                                            </>
+                                        )}
                                         {/* Artist & Admin */}
                                         {['artist', 'admin'].includes(user.role) && (
                                             <>

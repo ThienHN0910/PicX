@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Heart, Share2, ShoppingCart, Edit } from 'lucide-react';
 import axios from 'axios';
 import { Button } from '../components/ui/Button';
+import Loading from '../components/Loading';
 
 interface Comment {
     id: number;
@@ -108,7 +109,7 @@ const ArtDetail = () => {
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-[50vh]">
-                <p className="text-gray-500">Loading...</p>
+                <Loading />
             </div>
         );
     }

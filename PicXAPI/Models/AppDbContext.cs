@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
-using PicXAPI.Models;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace PicXAPI.Models;
 
