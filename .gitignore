@@ -88,6 +88,8 @@ packages/
 *.cer
 *.p12
 *.key
+*.pem
+*.crt
 
 # Tệp môi trường phát triển
 .env

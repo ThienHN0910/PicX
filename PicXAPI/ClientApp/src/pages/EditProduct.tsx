@@ -5,13 +5,13 @@ import { Upload, Save, ArrowLeft } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import axios from 'axios';
+import Loading from '../components/Loading';
 
 interface ProductForm {
     title: string;
     description: string;
     price: number;
     categoryName: string;
-    medium: string;
     dimensions: string;
     isAvailable: boolean;
     tags: string;
@@ -73,7 +73,7 @@ export default function EditProduct() {
                 setExistingImageId(product.imageFileId);
                 const additionalImageIds = product.additionalImages ? JSON.parse(product.additionalImages) : [];
                 setCurrentAdditionalImages(
-                    additionalImageIds.map(id => `/api/product/image/${id}`)
+                    additionalImageIds.map((id: string) => `/api/product/image/${id}`)
                 );
                 setExistingAdditionalImageIds(additionalImageIds);
 
@@ -188,7 +188,7 @@ export default function EditProduct() {
     };
 
     if (isLoading) {
-        return <div className="text-center py-8">Loading...</div>;
+        return <Loading />;
     }
 
     if (error) {
@@ -355,16 +355,6 @@ export default function EditProduct() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label htmlFor="medium" className="block text-sm font-medium text-gray-700">Medium</label>
-                                <Input
-                                    id="medium"
-                                    {...register('medium')}
-                                    placeholder="E.g., Oil on canvas"
-                                    error={errors.medium?.message}
-                                />
-                            </div>
-
-                            <div>
                                 <label htmlFor="dimensions" className="block text-sm font-medium text-gray-700">Dimensions</label>
                                 <Input
                                     id="dimensions"
@@ -404,7 +394,7 @@ export default function EditProduct() {
                         Cancel
                     </Button>
                     <Button type="submit" disabled={isSubmitting}>
-                        {isSubmitting ? 'Saving...' : 'Save Changes'}
+                        {isSubmitting ? <Loading /> : 'Save Changes'}
                         <Save className="w-4 h-4 mr-2" />
                     </Button>
                 </div>

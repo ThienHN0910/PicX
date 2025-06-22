@@ -24,6 +24,7 @@ import Finance from './pages/Finance';
 import { AuthProvider, useAuth } from './components/AuthProvider';
 import ArtistProfile from './pages/ArtistProfile';
 import ArtistFinanceReport from './pages/ArtistFinanceReport';
+import Favorites from './pages/Favorites';
 import AdminOrders from './pages/AdminOrders';
 import ArtistOrders from './pages/ArtistOrders';
 const ProtectedRoute = ({ children }) => {
@@ -105,6 +106,14 @@ function App() {
                                 element={
                                     <ProtectedRoute>
                                         <Profile />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/favorite"
+                                element={
+                                    <ProtectedRoute>
+                                        <Favorites />
                                     </ProtectedRoute>
                                 }
                             />

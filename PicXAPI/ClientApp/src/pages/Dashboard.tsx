@@ -10,8 +10,7 @@ const Dashboard = () => {
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-                <p className="text-gray-600">Welcome back, {user?.name || 'User'}</p>
+                <h1 className="text-2xl font-bold text-gray-900">Finances Report</h1>
             </div>
 
             <div className="space-y-6">
@@ -20,7 +19,7 @@ const Dashboard = () => {
                 ) : user?.role === 'artist' ? (
                     <ArtistFinanceReport />
                 ) : (
-                    <p className="text-gray-500">No dashboard available for this role.</p>
+                    <p className="text-gray-500">No Report available for this role.</p>
                 )}
             </div>
         </div>

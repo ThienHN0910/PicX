@@ -6,24 +6,6 @@ import axios from 'axios';
 
 
 const OrderHistory = () => {
-    // Placeholder data - replace with actual data from your store/API
-    //const orders = [
-    //    {
-    //        id: '1',
-    //        date: '2025-03-15',
-    //        total: 299.99,
-    //        status: 'Delivered',
-    //        items: 2
-    //    },
-    //    {
-    //        id: '2',
-    //        date: '2025-03-10',
-    //        total: 149.99,
-    //        status: 'Processing',
-    //        items: 1
-    //    }
-    //];
-
     const [orders, setOrders] = useState([]);
 
     useEffect(() => {
