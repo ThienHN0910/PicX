@@ -4,6 +4,7 @@ import { Plus, Search, Edit2, Trash2, Eye } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import axios from 'axios';
+import Loading from '../components/Loading';
 
 interface Product {
     productId: number;
@@ -11,7 +12,6 @@ interface Product {
     description: string;
     price: number;
     categoryName: string;
-    medium: string;
     dimensions: string;
     isAvailable: boolean;
     tags: string;
@@ -50,7 +50,7 @@ export default function ProductManagement() {
     );
 
     if (isLoading) {
-        return <div className="text-center py-8">Loading products...</div>;
+        return <Loading/>;
     }
 
     if (error) {
@@ -86,9 +86,12 @@ export default function ProductManagement() {
             </div>
 
             <div className="bg-white rounded-lg shadow overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
+                <table className="max-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions
+                            </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Product
                             </th>
@@ -102,9 +105,6 @@ export default function ProductManagement() {
                                 Category
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Medium
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Dimensions
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -115,9 +115,6 @@ export default function ProductManagement() {
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Status
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Actions
                             </th>
                         </tr>
                     </thead>
@@ -136,6 +133,28 @@ export default function ProductManagement() {
 
                             return (
                                 <tr key={product.productId}>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <div className="flex items-center space-x-3">
+                                            <Link
+                                                to={`/art/${product.productId}`}
+                                                className="text-gray-400 hover:text-gray-500"
+                                            >
+                                                <Eye className="h-5 w-5" />
+                                            </Link>
+                                            <Link
+                                                to={`/products/edit/${product.productId}`}
+                                                className="text-indigo-400 hover:text-indigo-500"
+                                            >
+                                                <Edit2 className="h-5 w-5" />
+                                            </Link>
+                                            <button
+                                                className="text-red-400 hover:text-red-500"
+                                                onClick={() => setProductToDelete(product)}
+                                            >
+                                                <Trash2 className="h-5 w-5" />
+                                            </button>
+                                        </div>
+                                    </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center">
                                             <div className="h-10 w-10 flex-shrink-0">
@@ -170,11 +189,6 @@ export default function ProductManagement() {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm text-gray-500">
                                             {product.categoryName}
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm text-gray-500">
-                                            {product.medium || 'N/A'}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
@@ -218,28 +232,6 @@ export default function ProductManagement() {
                                             {product.isAvailable ? 'Available' : 'Sold'}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <div className="flex items-center space-x-3">
-                                            <Link
-                                                to={`/art/${product.productId}`}
-                                                className="text-gray-400 hover:text-gray-500"
-                                            >
-                                                <Eye className="h-5 w-5" />
-                                            </Link>
-                                            <Link
-                                                to={`/products/edit/${product.productId}`}
-                                                className="text-indigo-400 hover:text-indigo-500"
-                                            >
-                                                <Edit2 className="h-5 w-5" />
-                                            </Link>
-                                            <button
-                                                className="text-red-400 hover:text-red-500"
-                                                onClick={() => setProductToDelete(product)}
-                                            >
-                                                <Trash2 className="h-5 w-5" />
-                                            </button>
-                                        </div>
-                                    </td>
                                 </tr>
                             );
                         })}
@@ -258,7 +250,7 @@ export default function ProductManagement() {
                                     Cancel
                                 </Button>
                                 <Button
-                                    variant="destructive"
+                                    variant="outline"
                                     disabled={deleting}
                                     onClick={async () => {
                                         try {

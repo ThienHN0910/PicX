@@ -6,10 +6,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using PicX.Models;
+using PicXAPI.Models;
+using System.Text;
 using PicXAPI.Controllers;
 using PicXAPI.Services;
-using System.Text;
+using PicXAPI.Helper;
 namespace PicXAPI
 {
     public class Program
@@ -27,13 +28,14 @@ namespace PicXAPI
             builder.Services.AddSwaggerGen();
             builder.Services.AddSignalR();
 
-            builder.Services.AddHttpClient(); 
-            builder.Services.AddScoped<CrawlExhibitionService>(); 
+            builder.Services.AddHttpClient();
+            builder.Services.AddScoped<CrawlExhibitionService>();
 
             builder.Services.AddDbContext<AppDbContext>(option =>
                 option.UseSqlServer(builder.Configuration.GetConnectionString("PicX")));
 
             builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+            builder.Services.AddScoped<IEmailService, EmailService>();
 
             builder.Services.AddAuthentication(options =>
             {
@@ -114,6 +116,7 @@ namespace PicXAPI
             });
 
             builder.Services.AddControllers().AddNewtonsoftJson();
+
             builder.Services.Configure<FormOptions>(options =>
             {
                 options.MultipartBodyLengthLimit = 104857600; // 100MB

@@ -1,15 +1,15 @@
-﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Http;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using PicX.Models;
-using PicXAPI.DTO;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+using PicXAPI.Models;
+using PicXAPI.DTOs;
 
 namespace PicXAPI.Controllers
 {
@@ -226,13 +226,16 @@ namespace PicXAPI.Controllers
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var expireHours = int.Parse(jwtSettings["ExpireHours"]);
 
+
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.UserId.ToString()),
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                 new Claim(ClaimTypes.Name, user.Name),
                 new Claim(ClaimTypes.Role, user.Role ?? "buyer"),
-                new Claim("email", user.Email)
+                new Claim("email", user.Email),
+                new Claim("user_id", user.UserId.ToString())
+
             };
 
             var token = new JwtSecurityToken(
