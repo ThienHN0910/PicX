@@ -8,11 +8,12 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import Masonry from 'react-masonry-css';
 import { Product } from '../lib/types';
 import axios from 'axios';
+import Loading from '../components/Loading';
 
 export default function Home() {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
-    const { products, categories, fetchProducts, fetchCategories, hasMore, page } = useStore();
+    const { products, categories, fetchProducts, fetchCategories, hasMore, page, user, setProducts } = useStore();
 
     useEffect(() => {
         fetchCategories();
@@ -26,7 +27,7 @@ export default function Home() {
         return matchesSearch && matchesCategory;
     });
 
-    console.log('hasMore:', hasMore, 'Page:', page, 'Filtered Products:', filteredProducts.length);
+    console.log('hasMore:', hasMore, 'Page:', page, 'Filtered Products:', filteredProducts);
 
     const handleAddToCart = async (product: Product) => {
         const cartDto = {
@@ -43,13 +44,38 @@ export default function Home() {
         } catch(er) {
             console.log(er)
         }
-        
-
     };
 
-    const handleLike = (product: Product) => {
-        // Implement like logic here if needed
-        console.log('Liked product:', product.product_id);
+    const handleLike = async (product: Product) => {
+        if (!user?.id) {
+            console.error('User not logged in', user );
+            // Optionally: Show a toast or redirect to login
+            return;
+        }
+
+        const favoriteDto = {
+            userId: user.id,
+            productId: product.product_id
+        };
+
+        try {
+            const res = await axios.post('/api/favorites', favoriteDto, {
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                withCredentials: true,
+            });
+            console.log('Liked product:', res.data);
+
+            // Update local products state to increment like_count
+            setProducts(products.map(p =>
+                p.product_id === product.product_id
+                    ? { ...p, like_count: p.like_count + 1 }
+                    : p
+            ));
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     return (
@@ -78,7 +104,7 @@ export default function Home() {
                     dataLength={filteredProducts.length}
                     next={() => fetchProducts()}
                     hasMore={hasMore}
-                    loader={<h4 className="text-center text-gray-500">Loading...</h4>}
+                    loader={<Loading />}
                     endMessage={<p className="text-center text-gray-500">No more products</p>}
                     scrollableTarget="html" // Use browser scrollbar
                 >

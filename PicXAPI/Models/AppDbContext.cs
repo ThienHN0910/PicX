@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
-using PicXAPI.Models;
+﻿using Microsoft.EntityFrameworkCore;
 
-namespace PicX.Models;
+namespace PicXAPI.Models;
 
 public partial class AppDbContext : DbContext
 {

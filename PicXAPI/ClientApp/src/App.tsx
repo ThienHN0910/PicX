@@ -24,6 +24,7 @@ import Finance from './pages/Finance';
 import { AuthProvider, useAuth } from './components/AuthProvider';
 import ArtistProfile from './pages/ArtistProfile';
 import ArtistFinanceReport from './pages/ArtistFinanceReport';
+import Favorites from './pages/Favorites';
 const ProtectedRoute = ({ children }) => {
     const { isAuthenticated, loading } = useAuth();
 
@@ -103,6 +104,14 @@ function App() {
                                 element={
                                     <ProtectedRoute>
                                         <Profile />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path="/favorite"
+                                element={
+                                    <ProtectedRoute>
+                                        <Favorites />
                                     </ProtectedRoute>
                                 }
                             />

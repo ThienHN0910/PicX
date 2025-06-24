@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace PicX.Models;
+namespace PicXAPI.Models;
 
 public partial class Favorite
 {
