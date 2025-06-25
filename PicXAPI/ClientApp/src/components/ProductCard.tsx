@@ -24,7 +24,7 @@ export const ProductCard = ({ product, onLike, onAddToCart }: ProductCardProps) 
                     className="w-full h-auto object-cover rounded-lg shadow-md transition-opacity duration-300 group-hover:opacity-80"
                     onClick={handleImageClick}
                     onError={(e) => {
-                        e.currentTarget.src = '/placeholder-image.jpg';
+                        e.currentTarget.src = '../resource/img/placeholder-image.png';
                     }}
                 />
             ) : (
