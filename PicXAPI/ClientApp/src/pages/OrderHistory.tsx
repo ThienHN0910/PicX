@@ -4,15 +4,20 @@ import { useStore } from '../lib/store';
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
-
 const OrderHistory = () => {
     const [orders, setOrders] = useState([]);
+
+    // Helper to get auth header
+    const getAuthHeader = () => {
+        const token = localStorage.getItem('authToken');
+        return token ? { Authorization: `Bearer ${token}` } : {};
+    };
 
     useEffect(() => {
         const fetchOrders = async () => {
             try {
                 const res = await axios.get('/api/orders', {
-                    withCredentials: true
+                    headers: getAuthHeader()
                 });
                 // Giả sử response trả về { orders: [...] }
                 const sorted = res.data.orders.sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate));
@@ -24,7 +29,6 @@ const OrderHistory = () => {
 
         fetchOrders();
     }, []);
-
 
     return (
         <div className="max-w-4xl mx-auto">

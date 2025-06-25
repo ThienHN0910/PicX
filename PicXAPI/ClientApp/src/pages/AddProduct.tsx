@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+﻿import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { Upload, Plus } from 'lucide-react';
@@ -29,22 +29,32 @@ export default function AddProduct() {
     const [isLoadingCategories, setIsLoadingCategories] = useState(true);
     const [categoryError, setCategoryError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false); 
+    const token = localStorage.getItem("authToken");
     useEffect(() => {
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+            setCategoryError("Bạn chưa đăng nhập.");
+            setIsLoadingCategories(false);
+            return;
+        }
+
         const fetchCategories = async () => {
             try {
                 const response = await axios.get('/api/product/categories', {
+                    headers: { Authorization: `Bearer ${token}` },
                     withCredentials: true
                 });
                 setCategories(response.data.map((c: { name: string }) => c.name));
-                setIsLoadingCategories(false);
             } catch (error) {
-                console.error('Error fetching categories:', error);
-                setCategoryError('Failed to load categories. Please try again.');
+                console.error('Lỗi khi lấy danh mục:', error);
+                setCategoryError('Không thể tải danh mục. Vui lòng thử lại.');
+            } finally {
                 setIsLoadingCategories(false);
             }
         };
         fetchCategories();
     }, []);
+
 
     // Function to get image dimensions
     const getImageDimensions = (file: File): Promise<{ width: number; height: number }> => {
@@ -135,6 +145,12 @@ export default function AddProduct() {
     };
 
     const onSubmit = async (data: ProductForm) => {
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+            alert("Bạn cần đăng nhập để tạo sản phẩm.");
+            return;
+        }
+
         setIsLoading(true);
         const formData = new FormData();
         formData.append('title', data.title);
@@ -143,32 +159,35 @@ export default function AddProduct() {
         formData.append('categoryName', data.categoryName);
         formData.append('dimensions', data.dimensions);
         formData.append('tags', data.tags);
-        if (data.image && data.image.length > 0) {
+
+        if (data.image?.[0]) {
             formData.append('image', data.image[0]);
         }
 
-        if (data.additionalImages && data.additionalImages.length > 0) {
-            Array.from(data.additionalImages).forEach((file) => {
-                formData.append('additionalImages', file);
-            });
+        if (data.additionalImages?.length > 0) {
+            Array.from(data.additionalImages).forEach((file) =>
+                formData.append('additionalImages', file)
+            );
         }
 
         try {
             const response = await axios.post('/api/product/add', formData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data'
+                    'Content-Type': 'multipart/form-data',
+                    'Authorization': `Bearer ${token}`,
                 },
                 withCredentials: true
             });
-            console.log('Product created:', response.data);
+            console.log('Tạo sản phẩm thành công:', response.data);
             navigate('/products');
-        } catch (error) {
-            console.error('Error creating product:', error);
-            alert(error);
+        } catch (error: any) {
+            console.error('Lỗi khi tạo sản phẩm:', error);
+            alert(error.response?.data?.message || 'Lỗi không xác định');
         } finally {
-            setIsLoading(false); 
+            setIsLoading(false);
         }
     };
+
 
     return (
         <div className="max-w-4xl mx-auto py-8 px-4">

@@ -20,7 +20,13 @@ interface AppState {
     fetchCategories: () => Promise<void>;
     setFavorites: (favorites: Favorite[]) => void;
     fetchFavorites: (id: number) => Promise<void>;
+    fetchAndSetUser: () => Promise<void>;
 }
+
+const getAuthHeader = () => {
+    const token = localStorage.getItem("authToken");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
 export const useStore = create<AppState>((set, get) => ({
     user: null,
@@ -56,7 +62,6 @@ export const useStore = create<AppState>((set, get) => ({
         if (!initial && !get().hasMore) return;
         try {
             const currentPage = initial ? 1 : get().page + 1;
-            console.log('Fetching products, page:', currentPage);
             const response = await axios.get('/api/product/all', {
                 params: { page: currentPage, limit: 10 },
             });
@@ -93,7 +98,6 @@ export const useStore = create<AppState>((set, get) => ({
                 hasMore,
                 page: currentPage,
             }));
-            console.log('Fetched products, hasMore:', hasMore);
         } catch (error) {
             console.error('Error fetching products:', error);
             set({ hasMore: false });
@@ -114,9 +118,8 @@ export const useStore = create<AppState>((set, get) => ({
     setFavorites: (favorites) => set({ favorites }),
     fetchFavorites: async (id) => {
         try {
-            console.log('Fetching favorites for user:', id);
             const response = await axios.get(`/api/favorites/user/${id}`, {
-                withCredentials: true,
+                headers: getAuthHeader()
             });
             const favorites = response.data;
             if (!favorites || !Array.isArray(favorites)) {
@@ -124,8 +127,9 @@ export const useStore = create<AppState>((set, get) => ({
                 set({ favorites: [] });
                 return;
             }
+
             const mappedFavorites: Favorite[] = favorites.map((item: any) => ({
-                favorite_id : item.favoriteId,
+                favorite_id: item.favoriteId,
                 product_id: item.productId,
                 title: item.productName,
                 description: item.description,
@@ -144,13 +148,28 @@ export const useStore = create<AppState>((set, get) => ({
                 is_favorited: true
             }));
             set({ favorites: mappedFavorites });
-            console.log('Fetched favorites:', mappedFavorites);
         } catch (error) {
             console.error('Error fetching favorites:', error);
             set({ favorites: [] });
         }
     },
+    fetchAndSetUser: async () => {
+        try {
+            const token = localStorage.getItem("authToken");
+            if (!token) {
+                set({ user: null });
+                return;
+            }
+            const response = await axios.get('/api/auth/me', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (response.data && response.data.user) {
+                set({ user: response.data.user });
+            } else {
+                set({ user: null });
+            }
+        } catch (error) {
+            set({ user: null });
+        }
+    }
 }));
-
-// Helper to get current state
-const get = useStore.getState;
