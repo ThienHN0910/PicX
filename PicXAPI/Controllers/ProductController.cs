@@ -9,7 +9,7 @@ using PicXAPI.Models;
 using PicXAPI.DTOs;
 using System.Security.Claims;
 using System.Text.Json;
-
+using System.IdentityModel.Tokens.Jwt;
 
 namespace PicXAPI.Controllers
 {
@@ -36,7 +36,7 @@ namespace PicXAPI.Controllers
                     _logger.LogError("GOOGLE_APPLICATION_CREDENTIALS environment variable is not set.");
                     throw new InvalidOperationException("GOOGLE_APPLICATION_CREDENTIALS is not set.");
                 }
-                if (!System.IO.File.Exists(credentialPath)) // Fix: Explicitly use System.IO.File to avoid ambiguity
+                if (!System.IO.File.Exists(credentialPath))
                 {
                     _logger.LogError($"Credentials file not found at: {credentialPath}");
                     throw new InvalidOperationException($"Credentials file not found at: {credentialPath}");
@@ -57,16 +57,17 @@ namespace PicXAPI.Controllers
             }
         }
 
+        // Helper: Lấy userId từ JWT trong Authorization header
         private async Task<int?> GetAuthenticatedUserId()
         {
-            if (!Request.Cookies.TryGetValue("authToken", out var token) || string.IsNullOrEmpty(token))
-            {
+            var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
                 return null;
-            }
+            var token = authHeader.Substring("Bearer ".Length);
 
             try
             {
-                var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                var handler = new JwtSecurityTokenHandler();
                 var jwtToken = handler.ReadJwtToken(token);
                 var userIdClaim = jwtToken.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
                 if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
@@ -82,6 +83,7 @@ namespace PicXAPI.Controllers
                 return null;
             }
         }
+
         private async Task<bool> IsArtistOrAdmin(int userId)
         {
             var user = await _context.Users.FindAsync(userId);
@@ -241,7 +243,7 @@ namespace PicXAPI.Controllers
                 var isAuthenticated = userId != null;
 
                 var product = await _context.Products
-                    .Where(p => p.ProductId == id) // Use column name from schema
+                    .Where(p => p.ProductId == id)
                     .Include(p => p.Category)
                     .Include(p => p.Artist)
                     .Select(p => new
@@ -254,7 +256,7 @@ namespace PicXAPI.Controllers
                         Dimensions = p.Dimensions,
                         IsAvailable = p.IsAvailable,
                         Tags = p.Tags,
-                        ImageFileId = p.ImageDriveId, // Updated to match schema
+                        ImageFileId = p.ImageDriveId,
                         AdditionalImages = p.AdditionalImages,
                         Artist = new
                         {
@@ -262,24 +264,14 @@ namespace PicXAPI.Controllers
                             Name = p.Artist.Name,
                             CreatedAt = p.Artist.CreatedAt
                         },
-                        LikeCount = p.LikeCount, // Fetch from database
-                        Comments = _context.Comments
-                            .Where(c => c.ProductId == p.ProductId)
-                            .Select(c => new
-                            {
-                                Id = c.CommentId,
-                                UserName = c.User.Name, // Assuming Users table has a name field
-                                Content = c.Content,
-                                CreatedAt = c.CreatedAt
-                            })
-                            .ToList(),
+                        LikeCount = p.LikeCount,
                         Permissions = new
                         {
-                            CanView = true, // All users can view
-                            CanLike = isAuthenticated, // Only authenticated users can like (placeholder until roles)
-                            CanComment = isAuthenticated, // Only authenticated users can comment (placeholder)
-                            CanAddToCart = isAuthenticated, // Only authenticated users can add to cart (placeholder)
-                            CanEdit = false // Edit disabled until role checks are added
+                            CanView = true,
+                            CanLike = isAuthenticated,
+                            CanComment = isAuthenticated,
+                            CanAddToCart = isAuthenticated,
+                            CanEdit = false
                         }
                     })
                     .FirstOrDefaultAsync();
@@ -373,7 +365,6 @@ namespace PicXAPI.Controllers
                     {
                         if (additionalImage.ContentType == "text/plain")
                         {
-                            // Keep existing image ID
                             using (var reader = new StreamReader(additionalImage.OpenReadStream()))
                             {
                                 var fileId = await reader.ReadToEndAsync();

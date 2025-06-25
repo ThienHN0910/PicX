@@ -48,11 +48,21 @@ namespace PicXAPI.Controllers
             var user = await _context.Users.FindAsync(Id);
             if (user == null)
                 return NotFound();
+
+            // Only allow updating own profile, not role unless switching to artist
             user.Name = profile.Name;
             user.Email = profile.Email;
             user.Phone = profile.Phone;
             user.Address = profile.Address;
-            user.Role = profile.Role;
+
+            // Only allow role change if switching from buyer to artist
+            if (user.Role == "buyer" && profile.Role == "artist")
+            {
+                user.Role = "artist";
+            }
+            // Prevent arbitrary role escalation
+            // else ignore role change
+
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
             return NoContent();

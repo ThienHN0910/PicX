@@ -19,11 +19,19 @@ const Profile = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
+    // Helper to get auth header
+    const getAuthHeader = () => {
+        const token = localStorage.getItem('authToken');
+        return token ? { Authorization: `Bearer ${token}` } : {};
+    };
+
     useEffect(() => {
         const fetchProfile = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get('/api/user/profile', { withCredentials: true });
+                const response = await axios.get('/api/user/profile', {
+                    headers: getAuthHeader()
+                });
                 setFormData({
                     name: response.data.name || '',
                     email: response.data.email || '',
@@ -51,7 +59,9 @@ const Profile = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await axios.put('/api/user/profile', formData, { withCredentials: true });
+            await axios.put('/api/user/profile', formData, {
+                headers: getAuthHeader()
+            });
             setIsEditing(false);
             setUser(formData);
         } catch (err) {
@@ -64,8 +74,10 @@ const Profile = () => {
         try {
             const newRole = 'artist';
             const updatedData = { ...formData, role: newRole };
-            
-            await axios.put('/api/user/profile', updatedData, { withCredentials: true });
+
+            await axios.put('/api/user/profile', updatedData, {
+                headers: getAuthHeader()
+            });
             setFormData(updatedData);
             setUser(updatedData);
             setShowRoleConfirm(false);

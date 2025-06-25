@@ -1,11 +1,20 @@
-﻿// lib/authService.js
-export const authService = {
+﻿export const authService = {
+    // Lấy token từ localStorage
+    getToken() {
+        return localStorage.getItem("authToken");
+    },
+
     // Kiểm tra xem user có đang đăng nhập không
     async checkAuth() {
+        const token = this.getToken();
+        if (!token) return null;
+
         try {
             const response = await fetch('/api/auth/me', {
                 method: 'GET',
-                credentials: 'include', // Gửi cookie
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
             });
 
             if (response.ok) {
@@ -21,67 +30,22 @@ export const authService = {
 
     // Đăng xuất
     async logout() {
-        try {
-            const response = await fetch('/api/auth/logout', {
-                method: 'POST',
-                credentials: 'include',
-            });
-
-            return response.ok;
-        } catch (error) {
-            console.error('Lỗi khi đăng xuất:', error);
-            return false;
-        }
+        localStorage.removeItem("authToken");
+        return true;
     },
 
-    // Tạo một wrapper cho fetch để tự động include credentials
+    // Wrapper cho fetch có token
     async authenticatedFetch(url, options = {}) {
+        const token = this.getToken();
         const defaultOptions = {
-            credentials: 'include',
             headers: {
+                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
                 ...options.headers,
             },
+            ...options
         };
 
-        return fetch(url, { ...defaultOptions, ...options });
+        return fetch(url, defaultOptions);
     }
-};
-
-// Hook để sử dụng trong component
-import { useEffect, useState } from 'react';
-import { useStore } from './store';
-
-export const useAuth = () => {
-    const [loading, setLoading] = useState(true);
-    const { user, setUser } = useStore();
-
-    useEffect(() => {
-        const checkAuthStatus = async () => {
-            if (!user) {
-                const currentUser = await authService.checkAuth();
-                if (currentUser) {
-                    setUser(currentUser);
-                }
-            }
-            setLoading(false);
-        };
-
-        checkAuthStatus();
-    }, [user, setUser]);
-
-    const logout = async () => {
-        const success = await authService.logout();
-        if (success) {
-            setUser(null);
-        }
-        return success;
-    };
-
-    return {
-        user,
-        loading,
-        logout,
-        isAuthenticated: !!user
-    };
 };

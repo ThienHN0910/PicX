@@ -1,5 +1,4 @@
-﻿// components/AuthProvider.tsx
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+﻿import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useStore } from '../lib/store';
 
 interface User {
@@ -26,7 +25,7 @@ interface AuthProviderProps {
     children: ReactNode;
 }
 
-const AuthContext = createContext < AuthContextType | undefined > (undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = (): AuthContextType => {
     const context = useContext(AuthContext);
@@ -37,26 +36,34 @@ export const useAuth = (): AuthContextType => {
 };
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-    const [loading, setLoading] = useState < boolean > (true);
-    const [initialized, setInitialized] = useState < boolean > (false);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [initialized, setInitialized] = useState<boolean>(false);
     const { user, setUser } = useStore();
 
-    // Kiểm tra auth status khi app khởi động
     useEffect(() => {
+        const token = localStorage.getItem("authToken");
+
         const checkAuthStatus = async (): Promise<void> => {
-            if (initialized) return; // Tránh gọi nhiều lần
+            if (initialized) return;
+
+            if (!token) {
+                setLoading(false);
+                setInitialized(true);
+                return;
+            }
 
             try {
                 const response = await fetch('/api/auth/me', {
                     method: 'GET',
-                    credentials: 'include',
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
                 });
 
                 if (response.ok) {
                     const data = await response.json();
                     setUser(data.user);
                 } else {
-                    // Token không hợp lệ hoặc hết hạn
                     setUser(null);
                 }
             } catch (error) {
@@ -78,41 +85,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                credentials: 'include',
                 body: JSON.stringify({ email, password }),
             });
 
             const data = await response.json();
 
             if (response.ok) {
+                localStorage.setItem("authToken", data.token);
                 setUser(data.user);
                 return { success: true };
             } else {
                 return {
                     success: false,
-                    message: data.message || 'Email hoặc mật khẩu không đúng'
+                    message: data.message || 'Email hoặc mật khẩu không đúng',
                 };
             }
         } catch (error) {
             console.error('Lỗi khi đăng nhập:', error);
             return {
                 success: false,
-                message: 'Đã xảy ra lỗi. Vui lòng thử lại sau.'
+                message: 'Đã xảy ra lỗi. Vui lòng thử lại sau.',
             };
         }
     };
 
     const logout = async (): Promise<void> => {
-        try {
-            await fetch('/api/auth/logout', {
-                method: 'POST',
-                credentials: 'include',
-            });
-        } catch (error) {
-            console.error('Lỗi khi đăng xuất:', error);
-        } finally {
-            setUser(null);
-        }
+        localStorage.removeItem("authToken");
+        setUser(null);
     };
 
     const value: AuthContextType = {
@@ -120,7 +119,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         login,
         logout,
         loading,
-        isAuthenticated: !!user
+        isAuthenticated: !!user,
     };
 
     return (

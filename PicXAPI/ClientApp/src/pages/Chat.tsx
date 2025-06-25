@@ -38,12 +38,14 @@ const Chat = () => {
   };
 
   useEffect(() => {
+    const token = localStorage.getItem('authToken');
+
     const newConnection = new HubConnectionBuilder()
       .withUrl('https://localhost:7162/chatHub', {
-        withCredentials: true // <-- BẮT BUỘC
+        accessTokenFactory: () => token || ""
       })
       .withAutomaticReconnect()
-      .configureLogging(LogLevel.Information) // Debug SignalR
+      .configureLogging(LogLevel.Information)
       .build();
 
     setConnection(newConnection);

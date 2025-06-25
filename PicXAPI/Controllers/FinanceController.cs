@@ -17,7 +17,9 @@ namespace PicXAPI.Controllers
             _context = context;
         }
 
+        // Only authenticated users (artist) can access their statistics
         [HttpGet("artist-statistics")]
+        [Authorize(Roles = "artist,admin")]
         public IActionResult GetArtistStatistics()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -41,6 +43,7 @@ namespace PicXAPI.Controllers
             return Ok(stats);
         }
 
+        // Only admin can access all statistics
         [HttpGet("admin-statistics")]
         [Authorize(Roles = "admin")]
         public IActionResult GetAdminStatistics()

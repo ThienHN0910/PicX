@@ -1,6 +1,7 @@
-import { type Product } from '../lib/types';
-import { Heart, ShoppingCart } from 'lucide-react';
+﻿import { Heart, ShoppingCart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../components/AuthProvider'; // 👈 import auth context
+import { Product } from '../lib/types';
 
 interface ProductCardProps {
     product: Product;
@@ -10,9 +11,26 @@ interface ProductCardProps {
 
 export const ProductCard = ({ product, onLike, onAddToCart }: ProductCardProps) => {
     const navigate = useNavigate();
+    const { isAuthenticated } = useAuth(); // 👈 check login
 
     const handleImageClick = () => {
         navigate(`/art/${product.product_id}`);
+    };
+
+    const handleLike = () => {
+        if (!isAuthenticated) {
+            navigate('/login');
+            return;
+        }
+        onLike?.();
+    };
+
+    const handleAddToCart = () => {
+        if (!isAuthenticated) {
+            navigate('/login');
+            return;
+        }
+        onAddToCart?.();
     };
 
     return (
@@ -33,13 +51,13 @@ export const ProductCard = ({ product, onLike, onAddToCart }: ProductCardProps) 
                 </div>
             )}
             <button
-                onClick={onLike}
+                onClick={handleLike}
                 className="absolute top-2 right-2 p-2 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
             >
                 <Heart className="h-5 w-5 text-gray-600" />
             </button>
             <button
-                onClick={onAddToCart}
+                onClick={handleAddToCart}
                 className="absolute bottom-2 right-2 p-2 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
             >
                 <ShoppingCart className="h-5 w-5 text-gray-600" />

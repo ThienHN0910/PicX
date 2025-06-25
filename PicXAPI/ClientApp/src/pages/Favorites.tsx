@@ -15,6 +15,12 @@ export default function Favorites() {
     const [isLoading, setIsLoading] = useState(true);
     const { favorites, categories, fetchCategories, fetchFavorites, user, setFavorites } = useStore();
 
+    // Helper to get auth header
+    const getAuthHeader = () => {
+        const token = localStorage.getItem('authToken');
+        return token ? { Authorization: `Bearer ${token}` } : {};
+    };
+
     useEffect(() => {
         if (user?.id) {
             setIsLoading(true);
@@ -42,8 +48,10 @@ export default function Favorites() {
         };
         try {
             const res = await axios.post('/api/cart/add', cartDto, {
-                headers: { 'Content-Type': 'application/json' },
-                withCredentials: true,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...getAuthHeader()
+                }
             });
             console.log('Added to cart:', res.data);
         } catch (error) {
@@ -58,14 +66,16 @@ export default function Favorites() {
         }
 
         try {
-                await axios.delete(`/api/favorites/${favorite.favorite_id}`, {
-                    data: { userId: user.id, favoriteId: favorite.product_id },
-                    headers: { 'Content-Type': 'application/json' },
-                    withCredentials: true,
-                });
-                console.log('Unliked favorite:', favorite.product_id);
-                await fetchFavorites(user.id);
-            
+            await axios.delete(`/api/favorites/${favorite.favorite_id}`, {
+                data: { userId: user.id, favoriteId: favorite.product_id },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...getAuthHeader()
+                }
+            });
+            console.log('Unliked favorite:', favorite.product_id);
+            await fetchFavorites(user.id);
+
         } catch (error: any) {
             if (error.response?.status === 409) {
                 console.error('Product already favorited');

@@ -14,21 +14,19 @@ const Navbar = () => {
         setIsDropdownOpen(!isDropdownOpen);
         console.log(user)
     };
-        const handleLogout = async () => {
-            try {
-                await fetch('/api/auth/logout', {
-                    method: 'POST',
-                    credentials: 'include', // Để gửi cookie
-                });
+    const handleLogout = async () => {
+        try {
+            // Xóa token trong localStorage
+            localStorage.removeItem('authToken');
 
-                // Xóa user khỏi store
-                setUser(null);
-                navigate('/login');
-            } catch (error) {
-                console.error('Lỗi khi đăng xuất:', error);
-            }
-            setIsDropdownOpen(false);
-        };
+            // Xóa user khỏi store
+            setUser(null);
+            navigate('/login');
+        } catch (error) {
+            console.error('Lỗi khi đăng xuất:', error);
+        }
+        setIsDropdownOpen(false);
+    };
 
     return (
         <nav className="bg-white shadow-lg">
