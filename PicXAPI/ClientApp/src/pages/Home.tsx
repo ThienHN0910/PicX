@@ -6,20 +6,55 @@ import { CategoryFilter } from '../components/CategoryFilter';
 import { useStore } from '../lib/store';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import Masonry from 'react-masonry-css';
-import { Product } from '../lib/types';
+import { Product, Exhibition } from '../lib/types';
 import axios from 'axios';
 import Loading from '../components/Loading';
+import { ExhibitionCard } from '../components/ExhibitionCard';
+
+// Số lượng triển lãm ngẫu nhiên bạn muốn hiển thị
+const NUMBER_OF_RANDOM_EXHIBITIONS = 3; // Ví dụ: hiển thị 3 triển lãm ngẫu nhiên
 
 export default function Home() {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
     const { products, categories, fetchProducts, fetchCategories, hasMore, page, user, setProducts } = useStore();
 
+    const [randomExhibitions, setRandomExhibitions] = useState<Exhibition[]>([]);
+    const [exhibitionsLoading, setExhibitionsLoading] = useState(true);
+    const [exhibitionsError, setExhibitionsError] = useState<string | null>(null);
+
     useEffect(() => {
         fetchCategories();
-        fetchProducts(true); // Initial fetch
+        fetchProducts(true); // Initial fetch for products
     }, [fetchCategories, fetchProducts]);
 
+    // Effect để fetch và chọn ngẫu nhiên một vài triển lãm
+    useEffect(() => {
+        const fetchAndSelectRandomExhibitions = async () => {
+            try {
+                setExhibitionsLoading(true);
+                const response = await axios.get<Exhibition[]>('https://localhost:7162/api/exhibitions'); // Lấy TẤT CẢ triển lãm
+                const allExhibitions = response.data;
+
+                // Chọn ngẫu nhiên một số lượng triển lãm
+                if (allExhibitions.length > 0) {
+                    const shuffled = [...allExhibitions].sort(() => 0.5 - Math.random());
+                    setRandomExhibitions(shuffled.slice(0, NUMBER_OF_RANDOM_EXHIBITIONS));
+                } else {
+                    setRandomExhibitions([]);
+                }
+            } catch (err: any) {
+                console.error("Error fetching or selecting random exhibitions:", err);
+                setExhibitionsError(err.message);
+            } finally {
+                setExhibitionsLoading(false);
+            }
+        };
+
+        fetchAndSelectRandomExhibitions();
+    }, []); // Chạy một lần khi component mount
+
+    // Lọc sản phẩm như cũ
     const filteredProducts = products.filter((product) => {
         const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
             product.description?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -27,7 +62,28 @@ export default function Home() {
         return matchesSearch && matchesCategory;
     });
 
+    // --- LOGIC MỚI: Xáo trộn sản phẩm VÀ chèn triển lãm ---
+    // Xáo trộn các sản phẩm đã được lọc
+    const shuffledProducts = [...filteredProducts].sort(() => 0.5 - Math.random());
+
+    // Tạo danh sách cuối cùng để hiển thị
+    const itemsToDisplay: (Product | Exhibition)[] = [...shuffledProducts];
+
+    // Chèn các triển lãm ngẫu nhiên vào các vị trí ngẫu nhiên trong danh sách sản phẩm đã xáo trộn
+    if (randomExhibitions.length > 0 && itemsToDisplay.length > 0) {
+        randomExhibitions.forEach((exhibition) => {
+            // Chọn một vị trí ngẫu nhiên để chèn triển lãm
+            // Đảm bảo vị trí không quá cuối danh sách để Masonry có thể hiển thị tốt
+            // và không chèn quá dày đặc ở một chỗ
+            const insertIndex = Math.floor(Math.random() * (itemsToDisplay.length + 1));
+
+            itemsToDisplay.splice(insertIndex, 0, exhibition);
+        });
+    }
+
     console.log('hasMore:', hasMore, 'Page:', page, 'Filtered Products:', filteredProducts);
+    console.log('Random Exhibitions:', randomExhibitions);
+    console.log('Items to Display:', itemsToDisplay);
 
     const handleAddToCart = async (product: Product) => {
         const cartDto = {
@@ -49,7 +105,6 @@ export default function Home() {
     const handleLike = async (product: Product) => {
         if (!user?.id) {
             console.error('User not logged in', user );
-            // Optionally: Show a toast or redirect to login
             return;
         }
 
@@ -67,7 +122,6 @@ export default function Home() {
             });
             console.log('Liked product:', res.data);
 
-            // Update local products state to increment like_count
             setProducts(products.map(p =>
                 p.product_id === product.product_id
                     ? { ...p, like_count: p.like_count + 1 }
@@ -100,29 +154,46 @@ export default function Home() {
                     onSelect={setSelectedCategory}
                 />
 
-                <InfiniteScroll
-                    dataLength={filteredProducts.length}
-                    next={() => fetchProducts()}
-                    hasMore={hasMore}
-                    loader={<Loading />}
-                    endMessage={<p className="text-center text-gray-500">No more products</p>}
-                    scrollableTarget="html" // Use browser scrollbar
-                >
-                    <Masonry
-                        breakpointCols={{ default: 4, 1100: 3, 700: 2, 500: 1 }}
-                        className="flex animate-fade-in"
-                        columnClassName="pl-2"
+                {(filteredProducts.length === 0 && !hasMore && randomExhibitions.length === 0 && !exhibitionsLoading) ? (
+                    <p className="text-center text-gray-500 mt-8">Not found product or any exhibition.</p>
+                ) : (
+                    <InfiniteScroll
+                        dataLength={filteredProducts.length}
+                        next={() => fetchProducts()}
+                        hasMore={hasMore}
+                        loader={<Loading />}
+                        endMessage={<p className="text-center text-gray-500">NO More Product.</p>}
+                        scrollableTarget="html"
                     >
-                        {filteredProducts.map((product) => (
-                            <ProductCard
-                                key={product.product_id}
-                                product={product}
-                                onLike={() => handleLike(product)}
-                                onAddToCart={() => handleAddToCart(product)}
-                            />
-                        ))}
-                    </Masonry>
-                </InfiniteScroll>
+                        <Masonry
+                            breakpointCols={{ default: 4, 1100: 3, 700: 2, 500: 1 }}
+                            className="flex animate-fade-in"
+                            columnClassName="pl-2"
+                        >
+                            {itemsToDisplay.map((item, index) => {
+                                if ('product_id' in item) {
+                                    const product = item as Product;
+                                    return (
+                                        <ProductCard
+                                            key={`product-${product.product_id}-${index}`}
+                                            product={product}
+                                            onLike={() => handleLike(product)}
+                                            onAddToCart={() => handleAddToCart(product)}
+                                        />
+                                    );
+                                } else {
+                                    const exhibition = item as Exhibition;
+                                    return (
+                                        <ExhibitionCard
+                                            key={`exhibition-${exhibition.url || index}-${index}`}
+                                            exhibition={exhibition}
+                                        />
+                                    );
+                                }
+                            })}
+                        </Masonry>
+                    </InfiniteScroll>
+                )}
             </div>
         </div>
     );
