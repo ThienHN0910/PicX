@@ -13,13 +13,12 @@ interface CartItem {
     product: Product;
 }
 
-
 const Cart: React.FC = () => {
     const [cart, setCart] = useState<CartItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-
     const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
+    const token = localStorage.getItem('authToken');
 
     const toggleProduct = (productId: number) => {
         setSelectedProductIds(prev =>
@@ -33,7 +32,10 @@ const Cart: React.FC = () => {
         try {
             setLoading(true);
             const response = await axios.get('/api/cart', {
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                }
             });
             setCart(response.data.cartItems);
             setError(null);
@@ -52,7 +54,10 @@ const Cart: React.FC = () => {
     const removeFromCart = async (cartId: number) => {
         try {
             await axios.delete(`/api/cart/${cartId}`, {
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                }
             });
             setCart(prevCart => prevCart.filter(item => item.cartId !== cartId));
         } catch (err: any) {
@@ -68,6 +73,50 @@ const Cart: React.FC = () => {
         .filter(item => selectedProductIds.includes(item.productId))
         .reduce((sum, item) => sum + item.product.price, 0);
 
+    const handleCheckout = async () => {
+        const selectedItems = cart.filter(item =>
+            selectedProductIds.includes(item.productId)
+        );
+
+        if (selectedItems.length === 0) {
+            alert("Please select product to checkout.");
+            return;
+        }
+
+        const orderDto = {
+            items: selectedItems.map(item => ({
+                productId: item.productId,
+                totalPrice: item.product.price
+            }))
+        };
+
+        try {
+            await axios.post('/api/orders', orderDto, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                }
+            });
+
+            await axios.post('/api/cart/remove-multiple', selectedProductIds, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                }
+            });
+
+            setCart(prev => prev.filter(item =>
+                !selectedProductIds.includes(item.productId)
+            ));
+            setSelectedProductIds([]);
+
+            alert("Thanh toán thành công!");
+            window.location.href = "/orders";
+        } catch (error: any) {
+            console.error("Checkout error:", error.response?.data || error);
+            alert("Có lỗi xảy ra khi thanh toán.");
+        }
+    };
 
     if (loading) {
         return (
@@ -105,77 +154,6 @@ const Cart: React.FC = () => {
         );
     }
 
-    //const handleCheckout = async () => {
-    //    if (cart.length === 0) return;
-
-    //    const orderDto = {
-    //        items: cart.map(item => ({
-    //            productId: item.productId,
-    //            totalPrice: item.product.price
-    //        }))
-    //    };
-
-    //    try {
-    //        await axios.post('/api/orders', orderDto, {
-    //            headers: {
-    //                'Content-Type': 'application/json'
-    //            },
-    //            withCredentials: true
-    //        });
-
-    //        alert("Order placed successfully!");
-    //        window.location.href = "/orders";
-    //    } catch (error: any) {
-    //        console.error("Checkout error:", error.response?.data || error);
-    //        alert("Failed to place order. " + (error.response?.data?.message || "Please try again."));
-    //    }
-    //};
-
-    const handleCheckout = async () => {
-        const selectedItems = cart.filter(item =>
-            selectedProductIds.includes(item.productId)
-        );
-
-        if (selectedItems.length === 0) {
-            alert("Please select product to checkout.");
-            return;
-        }
-
-        const orderDto = {
-            items: selectedItems.map(item => ({
-                productId: item.productId,
-                totalPrice: item.product.price
-            }))
-        };
-
-        try {
-            await axios.post('/api/orders', orderDto, {
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                withCredentials: true
-            });
-
-            await axios.post('/api/cart/remove-multiple', selectedProductIds, {
-                headers: { 'Content-Type': 'application/json' },
-                withCredentials: true
-            });
-
-            setCart(prev => prev.filter(item =>
-                !selectedProductIds.includes(item.productId)
-            ));
-            setSelectedProductIds([]);
-
-            alert("Thanh toán thành công!");
-            window.location.href = "/orders";
-        } catch (error: any) {
-            console.error("Checkout error:", error.response?.data || error);
-            alert("Có lỗi xảy ra khi thanh toán.");
-        }
-    };
-
-
-
     return (
         <div className="max-w-4xl mx-auto py-8 px-4">
             <h1 className="text-2xl font-bold text-gray-900 mb-8">Shopping Cart</h1>
@@ -198,7 +176,7 @@ const Cart: React.FC = () => {
                                         e.currentTarget.src = '/placeholder-image.jpg';
                                     }}
                                 />
-                                input</div> 
+                            </div>
                             <div className="ml-6 flex-1">
                                 <div className="flex items-start justify-between">
                                     <div>

@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { Modal } from '../components/ui/Modal';
+import { getGoogleOAuthURL } from '../utils/googleOAuth';
 
 const Register = () => {
     const navigate = useNavigate();
@@ -47,8 +48,7 @@ const Register = () => {
 
 
     const handleGoogleRegister = () => {
-        // TODO: Implement Google OAuth registration
-        console.log('Google register clicked');
+        window.location.href = getGoogleOAuthURL();
     };
 
     const handleFacebookRegister = () => {

@@ -1,12 +1,13 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using PicXAPI.Models;
+using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http.Headers;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.AspNetCore.Identity;
 using PicXAPI.DTOs;
+using PicXAPI.Models;
 
 namespace PicXAPI.Controllers
 {
@@ -31,14 +32,13 @@ namespace PicXAPI.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            // Check if email already exists (case-insensitive)
             var userExists = await _context.Users.AnyAsync(u => u.Email.ToLower() == dto.Email.ToLower());
             if (userExists)
-                return BadRequest(new { message = "Email is already registed" });
+                return BadRequest(new { message = "Email is already registered" });
 
             var user = new User
             {
-                Email = dto.Email.ToLower(), // Normalize email
+                Email = dto.Email.ToLower(),
                 Name = dto.Name,
                 CreatedAt = DateTime.UtcNow,
                 Role = "buyer"
@@ -48,7 +48,7 @@ namespace PicXAPI.Controllers
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Registor successfully" });
+            return Ok(new { message = "Register successfully" });
         }
 
         [HttpPost("login")]
@@ -67,19 +67,6 @@ namespace PicXAPI.Controllers
 
             var token = GenerateJwtToken(user);
 
-            // Set token in HTTP-only cookie
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true, // BẮT BUỘC khi SameSite=None
-                SameSite = SameSiteMode.None, // Cho phép gửi cookie cross-origin
-                Expires = DateTime.UtcNow.AddHours(int.Parse(_config.GetSection("Jwt")["ExpireHours"])),
-                Path = "/"
-            };
-
-            Response.Cookies.Append("authToken", token, cookieOptions);
-
-            // Trả về thông tin user (không bao gồm token)
             var userInfo = new
             {
                 id = user.UserId.ToString(),
@@ -88,30 +75,25 @@ namespace PicXAPI.Controllers
                 role = user.Role
             };
 
-            return Ok(new { user = userInfo, message = "Login success" });
+            return Ok(new { user = userInfo, token });
         }
 
         [HttpPost("logout")]
         public IActionResult Logout()
         {
-            // Xóa cookie
-            Response.Cookies.Delete("authToken", new CookieOptions
-            {
-                Path = "/",
-                SameSite = SameSiteMode.Strict
-            });
-
+            // Với JWT thì logout chỉ cần client xóa token khỏi localStorage
             return Ok(new { message = "Logout success" });
         }
 
         [HttpGet("me")]
         public async Task<IActionResult> GetCurrentUser()
         {
-            // Lấy token từ cookie
-            if (!Request.Cookies.TryGetValue("authToken", out var token) || string.IsNullOrEmpty(token))
-            {
-                return Unauthorized(new { message = "Not found token" });
-            }
+            // Lấy token từ header Authorization (chuẩn)
+            string? authHeader = Request.Headers["Authorization"];
+            if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer "))
+                return Unauthorized(new { message = "Token not provided" });
+
+            var token = authHeader.Substring("Bearer ".Length);
 
             try
             {
@@ -146,14 +128,69 @@ namespace PicXAPI.Controllers
             }
         }
 
-        // Hàm tạo token JWT
+        [HttpPost("oauth/google")]
+        public async Task<IActionResult> GoogleOAuthCode([FromBody] CodeDto dto)
+        {
+            var clientId = _config["Google:ClientId"];
+            var clientSecret = _config["Google:ClientSecret"];
+            var redirectUri = "https://localhost:5173/google-auth-success";
+
+            var client = new HttpClient();
+            var tokenRequest = new Dictionary<string, string>
+            {
+                ["code"] = dto.Code,
+                ["client_id"] = clientId,
+                ["client_secret"] = clientSecret,
+                ["redirect_uri"] = redirectUri,
+                ["grant_type"] = "authorization_code"
+            };
+
+            var tokenResponse = await client.PostAsync("https://oauth2.googleapis.com/token", new FormUrlEncodedContent(tokenRequest));
+            if (!tokenResponse.IsSuccessStatusCode)
+                return BadRequest(new { message = "Failed to get access token" });
+
+            var tokenResult = await tokenResponse.Content.ReadFromJsonAsync<GoogleTokenResponse>();
+            if (tokenResult == null || string.IsNullOrEmpty(tokenResult.AccessToken))
+                return BadRequest(new { message = "Invalid token response" });
+
+            // Get user info
+            var userRequest = new HttpRequestMessage(HttpMethod.Get, "https://www.googleapis.com/oauth2/v2/userinfo");
+            userRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenResult.AccessToken);
+            var userResponse = await client.SendAsync(userRequest);
+            if (!userResponse.IsSuccessStatusCode)
+                return BadRequest(new { message = "Failed to get user info" });
+
+            var userInfo = await userResponse.Content.ReadFromJsonAsync<GoogleUserInfo>();
+            if (userInfo == null || string.IsNullOrEmpty(userInfo.Email))
+                return BadRequest(new { message = "Invalid user info" });
+
+            // Save or get user
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == userInfo.Email.ToLower());
+            if (user == null)
+            {
+                user = new User
+                {
+                    Email = userInfo.Email.ToLower(),
+                    Name = userInfo.Name,
+                    Password = "", // Google login
+                    Role = "buyer",
+                    CreatedAt = DateTime.UtcNow,
+                    EmailVerified = true
+                };
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+            }
+
+            var token = GenerateJwtToken(user);
+            return Ok(new { token });
+        }
+
         private string GenerateJwtToken(User user)
         {
             var jwtSettings = _config.GetSection("Jwt");
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var expireHours = int.Parse(jwtSettings["ExpireHours"]);
-
 
             var claims = new[]
             {
@@ -163,7 +200,6 @@ namespace PicXAPI.Controllers
                 new Claim(ClaimTypes.Role, user.Role ?? "buyer"),
                 new Claim("email", user.Email),
                 new Claim("user_id", user.UserId.ToString())
-
             };
 
             var token = new JwtSecurityToken(

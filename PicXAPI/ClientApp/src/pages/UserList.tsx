@@ -17,9 +17,17 @@ const UserList = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(true);
 
+    // Helper to get auth header
+    const getAuthHeader = () => {
+        const token = localStorage.getItem('authToken');
+        return token ? { Authorization: `Bearer ${token}` } : {};
+    };
+
     const fetchUsers = async () => {
         try {
-            const res = await axios.get('/api/user/all', { withCredentials: true });
+            const res = await axios.get('/api/user/all', {
+                headers: getAuthHeader()
+            });
             setUsers(res.data);
         } catch (err) {
             console.error('Failed to fetch users:', err);
@@ -36,7 +44,9 @@ const UserList = () => {
         if (!confirm(confirmMsg)) return;
 
         try {
-            await axios.put(`/api/user/${action}/${userId}`, {}, { withCredentials: true });
+            await axios.put(`/api/user/${action}/${userId}`, {}, {
+                headers: getAuthHeader()
+            });
             fetchUsers();
         } catch (err) {
             console.error(`Failed to ${action} user:`, err);
@@ -45,6 +55,7 @@ const UserList = () => {
 
     useEffect(() => {
         fetchUsers();
+        // eslint-disable-next-line
     }, []);
 
     const filteredUsers = users.filter((user) =>

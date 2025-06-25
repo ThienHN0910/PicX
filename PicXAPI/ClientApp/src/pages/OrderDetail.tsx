@@ -3,10 +3,9 @@ import { Package, Truck, CreditCard, Calendar } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
-
 const OrderDetail = () => {
     const { id } = useParams();
-    
+
     interface OrderItem {
         productId: number;
         productTitle: string;
@@ -24,13 +23,17 @@ const OrderDetail = () => {
 
     const [order, setOrder] = useState<Order | null>(null);
 
-
+    // Helper to get auth header
+    const getAuthHeader = () => {
+        const token = localStorage.getItem('authToken');
+        return token ? { Authorization: `Bearer ${token}` } : {};
+    };
 
     useEffect(() => {
         const fetchOrder = async () => {
             try {
                 const response = await axios.get(`/api/orders/${id}`, {
-                    withCredentials: true
+                    headers: getAuthHeader()
                 });
                 setOrder(response.data);
             } catch (err) {
@@ -62,7 +65,6 @@ const OrderDetail = () => {
     if (!order || !Array.isArray(order.items)) {
         return <div className="text-center text-gray-500">Loading order...</div>;
     }
-
 
     return (
         <div className="max-w-4xl mx-auto">

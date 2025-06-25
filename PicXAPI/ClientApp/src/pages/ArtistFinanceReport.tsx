@@ -49,13 +49,18 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, change, icon: Icon, g
 const ArtistFinanceReport: React.FC = () => {
     const [stats, setStats] = useState<FinanceData[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
+    const token = localStorage.getItem('authToken');
 
     useEffect(() => {
-        axios.get('/api/finance/artist-statistics')
+        axios.get('/api/finance/artist-statistics', {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
             .then(res => setStats(res.data))
             .catch(err => console.error("API error:", err))
             .finally(() => setLoading(false));
-    }, []);
+    }, [token]);
 
     if (loading) return <Loading />;
 
@@ -98,7 +103,7 @@ const ArtistFinanceReport: React.FC = () => {
                 </div>
             </div>
 
-            {/* Bottom layout: Left (charts) - Right (stat cards) */}
+            {/* Bottom layout: charts + stat cards */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left: Charts */}
                 <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -136,7 +141,7 @@ const ArtistFinanceReport: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Right: Stat Cards (gradient style like admin) */}
+                {/* Right: Stat Cards */}
                 <div className="grid grid-cols-2 gap-4">
                     <StatCard
                         title="Total Earnings"

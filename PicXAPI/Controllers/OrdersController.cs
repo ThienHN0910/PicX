@@ -18,10 +18,13 @@ namespace PicXAPI.Controllers
             _context = context;
         }
 
+        // Helper: Lấy userId từ JWT trong Authorization header
         private async Task<int?> GetAuthenticatedUserId()
         {
-            if (!Request.Cookies.TryGetValue("authToken", out var token) || string.IsNullOrEmpty(token))
+            var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
                 return null;
+            var token = authHeader.Substring("Bearer ".Length);
 
             try
             {
@@ -126,7 +129,6 @@ namespace PicXAPI.Controllers
             {
                 ProductId = p.ProductId,
                 TotalPrice = p.Price
-
             }).ToList();
 
             var order = new Order
@@ -142,7 +144,6 @@ namespace PicXAPI.Controllers
 
             return Ok(new { message = "Order created", orderId = order.OrderId });
         }
-
 
         // DELETE: api/orders/5
         [HttpDelete("{id}")]
