@@ -124,3 +124,14 @@ export interface Cart {
     product_id: number;
     created_at: Date;
 }
+
+export interface Exhibition {
+    title?: string | null;
+    galleryOrMuseum?: string | null;
+    date?: string | null;
+    location?: string | null;
+    url?: string | null; // URL chi tiết của triển lãm
+    description?: string | null;
+    imageUrl?: string | null; // URL hình ảnh của triển lãm
+    sourceApi?: string | null; // Nguồn API
+}
