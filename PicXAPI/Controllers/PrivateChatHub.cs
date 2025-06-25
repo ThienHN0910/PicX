@@ -145,10 +145,23 @@ namespace PicXAPI
 
         private async Task<int?> GetAuthenticatedUserId()
         {
-            if (!Context.GetHttpContext().Request.Cookies.TryGetValue("authToken", out var token) || string.IsNullOrEmpty(token))
+            var httpContext = Context.GetHttpContext();
+            string token = null;
+
+            // Ưu tiên lấy từ header
+            var authHeader = httpContext?.Request.Headers["Authorization"].FirstOrDefault();
+            if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
             {
-                return null;
+                token = authHeader.Substring("Bearer ".Length);
             }
+            // Nếu không có header, lấy từ query string (SignalR JS sẽ truyền access_token ở đây)
+            else if (string.IsNullOrEmpty(token))
+            {
+                token = httpContext?.Request.Query["access_token"].FirstOrDefault();
+            }
+
+            if (string.IsNullOrEmpty(token))
+                return null;
 
             try
             {
@@ -161,7 +174,10 @@ namespace PicXAPI
                 }
 
                 var user = await _context.Users.FindAsync(userId);
-                return user?.UserId;
+                if (user == null || user.IsActive == false)
+                    return null;
+
+                return user.UserId;
             }
             catch
             {

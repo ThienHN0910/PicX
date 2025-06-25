@@ -2,6 +2,7 @@
 import { LogIn } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../components/AuthProvider';
+import { getGoogleOAuthURL } from '../utils/googleOAuth';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -28,7 +29,7 @@ const Login = () => {
     };
 
     const handleGoogleLogin = () => {
-        console.log('Google login clicked');
+        window.location.href = getGoogleOAuthURL();
     };
 
     const handleFacebookLogin = () => {

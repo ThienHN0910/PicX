@@ -18,12 +18,13 @@ namespace PicXAPI.Controllers
             _context = context;
         }
 
+        // Helper: Lấy userId từ JWT trong Authorization header
         private async Task<int?> GetAuthenticatedUserId()
         {
-            if (!Request.Cookies.TryGetValue("authToken", out var token) || string.IsNullOrEmpty(token))
-            {
+            var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
                 return null;
-            }
+            var token = authHeader.Substring("Bearer ".Length);
 
             try
             {
@@ -80,7 +81,7 @@ namespace PicXAPI.Controllers
             return Ok(new { cartItems });
         }
 
-        // --- POST: /api/cart - Add a product to the authenticated user's cart ---
+        // --- POST: /api/cart/add - Add a product to the authenticated user's cart ---
         [HttpPost("add")]
         public async Task<IActionResult> AddToCart([FromBody] CartDto cartDto)
         {
@@ -118,7 +119,6 @@ namespace PicXAPI.Controllers
             _context.Carts.Add(cartItem);
             await _context.SaveChangesAsync();
 
-
             return Ok(new { message = "Cart added success", cart = new Cart { UserId = cartItem.UserId, ProductId = cartItem.ProductId } });
         }
 
@@ -146,7 +146,7 @@ namespace PicXAPI.Controllers
             return Ok(new { message = "Remove successful" });
         }
 
-
+        // --- POST: /api/cart/remove-multiple - Remove multiple items from the authenticated user's cart ---
         [HttpPost("remove-multiple")]
         public async Task<IActionResult> RemoveMultipleFromCart([FromBody] List<int> productIds)
         {
@@ -165,6 +165,5 @@ namespace PicXAPI.Controllers
 
             return Ok(new { message = "Selected cart items removed" });
         }
-
     }
 }

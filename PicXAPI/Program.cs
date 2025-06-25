@@ -1,5 +1,4 @@
 ﻿using DotNetEnv;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
@@ -8,9 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PicXAPI.Models;
 using System.Text;
-using PicXAPI.Controllers;
 using PicXAPI.Services;
-using PicXAPI.Helper;
+
 namespace PicXAPI
 {
     public class Program
@@ -19,10 +17,10 @@ namespace PicXAPI
         {
             var builder = WebApplication.CreateBuilder(args);
             DotNetEnv.Env.Load();
+
             var jwtSettings = builder.Configuration.GetSection("Jwt");
             var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
 
-            // Thêm dịch vụ
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
@@ -37,73 +35,44 @@ namespace PicXAPI
             builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
             builder.Services.AddScoped<IEmailService, EmailService>();
 
-            builder.Services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            })
-            .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
-            {
-                options.Cookie.SameSite = SameSiteMode.None;
-                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-                options.Cookie.HttpOnly = true;
-            })
-            .AddJwtBearer(options =>
-            {
-                options.RequireHttpsMetadata = false; // true nếu chạy production
-                options.SaveToken = true;
-                options.TokenValidationParameters = new TokenValidationParameters
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
                 {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = jwtSettings["Issuer"],
-                    ValidAudience = jwtSettings["Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(key)
-                };
-
-                options.Events = new JwtBearerEvents
-                {
-                    OnMessageReceived = context =>
+                    options.RequireHttpsMetadata = false; // true nếu production
+                    options.SaveToken = true;
+                    options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        if (context.Request.Cookies.ContainsKey("authToken"))
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = jwtSettings["Issuer"],
+                        ValidAudience = jwtSettings["Audience"],
+                        IssuerSigningKey = new SymmetricSecurityKey(key)
+                    };
+
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
                         {
-                            context.Token = context.Request.Cookies["authToken"];
-                        }
-                        else if (string.IsNullOrEmpty(context.Token))
-                        {
+                            // Lấy token từ header Authorization
                             var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
                             if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
                             {
                                 context.Token = authHeader.Substring(7);
                             }
-                        }
-                        if (string.IsNullOrEmpty(context.Token))
-                        {
-                            var accessToken = context.Request.Query["access_token"];
-                            if (!string.IsNullOrEmpty(accessToken))
+                            // Hỗ trợ lấy token từ query string cho SignalR nếu cần
+                            else if (string.IsNullOrEmpty(context.Token))
                             {
-                                context.Token = accessToken;
+                                var accessToken = context.Request.Query["access_token"];
+                                if (!string.IsNullOrEmpty(accessToken))
+                                {
+                                    context.Token = accessToken;
+                                }
                             }
+                            return Task.CompletedTask;
                         }
-                        return Task.CompletedTask;
-                    }
-                };
-            })
-            .AddGoogle(options =>
-            {
-                options.ClientId = builder.Configuration["Google:ClientId"];
-                options.ClientSecret = builder.Configuration["Google:ClientSecret"];
-                options.CallbackPath = "/api/auth/google/callback";
-                options.SaveTokens = true;
-                options.Scope.Add("https://www.googleapis.com/auth/userinfo.email");
-                options.Scope.Add("https://www.googleapis.com/auth/userinfo.profile");
-                options.CorrelationCookie.SameSite = SameSiteMode.None;
-                options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
-                options.CorrelationCookie.Domain = "localhost";
-                options.CorrelationCookie.HttpOnly = true;
-            });
+                    };
+                });
 
             builder.Services.AddCors(options =>
             {
@@ -123,7 +92,6 @@ namespace PicXAPI
             });
 
             var app = builder.Build();
-            Console.WriteLine($"GOOGLE_APPLICATION_CREDENTIALS: {Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS")}");
 
             if (app.Environment.IsDevelopment())
             {

@@ -27,12 +27,17 @@ export default function ProductManagement() {
     const [productToDelete, setProductToDelete] = useState<Product | null>(null);
     const [deleting, setDeleting] = useState(false);
 
+    // Helper to get auth header
+    const getAuthHeader = () => {
+        const token = localStorage.getItem('authToken');
+        return token ? { Authorization: `Bearer ${token}` } : {};
+    };
 
     useEffect(() => {
         const fetchProducts = async () => {
             try {
                 const response = await axios.get('/api/product', {
-                    withCredentials: true
+                    headers: getAuthHeader()
                 });
                 setProducts(response.data);
                 setIsLoading(false);
@@ -50,7 +55,7 @@ export default function ProductManagement() {
     );
 
     if (isLoading) {
-        return <Loading/>;
+        return <Loading />;
     }
 
     if (error) {
@@ -256,7 +261,7 @@ export default function ProductManagement() {
                                         try {
                                             setDeleting(true);
                                             await axios.delete(`/api/product/${productToDelete.productId}`, {
-                                                withCredentials: true,
+                                                headers: getAuthHeader()
                                             });
                                             setProducts((prev) =>
                                                 prev.filter((p) => p.productId !== productToDelete.productId)

@@ -15,6 +15,12 @@ export default function Home() {
     const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
     const { products, categories, fetchProducts, fetchCategories, hasMore, page, user, setProducts } = useStore();
 
+    // Helper to get auth header
+    const getAuthHeader = () => {
+        const token = localStorage.getItem("authToken");
+        return token ? { Authorization: `Bearer ${token}` } : {};
+    };
+
     useEffect(() => {
         fetchCategories();
         fetchProducts(true); // Initial fetch
@@ -32,23 +38,23 @@ export default function Home() {
     const handleAddToCart = async (product: Product) => {
         const cartDto = {
             ProductId: product.product_id
-        }
+        };
         try {
             const res = await axios.post('/api/cart/add', cartDto, {
                 headers: {
-                    'Content-Type': 'application/json'
-                },
-                withCredentials: true,
-            })
-            console.log(res.data)
-        } catch(er) {
-            console.log(er)
+                    'Content-Type': 'application/json',
+                    ...getAuthHeader()
+                }
+            });
+            console.log(res.data);
+        } catch (er) {
+            console.log(er);
         }
     };
 
     const handleLike = async (product: Product) => {
         if (!user?.id) {
-            console.error('User not logged in', user );
+            console.error('User not logged in', user);
             // Optionally: Show a toast or redirect to login
             return;
         }
@@ -61,9 +67,9 @@ export default function Home() {
         try {
             const res = await axios.post('/api/favorites', favoriteDto, {
                 headers: {
-                    'Content-Type': 'application/json'
-                },
-                withCredentials: true,
+                    'Content-Type': 'application/json',
+                    ...getAuthHeader()
+                }
             });
             console.log('Liked product:', res.data);
 
