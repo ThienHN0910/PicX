@@ -59,7 +59,7 @@ const Register = () => {
     return (
         <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-8">
             <div className="text-center mb-8">
-                <UserPlus className="h-12 w-12 text-indigo-600 mx-auto" />
+                <UserPlus className="h-12 w-12 text-[#10d194] mx-auto" />
                 <h2 className="mt-4 text-2xl font-bold text-gray-900">Create Account</h2>
                 <p className="mt-2 text-gray-600">Join our art marketplace</p>
             </div>
@@ -182,7 +182,7 @@ const Register = () => {
                         <button
                             type="button"
                             onClick={() => setShowTerms(true)}
-                            className="text-indigo-600 hover:text-indigo-500 underline"
+                            className="text-[#10d194] hover:text-[#1a9f8e] underline"
                         >
                             điều khoản và điều kiện
                         </button>
@@ -190,7 +190,12 @@ const Register = () => {
                 </div>
                 <button
                     type="submit"
-                    className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                    className="w-full text-white py-2 px-4 rounded-md focus:outline-none
+                               bg-[linear-gradient(180deg,_rgb(66,230,149),_rgb(59,178,184),_rgb(66,230,149))]
+                               bg-[length:100%_200%]
+                               bg-top hover:bg-bottom
+                               transition-all duration-500 ease-in-out
+                               active:scale-90"
                 >
                     Create Account
                 </button>
@@ -198,7 +203,7 @@ const Register = () => {
 
             <p className="mt-4 text-center text-sm text-gray-600">
                 Already have an account?{' '}
-                <Link to="/login" className="px-2 bg-white text-indigo-600 hover:text-indigo-500 cursor-pointer">
+                <Link to="/login" className="px-2 bg-white text-[#10d194] hover:text-[#1a9f8e] cursor-pointer">
                     Sign in here
                 </Link>
             </p>

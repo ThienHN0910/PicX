@@ -68,7 +68,11 @@ export default function ProductManagement() {
                 <h1 className="text-2xl font-bold text-gray-900">Product Management</h1>
                 <Link
                     to="/products/add"
-                    className="inline-flex items-center gap-2 bg-indigo-600 px-4 py-2 text-white rounded-lg hover:bg-indigo-700"
+                    className="inline-flex items-center gap-2 px-4 py-2 text-white rounded-lg bg-[linear-gradient(180deg,_rgb(66,230,149),_rgb(59,178,184),_rgb(66,230,149))]
+                               bg-[length:100%_200%]
+                               bg-top hover:bg-bottom
+                               transition-all duration-500 ease-in-out
+                               active:scale-90"
                 >
                     <Plus className="h-5 w-5" />
                     Add New Product

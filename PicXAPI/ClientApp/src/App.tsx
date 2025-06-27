@@ -4,6 +4,7 @@ import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import { useStore } from './lib/store';
 import Navbar from './components/Navbar';
+import Topbar from './components/Topbar';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -65,69 +66,75 @@ function App() {
     return (
         <AuthProvider>
             <Router>
-                <div className="min-h-screen bg-gray-50">
+                <div className="flex min-h-screen bg-gray-50">
+                    {/* Sidebar trái */}
                     <Navbar />
-                    <main className="container mx-auto px-4 py-8">
-                        <Routes>
-                            {/* Public routes */}
-                            <Route path="/" element={<Home />} />
-                            <Route
-                                path="/login"
-                                element={
-                                    <PublicRoute>
-                                        <Login />
-                                    </PublicRoute>
-                                }
-                            />
-                            <Route
-                                path="/register"
-                                element={
-                                    <PublicRoute>
-                                        <Register />
-                                    </PublicRoute>
-                                }
-                            />
-                            <Route path="/google-auth-success" element={<GoogleAuthSuccess />} />
-                            <Route path="/forgot-password" element={<ForgotPassword />} />
-                            <Route path="/art/:id" element={<ArtDetail />} />
-                            <Route path="/artist/:id" element={<ArtistProfile />} />
+                    {/* Nội dung chính */}
+                    <div className="flex-1 flex flex-col">
+                        {/* Topbar */}
+                        <Topbar />
+                        <main className="justify-end flex-1 container mx-16 ml-auto">
+                            <Routes>
+                                {/* Public routes */}
+                                <Route path="/" element={<Home />} />
+                                <Route
+                                    path="/login"
+                                    element={
+                                        <PublicRoute>
+                                            <Login />
+                                        </PublicRoute>
+                                    }
+                                />
+                                <Route
+                                    path="/register"
+                                    element={
+                                        <PublicRoute>
+                                            <Register />
+                                        </PublicRoute>
+                                    }
+                                />
+                                <Route path="/google-auth-success" element={<GoogleAuthSuccess />} />
+                                <Route path="/forgot-password" element={<ForgotPassword />} />
+                                <Route path="/art/:id" element={<ArtDetail />} />
+                                <Route path="/artist/:id" element={<ArtistProfile />} />
 
-                            {/* Protected routes - Buyer & Artist */}
-                            <Route
-                                path="/profile"
-                                element={
-                                    <ProtectedRoute>
-                                        <Profile />
-                                    </ProtectedRoute>
-                                }
-                            />
-                            <Route
-                                path="/favorite"
-                                element={
-                                    <ProtectedRoute>
-                                        <Favorites />
-                                    </ProtectedRoute>
-                                }
-                            />
-                            <Route path="/dashboard" element={<Dashboard />} />
-                            <Route path="/cart" element={<Cart />} />
-                            <Route path="/payments" element={<Payments />} />
-                            <Route path="/orders" element={<OrderHistory />} />
-                            <Route path="/orders/:id" element={<OrderDetail />} />
-                            <Route path="/chat" element={<Chat />} />
+                                {/* Protected routes - Buyer & Artist */}
+                                <Route
+                                    path="/profile"
+                                    element={
+                                        <ProtectedRoute>
+                                            <Profile />
+                                        </ProtectedRoute>
+                                    }
+                                />
+                                <Route
+                                    path="/favorite"
+                                    element={
+                                        <ProtectedRoute>
+                                            <Favorites />
+                                        </ProtectedRoute>
+                                    }
+                                />
+                                <Route path="/dashboard" element={<Dashboard />} />
+                                <Route path="/cart" element={<Cart />} />
+                                <Route path="/payments" element={<Payments />} />
+                                <Route path="/orders" element={<OrderHistory />} />
+                                <Route path="/orders/:id" element={<OrderDetail />} />
+                                <Route path="/chat" element={<Chat />} />
 
-                            {/* Artist & Admin routes */}
-                            <Route path="/products" element={<ProductManagement />} />
-                            <Route path="/products/add" element={<AddProduct />} />
-                            <Route path="/products/edit/:id" element={<EditProduct />} />
-                            <Route path="/ArtistFinanceReport" element={<ArtistFinanceReport />} />
+                                {/* Artist & Admin routes */}
+                                <Route path="/products" element={<ProductManagement />} />
+                                <Route path="/products/add" element={<AddProduct />} />
+                                <Route path="/products/edit/:id" element={<EditProduct />} />
+                                <Route path="/ArtistFinanceReport" element={<ArtistFinanceReport />} />
 
-                            {/* Admin only routes */}
-                            <Route path="/users" element={<UserList />} />
-                            <Route path="/finance" element={<Finance />} />
-                        </Routes>
-                    </main>
-                    <ToastContainer position="top-right" autoClose={3000} />
+                                {/* Admin only routes */}
+                                <Route path="/users" element={<UserList />} />
+                                <Route path="/finance" element={<Finance />} />
+                            </Routes>
+                        </main>
+                        <ToastContainer position="top-right" autoClose={3000} />
+                    </div>
                 </div>
             </Router>
         </AuthProvider>

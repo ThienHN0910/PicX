@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import { Input } from '../components/ui/Input';
 import { ProductCard } from '../components/ProductCard';
-import { CategoryFilter } from '../components/CategoryFilter';
 import { useStore } from '../lib/store';
 import Masonry from 'react-masonry-css';
 import { Product, Favorite } from '../lib/types';
@@ -14,6 +13,13 @@ export default function Favorites() {
     const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
     const [isLoading, setIsLoading] = useState(true);
     const { favorites, categories, fetchCategories, fetchFavorites, user, setFavorites } = useStore();
+
+    // Lắng nghe sự kiện chọn category từ sidebar
+    useEffect(() => {
+        const handler = (e: any) => setSelectedCategory(e.detail);
+        window.addEventListener('select-category', handler);
+        return () => window.removeEventListener('select-category', handler);
+    }, []);
 
     // Helper to get auth header
     const getAuthHeader = () => {
@@ -29,14 +35,15 @@ export default function Favorites() {
         }
     }, [fetchCategories, fetchFavorites, user]);
 
+    // Filter favorites theo search và category (nếu có category_id)
     const filteredFavorites = favorites.filter((product) => {
         const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
             product.description?.toLowerCase().includes(searchQuery.toLowerCase());
-        // Category filtering disabled due to missing category_id
-        return matchesSearch;
+        const matchesCategory =
+            !selectedCategory ||
+            product.category_id === selectedCategory;
+        return matchesSearch && matchesCategory;
     });
-
-    console.log('Favorites:', filteredFavorites.length);
 
     const handleAddToCart = async (product: Product) => {
         if (!user?.id) {
@@ -96,28 +103,11 @@ export default function Favorites() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-100 p-4">
+        <div className="min-h-screen bg-gray-100 p-4 pl-24">
             <div className="max-w-6xl mx-auto">
                 <h1 className="text-2xl font-bold mb-6">Your Favorite Products</h1>
-                <div className="mb-6">
-                    <div className="relative">
-                        <Input
-                            type="text"
-                            placeholder="Search favorites..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        />
-                        <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                    </div>
-                </div>
 
-                {/* Note: Category filtering is disabled due to missing category_id */}
-                <CategoryFilter
-                    categories={categories}
-                    selectedCategory={selectedCategory}
-                    onSelect={setSelectedCategory}
-                />
+                {/* Đã xóa CategoryFilter */}
 
                 {isLoading ? (
                     <Loading />
