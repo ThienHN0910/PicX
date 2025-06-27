@@ -10,6 +10,7 @@ interface AppState {
     hasMore: boolean;
     page: number;
     favorites: Favorite[];
+    searchQuery: string;
     setUser: (user: User | null) => void;
     setProducts: (products: Product[]) => void;
     setCategories: (categories: Category[]) => void;
@@ -21,6 +22,7 @@ interface AppState {
     setFavorites: (favorites: Favorite[]) => void;
     fetchFavorites: (id: number) => Promise<void>;
     fetchAndSetUser: () => Promise<void>;
+    setSearchQuery: (query: string) => void;
 }
 
 const getAuthHeader = () => {
@@ -36,6 +38,7 @@ export const useStore = create<AppState>((set, get) => ({
     hasMore: true,
     page: 1,
     favorites: [],
+    searchQuery: '',
     setUser: (user) => set({ user }),
     setProducts: (products) => set({ products }),
     setCategories: (categories) => set({ categories }),
@@ -171,5 +174,6 @@ export const useStore = create<AppState>((set, get) => ({
         } catch (error) {
             set({ user: null });
         }
-    }
+    },
+    setSearchQuery: (query) => set({ searchQuery: query }),
 }));
