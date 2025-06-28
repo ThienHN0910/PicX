@@ -26,13 +26,13 @@ namespace PicXAPI.Controllers
             if (!int.TryParse(userId, out var Id))
                 return Unauthorized();
             var user = await _context.Users.Where(u => u.UserId == Id).Select(u => new ProfileDto
-                {
-                    Name = u.Name,
-                    Email = u.Email,
-                    Phone = u.Phone,
-                    Address = u.Address,
-                    Role = u.Role
-                }).FirstOrDefaultAsync();
+            {
+                Name = u.Name,
+                Email = u.Email,
+                Phone = u.Phone,
+                Address = u.Address,
+                Role = u.Role
+            }).FirstOrDefaultAsync();
             if (user == null)
                 return NotFound();
             return Ok(user);
@@ -59,6 +59,18 @@ namespace PicXAPI.Controllers
             if (user.Role == "buyer" && profile.Role == "artist")
             {
                 user.Role = "artist";
+                var existingArtistProfile = await _context.ArtistProfiles.FindAsync(user.UserId);
+                if (existingArtistProfile == null)
+                {
+                    var newArtistProfile = new ArtistProfile
+                    {
+                        ArtistId = user.UserId,
+                        CreatedAt = DateTime.Now,
+                        UpdatedAt = DateTime.Now
+                        // Set other fields to null/default as needed
+                    };
+                    _context.ArtistProfiles.Add(newArtistProfile);
+                }
             }
             // Prevent arbitrary role escalation
             // else ignore role change
