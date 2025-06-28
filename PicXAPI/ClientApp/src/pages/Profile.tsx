@@ -4,6 +4,7 @@ import { User, PencilLine, Save, Palette } from 'lucide-react';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { useStore } from '../lib/store';
+import { useNavigate } from 'react-router-dom';
 
 const Profile = () => {
     const { user, setUser } = useStore();
@@ -18,6 +19,7 @@ const Profile = () => {
     });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const navigate = useNavigate();
 
     // Helper to get auth header
     const getAuthHeader = () => {
@@ -221,6 +223,17 @@ const Profile = () => {
                                 <span>Switch to Artist</span>
                             </Button>
                         </div>
+                    </div>
+                )}
+                {user?.role === 'artist' && user?.id && (
+                    <div className="mt-6 text-center md:text-left">
+                        <Button
+                            onClick={() => navigate(`/profile/artist/${user.id}`)}
+                            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-200"
+                        >
+                            <PencilLine className="h-5 w-5 mr-2" />
+                            Build Your Artist Profile
+                        </Button>
                     </div>
                 )}
             </form>

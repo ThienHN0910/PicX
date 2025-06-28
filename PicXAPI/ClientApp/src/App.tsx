@@ -115,6 +115,7 @@ function App() {
                                         </PublicRoute>
                                     }
                                 />
+                                <Route path="/profile/artist/:id" element={<ArtistProfile />} />
                                 <Route
                                     path="/favorite"
                                     element={
