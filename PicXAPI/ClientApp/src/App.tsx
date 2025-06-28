@@ -108,6 +108,14 @@ function App() {
                                     }
                                 />
                                 <Route
+                                    path="/artist-profile"
+                                    element={
+                                        <PublicRoute>
+                                            <ArtistProfile />
+                                        </PublicRoute>
+                                    }
+                                />
+                                <Route
                                     path="/favorite"
                                     element={
                                         <ProtectedRoute>

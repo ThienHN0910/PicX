@@ -173,7 +173,7 @@ export default function Home() {
     };
 
     return (
-        <div className="min-h-screen bg-gray p-4">
+        <div className="min-h-screen bg-gray p-4 ml-20">
             <div >
                 {/* ĐÃ XÓA CategoryFilter */}
                 {(shuffledItems.length === 0 && !hasMore && randomExhibitions.length === 0 && !exhibitionsLoading) ? (
