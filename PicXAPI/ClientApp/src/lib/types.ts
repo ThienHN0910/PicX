@@ -24,6 +24,21 @@ export interface ArtistProfile {
   updated_at: Date;
 }
 
+interface ArtistProfileData {
+    name: string;
+    email: string;
+    phone: string | null;
+    address: string | null;
+    role: string;
+    bio: string | null;
+    profilePicture: string | null;
+    specialization: string | null;
+    experienceYears: number | null;
+    websiteUrl: string | null;
+    socialMediaLinks: string | null;
+    userId: number;
+}
+
 export interface Product {
   product_id: number;
   artist_id: number;
