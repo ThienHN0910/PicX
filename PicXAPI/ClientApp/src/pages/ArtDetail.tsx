@@ -4,6 +4,7 @@ import { Heart, Share2, ShoppingCart, Edit } from 'lucide-react';
 import axios from 'axios';
 import { Button } from '../components/ui/Button';
 import Loading from '../components/Loading';
+import ArtistProducts from '../components/ArtistProducts';
 
 interface Comment {
     id: number;
@@ -112,7 +113,6 @@ const ArtDetail = () => {
     const imageUrl = `/api/product/image/${product.imageFileId}`;
     const additionalImageUrls = product.additionalImages ? JSON.parse(product.additionalImages).map((id: string) => `/api/product/image/${id}`) : [];
     const tags = product.tags ? product.tags.split(',').map(t => t.trim()) : [];
-
     return (
         <div className="max-w-7xl mx-auto px-4 py-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -123,6 +123,10 @@ const ArtDetail = () => {
                         {additionalImageUrls.map((src, i) => (
                             <img key={i} src={src} onError={(e) => e.currentTarget.src = '/placeholder-image.jpg'} alt="" className="rounded-lg object-cover" />
                         ))}
+                    </div>
+                    <div className="grid grid-cols-1 ">
+                        <h2 className="text-lg font-semibold">More from {product.artist.name}</h2>
+                        <ArtistProducts artistId={product.artist.id} />
                     </div>
                 </div>
 

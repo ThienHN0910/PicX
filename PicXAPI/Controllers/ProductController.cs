@@ -234,6 +234,60 @@ namespace PicXAPI.Controllers
             }
         }
 
+        [HttpGet("artist/{artistId}")]
+        public async Task<IActionResult> GetProductsByArtist(int artistId, [FromQuery] int page = 1, [FromQuery] int limit = 10)
+        {
+            try
+            {
+                var artistExists = await _context.Users.AnyAsync(u => u.UserId == artistId && u.Role == "artist");
+                if (!artistExists)
+                {
+                    _logger.LogWarning($"Artist with ID {artistId} not found.");
+                    return NotFound(new { error = "Artist not found" });
+                }
+
+                var skip = (page - 1) * limit;
+                var products = await _context.Products
+                    .Where(p => p.ArtistId == artistId)
+                    .Include(p => p.Category)
+                    .Include(p => p.Artist)
+                    .Select(p => new
+                    {
+                        ProductId = p.ProductId,
+                        Title = p.Title,
+                        Description = p.Description,
+                        Price = p.Price,
+                        CategoryId = p.Category.CategoryId,
+                        CategoryName = p.Category.Name,
+                        Dimensions = p.Dimensions,
+                        IsAvailable = p.IsAvailable,
+                        Tags = p.Tags,
+                        ImageFileId = p.ImageDriveId,
+                        AdditionalImages = p.AdditionalImages,
+                        Artist = new
+                        {
+                            Id = p.Artist.UserId,
+                            Name = p.Artist.Name
+                        },
+                        CreatedAt = p.CreatedAt,
+                        LikeCount = p.LikeCount
+                    })
+                    .Skip(skip)
+                    .Take(limit)
+                    .ToListAsync();
+
+                var totalProducts = await _context.Products.Where(p => p.ArtistId == artistId).CountAsync();
+                var hasMore = skip + products.Count < totalProducts;
+
+                return Ok(new { products, hasMore, totalPages = (int)Math.Ceiling((double)totalProducts / limit) });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to retrieve products for artist ID: {artistId}");
+                return StatusCode(500, new { error = "An error occurred while retrieving products for this artist", details = ex.Message });
+            }
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetProduct(int id)
         {
