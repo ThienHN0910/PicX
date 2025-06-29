@@ -23,7 +23,7 @@ namespace PicXAPI.Controllers
             _context = context;
         }
 
-        // Helper: Lấy userId từ JWT trong Authorization header
+        // Helper: Get userId from JWT in Authorization header
         private async Task<int?> GetAuthenticatedUserId()
         {
             var authHeader = Request.Headers["Authorization"].FirstOrDefault();
@@ -52,7 +52,7 @@ namespace PicXAPI.Controllers
         [Authorize]
         public async Task<ActionResult<IEnumerable<ProductDto>>> GetFavoritesByUser(int userId)
         {
-            // Chỉ cho phép lấy favorites của chính mình (bảo mật)
+            // Only allow accessing one's own favorites (for security)
             var authUserId = await GetAuthenticatedUserId();
             if (!authUserId.HasValue || authUserId.Value != userId)
             {
@@ -71,7 +71,7 @@ namespace PicXAPI.Controllers
                 .Where(f => f.UserId == userId)
                 .Include(f => f.Product)
                 .Include(p => p.Product.Artist) // Include artist details
-                .OrderByDescending(f => f.CreatedAt) // Newest first
+                .OrderByDescending(f => f.CreatedAt)
                 .Select(f => new
                 {
                     FavoriteId = f.FavoriteId,
@@ -87,7 +87,7 @@ namespace PicXAPI.Controllers
                         : null,
                     IsAvailable = f.Product.IsAvailable,
                     LikeCount = f.Product.LikeCount,
-                    CreatedAt = f.CreatedAt, // When the product was favorited
+                    CreatedAt = f.CreatedAt,
                     Artist = new
                     {
                         Id = f.Product.Artist.UserId,
@@ -96,7 +96,7 @@ namespace PicXAPI.Controllers
                 })
                 .ToListAsync();
 
-            return Ok(products); // Returns empty list if no favorites
+            return Ok(products);
         }
 
         // POST: api/favorites
@@ -109,7 +109,7 @@ namespace PicXAPI.Controllers
                 return BadRequest(ModelState);
             }
 
-            // Lấy userId từ token, không nhận từ client
+            // Get userId from token, do not accept from client
             var authUserId = await GetAuthenticatedUserId();
             if (!authUserId.HasValue || authUserId.Value != favoriteDto.UserId)
             {
@@ -175,7 +175,7 @@ namespace PicXAPI.Controllers
                 return NotFound("Favorite not found.");
             }
 
-            // Chỉ cho phép xóa favorite của chính mình
+            // Only allow deleting own favorites
             var authUserId = await GetAuthenticatedUserId();
             if (!authUserId.HasValue || favorite.UserId != authUserId.Value)
             {

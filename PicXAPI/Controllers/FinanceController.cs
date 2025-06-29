@@ -17,7 +17,7 @@ namespace PicXAPI.Controllers
             _context = context;
         }
 
-        // Only authenticated users (artist) can access their statistics
+        // Only authenticated users with artist or admin roles can access their statistics
         [HttpGet("artist-statistics")]
         [Authorize(Roles = "artist,admin")]
         public IActionResult GetArtistStatistics()
@@ -26,7 +26,7 @@ namespace PicXAPI.Controllers
 
             if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
             {
-                return Unauthorized("User ID not found");
+                return Unauthorized(new { message = "User ID not found" });
             }
 
             var stats = _context.FinancialReports
@@ -43,7 +43,7 @@ namespace PicXAPI.Controllers
             return Ok(stats);
         }
 
-        // Only admin can access all statistics
+        // Only admins can access statistics for all users
         [HttpGet("admin-statistics")]
         [Authorize(Roles = "admin")]
         public IActionResult GetAdminStatistics()
@@ -67,7 +67,7 @@ namespace PicXAPI.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine("Admin API Error: " + ex.Message);
-                return StatusCode(500, new { message = ex.Message });
+                return StatusCode(500, new { message = "Internal server error", detail = ex.Message });
             }
         }
     }

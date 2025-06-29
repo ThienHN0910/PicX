@@ -81,14 +81,14 @@ namespace PicXAPI.Controllers
         [HttpPost("logout")]
         public IActionResult Logout()
         {
-            // Với JWT thì logout chỉ cần client xóa token khỏi localStorage
+            // For JWT-based authentication, logout is handled on the client side by removing the token
             return Ok(new { message = "Logout success" });
         }
 
         [HttpGet("me")]
         public async Task<IActionResult> GetCurrentUser()
         {
-            // Lấy token từ header Authorization (chuẩn)
+            // Get token from the Authorization header (standard)
             string? authHeader = Request.Headers["Authorization"];
             if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer "))
                 return Unauthorized(new { message = "Token not provided" });
@@ -153,7 +153,7 @@ namespace PicXAPI.Controllers
             if (tokenResult == null || string.IsNullOrEmpty(tokenResult.AccessToken))
                 return BadRequest(new { message = "Invalid token response" });
 
-            // Get user info
+            // Retrieve user info using access token
             var userRequest = new HttpRequestMessage(HttpMethod.Get, "https://www.googleapis.com/oauth2/v2/userinfo");
             userRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokenResult.AccessToken);
             var userResponse = await client.SendAsync(userRequest);
@@ -164,7 +164,7 @@ namespace PicXAPI.Controllers
             if (userInfo == null || string.IsNullOrEmpty(userInfo.Email))
                 return BadRequest(new { message = "Invalid user info" });
 
-            // Save or get user
+            // Get or create user in database
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == userInfo.Email.ToLower());
             if (user == null)
             {
