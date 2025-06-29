@@ -18,12 +18,13 @@ namespace PicXAPI.Controllers
             _context = context;
         }
 
-        // Helper: Lấy userId từ JWT trong Authorization header
+        // Helper: Get userId from JWT in Authorization header
         private async Task<int?> GetAuthenticatedUserId()
         {
             var authHeader = Request.Headers["Authorization"].FirstOrDefault();
             if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
                 return null;
+
             var token = authHeader.Substring("Bearer ".Length);
 
             try
@@ -44,7 +45,7 @@ namespace PicXAPI.Controllers
             }
         }
 
-        // GET: api/orders
+        // GET: api/orders - Get all orders of authenticated user
         [HttpGet]
         public async Task<IActionResult> GetOrders()
         {
@@ -73,7 +74,7 @@ namespace PicXAPI.Controllers
             return Ok(new { orders });
         }
 
-        // GET: api/orders/5
+        // GET: api/orders/{id} - Get specific order by ID
         [HttpGet("{id}")]
         public async Task<IActionResult> GetOrder(int id)
         {
@@ -105,7 +106,7 @@ namespace PicXAPI.Controllers
             return Ok(order);
         }
 
-        // POST: api/orders
+        // POST: api/orders - Create a new order
         [HttpPost]
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto createOrder)
         {
@@ -122,7 +123,7 @@ namespace PicXAPI.Controllers
                            .ToListAsync();
 
             if (products.Count != productId.Count)
-                return BadRequest(new { message = "Some picture are invalid or no longer avaliable" });
+                return BadRequest(new { message = "Some pictures are invalid or no longer available" });
 
             var totalAmount = products.Sum(p => p.Price);
             var orderDetails = products.Select(p => new OrderDetail
@@ -145,7 +146,7 @@ namespace PicXAPI.Controllers
             return Ok(new { message = "Order created", orderId = order.OrderId });
         }
 
-        // DELETE: api/orders/5
+        // DELETE: api/orders/{id} - Delete an order
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteOrder(int id)
         {

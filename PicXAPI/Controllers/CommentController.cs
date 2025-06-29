@@ -17,21 +17,24 @@ namespace PicXAPI.Controllers
             _context = context;
         }
 
-        // Helper: Lấy userId từ JWT trong Authorization header
+        // Helper: Extract userId from JWT token in Authorization header
         private async Task<int?> GetAuthenticatedUserId()
         {
             var authHeader = Request.Headers["Authorization"].FirstOrDefault();
             if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
                 return null;
+
             var token = authHeader.Substring("Bearer ".Length);
 
             try
             {
                 var handler = new JwtSecurityTokenHandler();
                 var jwtToken = handler.ReadJwtToken(token);
+
                 var userIdClaim = jwtToken.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
                 if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
                     return null;
+
                 var user = await _context.Users.FindAsync(userId);
                 return user?.UserId;
             }
@@ -46,15 +49,15 @@ namespace PicXAPI.Controllers
         public async Task<IActionResult> AddComment(int productId, [FromBody] string content)
         {
             if (string.IsNullOrWhiteSpace(content))
-                return BadRequest(new { message = "Content is required" });
+                return BadRequest(new { message = "Comment content is required." });
 
             var userId = await GetAuthenticatedUserId();
             if (!userId.HasValue)
-                return Unauthorized(new { message = "Login required" });
+                return Unauthorized(new { message = "Please log in to comment." });
 
             var product = await _context.Products.FindAsync(productId);
             if (product == null)
-                return NotFound(new { message = "Product not found" });
+                return NotFound(new { message = "Product not found." });
 
             var comment = new Comment
             {
@@ -69,7 +72,7 @@ namespace PicXAPI.Controllers
 
             return Ok(new
             {
-                message = "Comment added successfully",
+                message = "Comment posted successfully.",
                 comment = new
                 {
                     id = comment.CommentId,
