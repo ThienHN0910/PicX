@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PicXAPI.Models;
 using PicXAPI.DTOs;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace PicXAPI.Controllers
 {
@@ -20,10 +23,42 @@ namespace PicXAPI.Controllers
             _context = context;
         }
 
+        // Helper: Get userId from JWT in Authorization header
+        private async Task<int?> GetAuthenticatedUserId()
+        {
+            var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                return null;
+            var token = authHeader.Substring("Bearer ".Length);
+
+            try
+            {
+                var handler = new JwtSecurityTokenHandler();
+                var jwtToken = handler.ReadJwtToken(token);
+                var userIdClaim = jwtToken.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
+                if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+                    return null;
+                var user = await _context.Users.FindAsync(userId);
+                return user?.UserId;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         // GET: api/favorites/user/{userId}
         [HttpGet("user/{userId}")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<ProductDto>>> GetFavoritesByUser(int userId)
         {
+            // Only allow accessing one's own favorites (for security)
+            var authUserId = await GetAuthenticatedUserId();
+            if (!authUserId.HasValue || authUserId.Value != userId)
+            {
+                return Unauthorized("Not allowed.");
+            }
+
             // Check if user exists
             var userExists = await _context.Users.AnyAsync(u => u.UserId == userId);
             if (!userExists)
@@ -36,7 +71,7 @@ namespace PicXAPI.Controllers
                 .Where(f => f.UserId == userId)
                 .Include(f => f.Product)
                 .Include(p => p.Product.Artist) // Include artist details
-                .OrderByDescending(f => f.CreatedAt) // Newest first
+                .OrderByDescending(f => f.CreatedAt)
                 .Select(f => new
                 {
                     FavoriteId = f.FavoriteId,
@@ -52,7 +87,7 @@ namespace PicXAPI.Controllers
                         : null,
                     IsAvailable = f.Product.IsAvailable,
                     LikeCount = f.Product.LikeCount,
-                    CreatedAt = f.CreatedAt, // When the product was favorited
+                    CreatedAt = f.CreatedAt,
                     Artist = new
                     {
                         Id = f.Product.Artist.UserId,
@@ -61,16 +96,24 @@ namespace PicXAPI.Controllers
                 })
                 .ToListAsync();
 
-            return Ok(products); // Returns empty list if no favorites
+            return Ok(products);
         }
 
         // POST: api/favorites
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<FavoriteDto>> AddFavorite(FavoriteDto favoriteDto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
+            }
+
+            // Get userId from token, do not accept from client
+            var authUserId = await GetAuthenticatedUserId();
+            if (!authUserId.HasValue || authUserId.Value != favoriteDto.UserId)
+            {
+                return Unauthorized("Not allowed.");
             }
 
             // Check if user and product exist
@@ -123,12 +166,20 @@ namespace PicXAPI.Controllers
 
         // DELETE: api/favorites/{id}
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteFavorite(int id)
         {
             var favorite = await _context.Favorites.FindAsync(id);
             if (favorite == null)
             {
                 return NotFound("Favorite not found.");
+            }
+
+            // Only allow deleting own favorites
+            var authUserId = await GetAuthenticatedUserId();
+            if (!authUserId.HasValue || favorite.UserId != authUserId.Value)
+            {
+                return Unauthorized("Not allowed.");
             }
 
             // Decrement like_count in Products
@@ -144,8 +195,7 @@ namespace PicXAPI.Controllers
             return Ok();
         }
 
-        // Helper method to get a favorite by ID (used for CreatedAtAction)
-        [HttpGet("{id}")]
+        // Helper method to get a favorite by ID (not exposed as API)
         private async Task<ActionResult<Favorite>> GetFavorite(int id)
         {
             var favorite = await _context.Favorites

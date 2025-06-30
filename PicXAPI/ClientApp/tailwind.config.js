@@ -14,6 +14,9 @@ module.exports = {
                     'to': { opacity: 1 },
                 },
             },
+            backgroundImage: {
+                'main-gradient': 'linear-gradient(180deg, rgb(66,230,149) 0%, rgb(59,178,184) 100%)',
+            },
         },
     },
     plugins: [],

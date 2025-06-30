@@ -20,10 +20,14 @@ namespace PicXAPI.Controllers
             _context = context;
         }
 
+        // Helper: Get userId from JWT in Authorization header
         private async Task<int?> GetAuthenticatedUserId()
         {
-            if (!Request.Cookies.TryGetValue("authToken", out var token) || string.IsNullOrEmpty(token))
+            var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
                 return null;
+
+            var token = authHeader.Substring("Bearer ".Length);
 
             try
             {
@@ -43,7 +47,7 @@ namespace PicXAPI.Controllers
             }
         }
 
-        // GET: api/orders
+        // GET: api/orders - Get all orders of authenticated user
         [HttpGet]
         public async Task<IActionResult> GetOrders()
         {
@@ -72,12 +76,22 @@ namespace PicXAPI.Controllers
             return Ok(new { orders });
         }
 
+<<<<<<< HEAD
     // GET: api/orders/5 Phuong thuc GetOrder moi thay the cho phuong thuc GetOrder cu
     [HttpGet("{id}")]
     public async Task<IActionResult> GetOrder(int id)
     {
         var userId = await GetAuthenticatedUserId();
         if (!userId.HasValue) return Unauthorized();
+=======
+        // GET: api/orders/{id} - Get specific order by ID
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetOrder(int id)
+        {
+            var userId = await GetAuthenticatedUserId();
+            if (!userId.HasValue)
+                return Unauthorized(new { message = "Login first" });
+>>>>>>> origin/main
 
         var currentUser = await _context.Users.FindAsync(userId.Value);
         if (currentUser == null) return Unauthorized();
@@ -247,7 +261,7 @@ namespace PicXAPI.Controllers
     }
 
 
-        // POST: api/orders
+        // POST: api/orders - Create a new order
         [HttpPost]
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto createOrder)
         {
@@ -264,14 +278,13 @@ namespace PicXAPI.Controllers
                            .ToListAsync();
 
             if (products.Count != productId.Count)
-                return BadRequest(new { message = "Some picture are invalid or no longer avaliable" });
+                return BadRequest(new { message = "Some pictures are invalid or no longer available" });
 
             var totalAmount = products.Sum(p => p.Price);
             var orderDetails = products.Select(p => new OrderDetail
             {
                 ProductId = p.ProductId,
                 TotalPrice = p.Price
-
             }).ToList();
 
             var order = new Order
@@ -288,8 +301,7 @@ namespace PicXAPI.Controllers
             return Ok(new { message = "Order created", orderId = order.OrderId });
         }
 
-
-        // DELETE: api/orders/5
+        // DELETE: api/orders/{id} - Delete an order
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteOrder(int id)
         {
