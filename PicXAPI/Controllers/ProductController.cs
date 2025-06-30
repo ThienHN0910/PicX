@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PicXAPI.Models;
 using PicXAPI.DTOs;
+using PicXAPI.Services;
 using System.Security.Claims;
 using System.Text.Json;
 using System.IdentityModel.Tokens.Jwt;
+using Google.Apis.Auth.OAuth2.Responses;
 
 namespace PicXAPI.Controllers
 {
@@ -21,13 +23,14 @@ namespace PicXAPI.Controllers
         private readonly ILogger<ProductController> _logger;
         private readonly string _folderId;
         private readonly DriveService _driveService;
+        private readonly IWatermarkService _watermarkService;
 
-        public ProductController(AppDbContext context, ILogger<ProductController> logger)
+        public ProductController(AppDbContext context, ILogger<ProductController> logger, IWatermarkService watermarkService)
         {
             _context = context;
             _logger = logger;
             _folderId = "1N__Y0n7rDuBwNLUsoRKHkezhAWOn0k24"; // Replace with your Google Drive folder ID
-
+            _watermarkService = watermarkService;
             try
             {
                 var credentialPath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS");
@@ -472,22 +475,55 @@ namespace PicXAPI.Controllers
                 request.Fields = "mimeType";
                 var file = await request.ExecuteAsync();
 
-                var stream = new MemoryStream();
-                await _driveService.Files.Get(fileId).DownloadAsync(stream);
-                stream.Position = 0;
+                if (file == null)
+                {
+                    _logger.LogWarning($"File with ID {fileId} not found on Google Drive.");
+                    return NotFound("File not found.");
+                }
 
-                Response.Headers["Cache-Control"] = "public,max-age=86400";
-                return File(stream, file.MimeType ?? "image/jpeg");
+                var imageStream = new MemoryStream();
+                await _driveService.Files.Get(fileId).DownloadAsync(imageStream);
+                imageStream.Position = 0;
+
+                // Only apply watermark to image files with valid MIME type
+                if (!string.IsNullOrEmpty(file.MimeType) && file.MimeType.StartsWith("image/"))
+                {
+                    try
+                    {
+                        string watermarkText = "PicX";
+                        var watermarkedBytes = await _watermarkService.ApplyTextWatermarkAsync(imageStream, watermarkText, file.MimeType);
+                        Response.Headers["Cache-Control"] = "public,max-age=86400";
+                        return File(watermarkedBytes, file.MimeType);
+                    }
+                    catch (SixLabors.ImageSharp.UnknownImageFormatException)
+                    {
+                        // Fallback: return original file if not a valid image
+                        Response.Headers["Cache-Control"] = "public,max-age=86400";
+                        return File(imageStream, file.MimeType ?? "application/octet-stream");
+                    }
+                    catch (System.Exception ex)
+                    {
+                        _logger.LogError(ex, $"Watermarking failed for file ID: {fileId}, returning original file.");
+                        Response.Headers["Cache-Control"] = "public,max-age=86400";
+                        return File(imageStream, file.MimeType ?? "application/octet-stream");
+                    }
+                }
+                else
+                {
+                    // Return non-image files as-is
+                    Response.Headers["Cache-Control"] = "public,max-age=86400";
+                    return File(imageStream, file.MimeType ?? "application/octet-stream");
+                }
             }
-            catch (Google.Apis.Auth.OAuth2.Responses.TokenResponseException ex)
+            catch (TokenResponseException ex)
             {
                 _logger.LogError(ex, $"Authentication error for file ID: {fileId}");
                 return StatusCode(401, new { error = "Authentication failed for Google Drive" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Failed to retrieve image with ID: {fileId}");
-                return StatusCode(500, new { error = $"Failed to retrieve image: {ex.Message}" });
+                _logger.LogError(ex, $"Failed to retrieve or watermark image with ID: {fileId}");
+                return StatusCode(500, new { error = $"Failed to retrieve or watermark image: {ex.Message}" });
             }
         }
 
