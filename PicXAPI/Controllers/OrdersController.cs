@@ -85,6 +85,7 @@ namespace PicXAPI.Controllers
         // Tìm đơn hàng và kèm theo tất cả thông tin cần thiết
         var order = await _context.Orders
             .Where(o => o.OrderId == id)
+            .Include(o => o.Buyer)
             .Include(o => o.OrderDetails)
                 .ThenInclude(od => od.Product)
                     .ThenInclude(p => p.Artist)
@@ -102,13 +103,18 @@ namespace PicXAPI.Controllers
         if (!isBuyer && !isArtist && !isAdmin)
             return Forbid();
 
+        var filteredItems = isArtist
+         ? order.OrderDetails.Where(od => od.Product.ArtistId == userId.Value)
+         : order.OrderDetails;
+
         // Tạo response DTO
         var result = new GetOrderDto
         {
             OrderId = order.OrderId,
-            TotalAmount = order.TotalAmount,
+            TotalAmount = filteredItems.Sum(i => i.TotalPrice),
             OrderDate = order.OrderDate,
-            Items = order.OrderDetails.Select(od => new GetOrderDetailDto
+            BuyerName = order.Buyer?.Name ?? "Unknown",
+            Items = filteredItems.Select(od => new GetOrderDetailDto
             {
                 ProductId = od.ProductId,
                 ProductTitle = od.Product.Title,
