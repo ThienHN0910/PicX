@@ -11,6 +11,7 @@
   <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
   <PackageReference Include="DotNetEnv" Version="3.1.1" />
     <PackageReference Include="Google.Apis.Drive.v3" Version="1.69.0.3783" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.16" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.16" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.16" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.2.0" />
@@ -23,6 +24,10 @@
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.11.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="ClientApp\src\utils\" />
   </ItemGroup>
 
 </Project>

@@ -26,6 +26,7 @@ interface Category {
 export default function EditProduct() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const token = localStorage.getItem('authToken');
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [categories, setCategories] = useState<Category[]>([]);
@@ -47,13 +48,13 @@ export default function EditProduct() {
             try {
                 // Fetch categories
                 const categoriesResponse = await axios.get('/api/product/categories', {
-                    withCredentials: true
+                    headers: token ? { Authorization: `Bearer ${token}` } : undefined
                 });
                 setCategories(categoriesResponse.data);
 
                 // Fetch product
                 const productResponse = await axios.get(`/api/product/${id}`, {
-                    withCredentials: true
+                    headers: token ? { Authorization: `Bearer ${token}` } : undefined
                 });
                 const product = productResponse.data;
 
@@ -86,7 +87,7 @@ export default function EditProduct() {
         };
 
         fetchData();
-    }, [id, reset]);
+    }, [id, reset, token]);
 
     const onSubmit = async (data: ProductForm) => {
         if (!window.confirm('Are you sure you want to save changes?')) return;
@@ -127,8 +128,10 @@ export default function EditProduct() {
             }
 
             await axios.put(`/api/product/edit/${id}`, formData, {
-                withCredentials: true,
-                headers: { 'Content-Type': 'multipart/form-data' }
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {})
+                }
             });
 
             navigate('/products');

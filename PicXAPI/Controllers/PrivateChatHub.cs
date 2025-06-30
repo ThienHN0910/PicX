@@ -22,7 +22,7 @@ namespace PicXAPI
             var userId = await GetAuthenticatedUserId();
             if (!userId.HasValue)
             {
-                throw new HubException("Không được phép truy cập");
+                throw new HubException("Access denied");
             }
 
             await Groups.AddToGroupAsync(Context.ConnectionId, userId.Value.ToString());
@@ -41,18 +41,18 @@ namespace PicXAPI
             var userId = await GetAuthenticatedUserId();
             if (!userId.HasValue)
             {
-                throw new HubException("Không được phép truy cập");
+                throw new HubException("Access denied");
             }
 
             if (string.IsNullOrWhiteSpace(message))
             {
-                throw new HubException("Tin nhắn không được để trống");
+                throw new HubException("Message cannot be empty");
             }
 
             var receiver = await _context.Users.FindAsync(receiverId);
             if (receiver == null || receiver.IsActive != true)
             {
-                throw new HubException("Người nhận không tồn tại hoặc không hoạt động");
+                throw new HubException("Recipient does not exist or is inactive");
             }
 
             var chatMessage = new Chat
@@ -90,7 +90,7 @@ namespace PicXAPI
             var userId = await GetAuthenticatedUserId();
             if (!userId.HasValue)
             {
-                throw new HubException("Không được phép truy cập");
+                throw new HubException("Access denied");
             }
 
             var message = await _context.Chats
@@ -108,10 +108,10 @@ namespace PicXAPI
         {
             var userId = await GetAuthenticatedUserId();
             Console.WriteLine($"GetChatHistory: userId={userId}, otherUserId={otherUserId}");
-            // ...
+
             if (!userId.HasValue)
             {
-                throw new HubException("Không được phép truy cập");
+                throw new HubException("Access denied");
             }
 
             var messages = await _context.Chats
@@ -145,10 +145,23 @@ namespace PicXAPI
 
         private async Task<int?> GetAuthenticatedUserId()
         {
-            if (!Context.GetHttpContext().Request.Cookies.TryGetValue("authToken", out var token) || string.IsNullOrEmpty(token))
+            var httpContext = Context.GetHttpContext();
+            string token = null;
+
+            // Prefer getting token from Authorization header
+            var authHeader = httpContext?.Request.Headers["Authorization"].FirstOrDefault();
+            if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
             {
-                return null;
+                token = authHeader.Substring("Bearer ".Length);
             }
+            // If not available in header, fallback to query string (used by SignalR JS client)
+            else if (string.IsNullOrEmpty(token))
+            {
+                token = httpContext?.Request.Query["access_token"].FirstOrDefault();
+            }
+
+            if (string.IsNullOrEmpty(token))
+                return null;
 
             try
             {
@@ -161,7 +174,10 @@ namespace PicXAPI
                 }
 
                 var user = await _context.Users.FindAsync(userId);
-                return user?.UserId;
+                if (user == null || user.IsActive == false)
+                    return null;
+
+                return user.UserId;
             }
             catch
             {
@@ -174,7 +190,7 @@ namespace PicXAPI
             var userId = await GetAuthenticatedUserId();
             if (!userId.HasValue)
             {
-                throw new HubException("Không được phép truy cập");
+                throw new HubException("Access denied");
             }
 
             await Clients.Caller.SendAsync("ReceiveCurrentUserId", userId.Value);

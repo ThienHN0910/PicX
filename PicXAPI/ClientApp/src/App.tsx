@@ -1,9 +1,10 @@
-﻿import React from 'react';
+﻿import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import { useStore } from './lib/store';
 import Navbar from './components/Navbar';
+import Topbar from './components/Topbar';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -27,6 +28,8 @@ import ArtistFinanceReport from './pages/ArtistFinanceReport';
 import Favorites from './pages/Favorites';
 import AdminOrders from './pages/AdminOrders';
 import ArtistOrders from './pages/ArtistOrders';
+import GoogleAuthSuccess from './pages/GoogleAuthSuccess';
+
 const ProtectedRoute = ({ children }) => {
     const { isAuthenticated, loading } = useAuth();
 
@@ -41,7 +44,6 @@ const ProtectedRoute = ({ children }) => {
     return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
 
-// Component để redirect nếu đã đăng nhập
 function PublicRoute({ children }) {
     const { isAuthenticated, loading } = useAuth();
 
@@ -55,120 +57,87 @@ function PublicRoute({ children }) {
 
     return !isAuthenticated ? children : <Navigate to="/" replace />;
 }
-// Protected route wrapper
-// const ProtectedRoute = ({ children, allowedRoles }) => {
-//   const user = useStore(state => state.user);
-
-//   if (!user) {
-//     return <Navigate to="/login" replace />;
-//   }
-
-//   if (!allowedRoles.includes(user.role)) {
-//     return <Navigate to="/\" replace />;
-//   }
-
-//   return children;
-// };
 
 function App() {
+    const fetchAndSetUser = useStore(state => state.fetchAndSetUser);
+
+    useEffect(() => {
+        fetchAndSetUser();
+    }, [fetchAndSetUser]);
+
     return (
         <AuthProvider>
             <Router>
-                <div className="min-h-screen bg-gray-50">
+                <div className="flex min-h-screen bg-gray-50">
+                    {/* Sidebar trái */}
                     <Navbar />
-                    <main className="container mx-auto px-4 py-8">
-                        <Routes>
-                            {/* Public routes */}
-                            <Route path="/" element={<Home />} />
-                            <Route
-                                path="/login"
-                                element={
-                                    <PublicRoute>
-                                        <Login />
-                                    </PublicRoute>
-                                }
-                            />
-                            <Route
-                                path="/register"
-                                element={
-                                    <PublicRoute>
-                                        <Register />
-                                    </PublicRoute>
-                                }
-                            />
-                            <Route path="/forgot-password" element={<ForgotPassword />} />
-                            <Route path="/art/:id" element={<ArtDetail />} />
-            <Route path="/artist/:id" element={<ArtistProfile />} />
+                    {/* Nội dung chính */}
+                    <div className="flex-1 flex flex-col">
+                        {/* Topbar */}
+                        <Topbar />
+                        <main className="justify-end flex-1 container mx-16 ml-auto">
+                            <Routes>
+                                {/* Public routes */}
+                                <Route path="/" element={<Home />} />
+                                <Route
+                                    path="/login"
+                                    element={
+                                        <PublicRoute>
+                                            <Login />
+                                        </PublicRoute>
+                                    }
+                                />
+                                <Route
+                                    path="/register"
+                                    element={
+                                        <PublicRoute>
+                                            <Register />
+                                        </PublicRoute>
+                                    }
+                                />
+                                <Route path="/google-auth-success" element={<GoogleAuthSuccess />} />
+                                <Route path="/forgot-password" element={<ForgotPassword />} />
+                                <Route path="/art/:id" element={<ArtDetail />} />
+                                <Route path="/artist/:id" element={<ArtistProfile />} />
 
-                            {/* Protected routes - Buyer & Artist */}
-                            <Route
-                                path="/profile"
-                                element={
-                                    <ProtectedRoute>
-                                        <Profile />
-                                    </ProtectedRoute>
-                                }
-                            />
-                            <Route
-                                path="/favorite"
-                                element={
-                                    <ProtectedRoute>
-                                        <Favorites />
-                                    </ProtectedRoute>
-                                }
-                            />
-                            <Route path="/dashboard" element={
-                                // <ProtectedRoute allowedRoles={['buyer', 'artist', 'admin']}>
-                                <Dashboard />
-                                // </ProtectedRoute>
-                            } />
-                            <Route path="/cart" element={
-                                // <ProtectedRoute allowedRoles={['buyer', 'artist']}>
-                                <Cart />
-                                // </ProtectedRoute>
-                            } />
-                            <Route path="/payments" element={
-                                // <ProtectedRoute allowedRoles={['buyer', 'artist']}>
-                                <Payments />
-                                // </ProtectedRoute>
-                            } />
-                            <Route path="/orders" element={
-                                // <ProtectedRoute allowedRoles={['buyer', 'artist']}>
-                                <OrderHistory />
-                                // </ProtectedRoute>
-                            } />
-                            <Route path="/orders/:id" element={
-                                // <ProtectedRoute allowedRoles={['buyer', 'artist']}>
-                                <OrderDetail />
-                                // </ProtectedRoute>
-                            } />
-                            <Route path="/chat" element={
-                                // <ProtectedRoute allowedRoles={['buyer', 'artist']}>
-                                <Chat />
-                                // </ProtectedRoute>
-                            } />
+                                {/* Protected routes - Buyer & Artist */}
+                                <Route
+                                    path="/profile"
+                                    element={
+                                        <ProtectedRoute>
+                                            <Profile />
+                                        </ProtectedRoute>
+                                    }
+                                />
+                                <Route
+                                    path="/artist-profile"
+                                    element={
+                                        <PublicRoute>
+                                            <ArtistProfile />
+                                        </PublicRoute>
+                                    }
+                                />
+                                <Route path="/profile/artist/:id" element={<ArtistProfile />} />
+                                <Route
+                                    path="/favorite"
+                                    element={
+                                        <ProtectedRoute>
+                                            <Favorites />
+                                        </ProtectedRoute>
+                                    }
+                                />
+                                <Route path="/dashboard" element={<Dashboard />} />
+                                <Route path="/cart" element={<Cart />} />
+                                <Route path="/payments" element={<Payments />} />
+                                <Route path="/orders" element={<OrderHistory />} />
+                                <Route path="/orders/:id" element={<OrderDetail />} />
+                                <Route path="/chat" element={<Chat />} />
 
-                            {/* Artist & Admin routes */}
-                            <Route path="/products" element={
-                                // <ProtectedRoute allowedRoles={['artist', 'admin']}>
-                                <ProductManagement />
-                                // {/* </ProtectedRoute> */}
-                            } />
-                            <Route path="/products/add" element={
-                                // <ProtectedRoute allowedRoles={['artist', 'admin']}>
-                                <AddProduct />
-                                /* </ProtectedRoute> */
-                            } />
-                            <Route path="/products/edit/:id" element={
-                                // <ProtectedRoute allowedRoles={['artist', 'admin']}>
-                                <EditProduct />
-                                /* </ProtectedRoute> */
-                            } />
-                            <Route path="/ArtistFinanceReport" element={
-                                // <ProtectedRoute allowedRoles={['artist', 'admin']}>
-                                <ArtistFinanceReport />
-                                /* </ProtectedRoute> */
-                            } />
+                                {/* Artist & Admin routes */}
+                                <Route path="/products" element={<ProductManagement />} />
+                                <Route path="/products/add" element={<AddProduct />} />
+                                <Route path="/products/edit/:id" element={<EditProduct />} />
+                                <Route path="/ArtistFinanceReport" element={<ArtistFinanceReport />} />
 
                             <Route path="/artist/orders" element={<ArtistOrders />} />
                             <Route path="/artist/order/:id" element={<OrderDetail />} />
@@ -189,6 +158,7 @@ function App() {
                         </Routes>
                     </main>
                     <ToastContainer position="top-right" autoClose={3000} />
+                </div>
                 </div>
             </Router>
         </AuthProvider>

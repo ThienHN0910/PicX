@@ -16,7 +16,7 @@ namespace PicXAPI.Controllers
         }
 
         /// <summary>
-        /// get all exhibitions from various APIs.
+        /// Get all exhibitions from various APIs.
         /// This endpoint aggregates exhibition data from multiple sources.
         /// </summary>
         [HttpGet]
