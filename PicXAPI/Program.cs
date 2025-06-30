@@ -28,7 +28,7 @@ namespace PicXAPI
 
             builder.Services.AddHttpClient();
             builder.Services.AddScoped<CrawlExhibitionService>();
-
+            builder.Services.AddScoped<IWatermarkService, WatermarkService>();
             builder.Services.AddDbContext<AppDbContext>(option =>
                 option.UseSqlServer(builder.Configuration.GetConnectionString("PicX")));
 
