@@ -28,16 +28,16 @@ namespace PicXAPI.Controllers
             {
                 return Unauthorized(new { message = "User ID not found" });
             }
-
-            var stats = _context.FinancialReports
-                .Where(r => r.ArtistId == userId)
-                .OrderBy(r => r.PeriodStart)
-                .Select(r => new
+            var stats = _context.Orders
+                .Where(o => o.BuyerId == userId)
+                .AsEnumerable()
+                .GroupBy(o => o.OrderDate?.ToString("yyyy-MM") ?? "Unknown")
+                .Select(g => new
                 {
-                    month = r.PeriodStart.ToString("yyyy-MM"),
-                    income = r.TotalSales ?? 0,
-                    expense = r.TotalCommission ?? 0
+                month = g.Key,
+                income = g.Sum(x => x.TotalAmount),
                 })
+                .OrderBy(x => x.month)
                 .ToList();
 
             return Ok(stats);
@@ -48,27 +48,24 @@ namespace PicXAPI.Controllers
         [Authorize(Roles = "admin")]
         public IActionResult GetAdminStatistics()
         {
-            try
-            {
-                var result = _context.FinancialReports
-                    .AsEnumerable()
-                    .GroupBy(fr => fr.PeriodStart.ToString("yyyy-MM"))
-                    .Select(g => new
-                    {
-                        month = g.Key,
-                        income = g.Sum(x => x.TotalSales ?? 0),
-                        expense = g.Sum(x => x.TotalCommission ?? 0)
-                    })
-                    .OrderBy(x => x.month)
-                    .ToList();
+            var stats = _context.Orders
+                .AsEnumerable()
+                .GroupBy(o => o.OrderDate?.ToString("yyyy-MM") ?? "Unknown")
+                .Select(g => new
+                {
+                    month = g.Key,
+                    income = g.Sum(x => x.TotalAmount),
+                    orderCount = g.Count()
+                })
+                .OrderBy(x => x.month)
+                .ToList();
 
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Admin API Error: " + ex.Message);
-                return StatusCode(500, new { message = "Internal server error", detail = ex.Message });
-            }
+            return Ok(stats);
         }
+
+
+
+
+
     }
 }
