@@ -1,166 +1,209 @@
-﻿import { useEffect, useState } from 'react';
+﻿/* eslint-disable @typescript-eslint/no-unused-vars */
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-
-interface Artist {
-    artistId: number;
-    name: string;
-}
-
-interface OrderItem {
-    productId: number;
-    productTitle: string;
-    totalPrice: number;
-    imageUrl: string;
-    artistName: string;
-}
-
-interface Order {
-    orderId: number;
-    totalAmount: number;
-    orderDate: string;
-    items: OrderItem[];
-}
+import { useStore } from '../lib/store'; // Nhập useStore
+import { getAuthHeader } from '../lib/store'; // Nhập getAuthHeader
+import { Package } from 'lucide-react';
+import { formatDate } from '../lib/utils'
+import { Order, Artist } from '../lib/types'
 
 export default function AdminOrders() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [artists, setArtists] = useState<Artist[]>([]);
     const [selectedArtist, setSelectedArtist] = useState("all");
     const navigate = useNavigate();
+    const { user, fetchAndSetUser } = useStore(); 
 
     useEffect(() => {
-        axios.get('/api/orders/admin/artists').then(res => {
-            setArtists(res.data);
-        });
-        fetchOrders("all");
-    }, []);
+        const fetchArtists = async () => {
+            try {
+                const response = await axios.get('/api/orders/admin/artists', {
+                    headers: getAuthHeader(), 
+                });
+                setArtists(response.data);
+            } catch (err) {
+                console.error('Error fetching artists:', err);
+                alert('Cannot load artists. Please try again.');
+                if (err.response?.status === 401) {
+                    navigate('/login'); 
+                }
+            }
+        };
 
-    const fetchOrders = async (artistId: string | number) => {
-        let res;
-        if (artistId === "all") {
-            res = await axios.get('/api/orders/admin');
-        } else {
-            res = await axios.get(`/api/orders/admin/by-artist/${artistId}`);
+        const fetchOrders = async () => {
+            try {
+                const response = await axios.get('/api/orders/admin', {
+                    headers: getAuthHeader(), 
+                });
+                setOrders(response.data.orders || []);
+            } catch (err) {
+                console.error('Error fetching orders:', err);
+                alert('Cannot load orders. Please try again.');
+                if (err.response?.status === 401) {
+                    navigate('/login'); 
+                }
+            }
+        };
+
+        fetchArtists();
+        fetchOrders();
+    }, [navigate]);
+
+    const fetchOrdersByArtist = async (artistId: string | number) => {
+        try {
+            let response;
+            if (artistId === "all") {
+                response = await axios.get('/api/orders/admin', {
+                    headers: getAuthHeader(),
+                });
+            } else {
+                response = await axios.get(`/api/orders/admin/by-artist/${artistId}`, {
+                    headers: getAuthHeader(), 
+                });
+            }
+            setOrders(response.data.orders || []);
+        } catch (err) {
+            console.error('Error fetching orders by artist:', err);
+            alert('Cannot load orders. Please try again.');
+            if (err.response?.status === 401) {
+                navigate('/login'); 
+            }
         }
-        setOrders(res.data.orders || []);
     };
 
     const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const artistId = e.target.value;
         setSelectedArtist(artistId);
-        fetchOrders(artistId);
+        fetchOrdersByArtist(artistId);
     };
 
+    const getStatusStyle = (status: string) => {
+        const styles = {
+            'Complete': 'bg-green-100 text-green-700',
+            'In Progress': 'bg-purple-100 text-purple-700',
+            'Pending': 'bg-blue-100 text-blue-700',
+            'Approved': 'bg-yellow-100 text-yellow-700',
+            'Rejected': 'bg-gray-100 text-gray-600'
+        };
+        return styles[status as keyof typeof styles] || 'bg-gray-100 text-gray-600';
+    };
+
+    const sortedOrders = [...orders].sort(
+        (a, b) => new Date(b.orderDate) - new Date(a.orderDate)
+    );
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-12 px-4">
-            <div className="max-w-7xl mx-auto">
-                {/* Header Section */}
-                <div className="text-center mb-12">
-                    <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-                        Order Management 
-                    </h1>
-                    <p className="text-slate-600 text-lg">Track and manage all system orders</p>
-                </div>
-
-                {/* Filter Section */}
-                <div className="bg-white rounded-2xl shadow-xl p-8 mb-10 border border-slate-200">
+        <div className="min-h-screen bg-gray-50">
+            {/* Main content */}
+            <div>
+                {/* Top bar */}
+                <div className="bg-white border-b border-gray-200 px-6 py-4">
                     <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                            <label htmlFor="artistSelect" className="text-slate-800 font-semibold text-lg">
-                                Filter by Artist
-                            </label>
-                        </div>
-                        <select
-                            id="artistSelect"
-                            value={selectedArtist}
-                            onChange={handleSelectChange}
-                            className="flex-1 max-w-md px-6 py-3 border-2 border-slate-200 rounded-xl shadow-sm focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 bg-white text-slate-700 font-medium"
-                        >
-                            <option value="all">🎨 All</option>
-                            {artists.map((a) => (
-                                <option key={a.artistId} value={a.artistId}>
-                                    👤 {a.name}
-                                </option>
-                            ))}
-                        </select>
+                        <Package></Package>
+                        <h1 className="text-2xl font-bold text-gray-900">Order List</h1>                      
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <span>{orders.length} orders</span>
                     </div>
                 </div>
 
-                {/* Orders Grid */}
-                {orders.length === 0 ? (
-                    <div className="text-center py-20">
-                        <div className="bg-white rounded-3xl shadow-xl p-12 max-w-md mx-auto border border-slate-200">
-                            <div className="text-6xl mb-6">📋</div>
-                            <h3 className="text-2xl font-bold text-slate-700 mb-2">No orders</h3>
-                            <p className="text-slate-500">There are no orders in the system yet.</p>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                        {orders.map((order) => (
-                            <div
-                                key={order.orderId}
-                                className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl border border-slate-200 hover:border-blue-300 transition-all duration-300 cursor-pointer overflow-hidden transform hover:-translate-y-1"
-                                onClick={() => navigate(`/admin/order/${order.orderId}`)}
-                            >
-                                <div className="p-8">
-                                    {/* Order Header */}
-                                    <div className="flex items-center justify-between mb-6">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center text-white font-bold">
-                                                #{order.orderId}
-                                            </div>
-                                            <div>
-                                                <h3 className="text-xl font-bold text-slate-800">Order #{order.orderId}</h3>
-                                            </div>
-                                        </div>
-                                        <div className="text-2xl group-hover:scale-110 transition-transform duration-200">
-                                            📦
-                                        </div>
-                                    </div>
-
-                                    {/* Order Details */}
-                                    <div className="space-y-4">
-                                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-green-600 text-lg">💰</span>
-                                                <span className="font-semibold text-slate-700">Total Amount</span>
-                                            </div>
-                                            <span className="text-xl font-bold text-green-600">${order.totalAmount}</span>
-                                        </div>
-
-                                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border border-blue-200">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-blue-600 text-lg">📅</span>
-                                                <span className="font-semibold text-slate-700">Order Date</span>
-                                            </div>
-                                            <span className="text-sm font-medium text-slate-600">
-                                                {new Date(order.orderDate).toLocaleDateString('vi-VN')}
-                                            </span>
-                                        </div>
-
-                                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-200">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-purple-600 text-lg">📦</span>
-                                                <span className="font-semibold text-slate-700">Items</span>
-                                            </div>
-                                            <span className="text-lg font-bold text-purple-600">{order.items.length}</span>
-                                        </div>
-                                    </div>
-
-                                    {/* Action Indicator */}
-                                    <div className="mt-6 text-center">
-                                        <div className="inline-flex items-center gap-2 text-slate-500 group-hover:text-blue-600 transition-colors duration-200">
-                                            <span className="text-sm font-medium">View Order Detail</span>
-                                            <span className="transform group-hover:translate-x-1 transition-transform duration-200">→</span>
-                                        </div>
+                {/* Content area */}
+                <div className="pt-8">
+                    <div className="bg-white rounded-lg border border-gray-200">
+                        {/* Table header */}
+                        <div className="px-6 py-4 border-b border-gray-200">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <div className="relative">
+                                        <select
+                                            value={selectedArtist}
+                                            onChange={handleSelectChange}
+                                            className="appearance-none bg-white/80 backdrop-blur-sm border border-white/30 rounded-xl px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-xl"
+                                        >
+                                            <option value="all">All Artists</option>
+                                            {artists.map((a) => (
+                                                <option key={a.artistId} value={a.artistId}>
+                                                    {a.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <span className="absolute right-2 top-2.5 text-blue-500 drop-shadow-lg animate-bounce hover:animate-pulse transition-all duration-300 pointer-events-none">🎨</span>
                                     </div>
                                 </div>
                             </div>
-                        ))}
+                        </div>
+
+                        {/* Table content */}
+                        {orders.length === 0 ? (
+                            <div className="px-6 py-12 text-center">
+                                <div className="text-4xl mb-4">📦</div>
+                                <h3 className="text-lg font-medium text-gray-900 mb-2">No orders found</h3>
+                                <p className="text-gray-500">No orders match the current filter criteria.</p>
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                {/* Column headers */}
+                                <div className="grid grid-cols-5 gap-4 px-6 py-3 bg-gray-50 border-b border-gray-200 text-sm font-bold text-gray-500 uppercase tracking-wider">
+                                    <div>Order ID</div>
+                                    <div>Items</div>
+                                    <div>Total Amount</div>
+                                    <div>Date</div>
+                                    <div>Status</div>
+                                </div>
+
+                                {/* Table rows */}
+                                <div className="divide-y divide-gray-100">
+                                    {sortedOrders.map((order, index) => (
+                                        <div
+                                            key={order.orderId}
+                                            className="grid grid-cols-5 gap-4 px-6 py-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                                            onClick={() => navigate(`/admin/order/${order.orderId}`)}
+                                        >
+                                            {/* Order ID */}
+                                            <div className=" flex items-center">
+                                                <span className="font-mono text-base font-bold text-blue-500">
+                                                    #{order.orderId.toString()}
+                                                </span>
+                                            </div>
+
+                                            {/* Number of items*/}
+                                            <div className=" flex items-center gap-2">
+                                                <span className="text-sm font-medium text-gray-900 text-center">
+                                                    {order.items.length || '---'}
+                                                </span>
+                                            </div>
+
+                                            {/* Total Amount */}
+                                            <div className=" flex items-center">
+                                                <span className="text-sm text-gray-600 font-bold">
+                                                    {order.items.reduce((total, item) => total + item.totalPrice, 0) || 'Art Project'} $
+                                                </span>
+                                            </div>
+
+                                            {/* Date */}
+                                            <div className=" flex items-center gap-2">
+                                                <span className="text-gray-400">📅</span>
+                                                <span className="text-sm text-gray-900">
+                                                    {formatDate(order.orderDate)}
+                                                </span>
+                                            </div>
+
+                                            {/* Status */}
+                                            <div className=" flex items-center">
+                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                                    bg-green-100 text-green-700`}>
+                                                    Complete
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
-                )}
+                </div>
             </div>
         </div>
     );

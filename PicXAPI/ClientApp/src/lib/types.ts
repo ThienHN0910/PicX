@@ -150,3 +150,23 @@ export interface Exhibition {
     imageUrl?: string | null; // URL hình ảnh của triển lãm
     sourceApi?: string | null; // Nguồn API
 }
+
+export interface OrderItem {
+    productId: number;
+    productTitle: string;
+    totalPrice: number;
+    imageUrl: string;
+    artistName: string;
+}
+
+export interface Order {
+    orderId: number;
+    totalAmount: number;
+    orderDate: string;
+    items: OrderItem[];
+}
+
+export interface Artist {
+    artistId: number;
+    name: string;
+}

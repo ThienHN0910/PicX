@@ -3,9 +3,13 @@ import { Package, ChevronRight } from 'lucide-react';
 import { useStore } from '../lib/store';
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { formatDate } from '../lib/utils'
+import { useNavigate } from 'react-router-dom';
+import { Order} from '../lib/types'
 
 const OrderHistory = () => {
-    const [orders, setOrders] = useState([]);
+    const [orders, setOrders] = useState<Order[]>([]);
+    const navigate = useNavigate();
 
     // Helper to get auth header
     const getAuthHeader = () => {
@@ -31,62 +35,93 @@ const OrderHistory = () => {
     }, []);
 
     return (
-        <div className="max-w-4xl mx-auto">
-            <div className="mb-8">
-                <h1 className="text-2xl font-bold text-gray-900">Order History</h1>
-                <p className="mt-2 text-gray-600">View and track your orders</p>
-            </div>
-
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-                {orders.length === 0 ? (
-                    <div className="p-8 text-center">
-                        <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900">No orders yet</h3>
-                        <p className="mt-1 text-gray-500">Start shopping to see your orders here</p>
-                        <Link
-                            to="/"
-                            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-                        >
-                            Browse Artwork
-                        </Link>
+        <div className="min-h-screen bg-gray-50">
+            {/* Main content */}
+            <div>
+                {/* Top bar */}
+                <div className="bg-white border-b border-gray-200 px-6 py-4">
+                    <div className="flex items-center gap-4">
+                        <Package></Package>
+                        <h1 className="text-2xl font-bold text-gray-900">Order List</h1>
                     </div>
-                ) : (
-                    <div className="divide-y divide-gray-200">
-                        {orders.map((order) => (
-                            <div key={order.orderId} className="p-6 hover:bg-gray-50">
-                                <Link to={`/orders/${order.orderId}`} className="flex items-center justify-between">
-                                    <div className="flex-1">
-                                        <div className="flex items-center justify-between">
-                                            <p className="text-sm font-medium text-indigo-600">
-                                                Order #{order.orderId}
-                                            </p>
-                                            <div className="ml-2">
-                                                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                                    {order.status ?? 'Completed'}
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <span>{orders.length} orders</span>
+                    </div>
+                </div>
+
+                {/* Content area */}
+                <div className="pt-8">
+                    <div className="bg-white rounded-lg border border-gray-200">
+                        {/* Table content */}
+                        {orders.length === 0 ? (
+                            <div className="px-6 py-12 text-center">
+                                <div className="text-4xl mb-4">📦</div>
+                                <h3 className="text-lg font-medium text-gray-900 mb-2">No orders found</h3>
+                                <p className="text-gray-500">No orders match the current filter criteria.</p>
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                {/* Column headers */}
+                                <div className="grid grid-cols-5 gap-4 px-6 py-3 bg-gray-50 border-b border-gray-200 text-sm font-bold text-gray-500 uppercase tracking-wider">
+                                    <div>Order ID</div>
+                                    <div>Items</div>
+                                    <div>Total Amount</div>
+                                    <div>Date</div>
+                                    <div>Status</div>
+                                </div>
+
+                                {/* Table rows */}
+                                <div className="divide-y divide-gray-100">
+                                        {orders.map((order, index) => (
+                                        <div
+                                            key={order.orderId}
+                                            className="grid grid-cols-5 gap-4 px-6 py-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                                            onClick={() => navigate(`/admin/order/${order.orderId}`)}
+                                        >
+                                            {/* Order ID */}
+                                            <div className=" flex items-center">
+                                                <span className="font-mono text-base font-bold text-blue-500">
+                                                    #{order.orderId.toString()}
+                                                </span>
+                                            </div>
+
+                                            {/* Number of items*/}
+                                            <div className=" flex items-center gap-2">
+                                                <span className="text-sm font-medium text-gray-900 text-center">
+                                                    {order.items.length || '---'}
+                                                </span>
+                                            </div>
+
+                                            {/* Total Amount */}
+                                            <div className=" flex items-center">
+                                                <span className="text-sm text-gray-600 font-bold">
+                                                    {order.items.reduce((total, item) => total + item.totalPrice, 0) || 'Art Project'} $
+                                                </span>
+                                            </div>
+
+                                            {/* Date */}
+                                            <div className=" flex items-center gap-2">
+                                                <span className="text-gray-400">📅</span>
+                                                <span className="text-sm text-gray-900">
+                                                    {formatDate(order.orderDate)}
+                                                </span>
+                                            </div>
+
+                                            {/* Status */}
+                                            <div className=" flex items-center">
+                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                                    bg-green-100 text-green-700`}>
+                                                    Complete
                                                 </span>
                                             </div>
                                         </div>
-                                        <div className="mt-2 flex justify-between">
-                                            <div className="sm:flex">
-                                                <p className="text-sm text-gray-500">
-                                                    Placed on {new Date(order.orderDate).toLocaleDateString()}
-                                                </p>
-                                                <p className="mt-1 sm:mt-0 sm:ml-6 text-sm text-gray-500">
-                                                    {order.items?.length || 0} {order.items?.length === 1 ? 'item' : 'items'}
-                                                </p>
-                                            </div>
-                                            <p className="text-sm font-medium text-gray-900">
-                                                ${order.totalAmount.toFixed(2)}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <ChevronRight className="ml-4 h-5 w-5 text-gray-400" />
-                                </Link>
+                                    ))}
+                                </div>
                             </div>
-                        ))}
-
+                        )}
                     </div>
-                )}
+                </div>
             </div>
         </div>
     );
