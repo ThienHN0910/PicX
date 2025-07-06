@@ -4,6 +4,7 @@ import { Heart, Share2, ShoppingCart, Edit } from 'lucide-react';
 import axios from 'axios';
 import { Button } from '../components/ui/Button';
 import Loading from '../components/Loading';
+import ArtistProducts from '../components/ArtistProducts';
 
 interface Comment {
     id: number;
@@ -32,7 +33,6 @@ interface Product {
     additionalImages: string;
     artist: Artist;
     likeCount?: number;
-    comments?: Comment[];
     permissions?: {
         canView: boolean;
         canLike: boolean;
@@ -47,228 +47,177 @@ const ArtDetail = () => {
     const navigate = useNavigate();
     const [product, setProduct] = useState<Product | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [comments, setComments] = useState<Comment[]>([]);
+    const [commentInput, setCommentInput] = useState('');
+    const [commentError, setCommentError] = useState<string | null>(null);
+    const [commentLoading, setCommentLoading] = useState(false);
+    const token = localStorage.getItem('authToken');
 
     useEffect(() => {
         const fetchProduct = async () => {
             try {
-                const response = await axios.get(`/api/product/${id}`, {
+                const res = await axios.get(`/api/product/${id}`, {
+                    headers: { Authorization: `Bearer ${token}` },
                     withCredentials: true,
                 });
-                setProduct(response.data);
-                setIsLoading(false);
+                setProduct(res.data);
             } catch (err) {
-                console.error('Error fetching product:', err);
-                if (axios.isAxiosError(err) && [401, 403].includes(err.response?.status)) {
+                if (axios.isAxiosError(err) && [401, 403].includes(err.response?.status ?? 0)) {
                     navigate('/login');
-                } else {
-                    setError('Failed to load artwork. Please try again.');
                 }
+            } finally {
                 setIsLoading(false);
             }
         };
-
         fetchProduct();
     }, [id, navigate]);
 
-    const handleAddToCart = () => {
-        if (!product?.permissions?.canAddToCart) {
-            navigate('/login');
-            return;
+    useEffect(() => {
+        if (!id) return;
+        axios.get(`/api/comments/product/${id}`, { withCredentials: true })
+            .then(res => setComments(res.data))
+            .catch(() => setComments([]));
+    }, [id]);
+
+    const handleCommentSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!commentInput.trim()) return;
+        setCommentLoading(true);
+        try {
+            await axios.post(`/api/comments/product/${id}`, commentInput, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                withCredentials: true,
+            });
+            setCommentInput('');
+            const updated = await axios.get(`/api/comments/product/${id}`, { withCredentials: true });
+            setComments(updated.data);
+        } catch (err) {
+            setCommentError('Failed to add comment.');
+            if (axios.isAxiosError(err) && err.response?.status === 401) navigate('/login');
+        } finally {
+            setCommentLoading(false);
         }
-        // Placeholder: Replace with actual cart API call
-        alert('Added to cart! (API call needed)');
     };
 
-    const handleLike = () => {
-        if (!product?.permissions?.canLike) {
-            navigate('/login');
-            return;
-        }
-        // Placeholder: Replace with actual like API call
-        alert('Liked! (API call needed)');
+    const handleAction = (permission: boolean | undefined, fallback: () => void) => {
+        if (!permission) return navigate('/login');
+        fallback();
     };
 
-    const handleShare = () => {
-        if (!product?.permissions?.canComment) {
-            navigate('/login');
-            return;
-        }
-        navigator.clipboard.writeText(window.location.href);
-        alert('Link copied to clipboard!');
-    };
-
-    const handleEdit = () => {
-        if (!product?.permissions?.canEdit) {
-            console.log('Edit not allowed');
-            return;
-        }
-        navigate(`/edit/${id}`);
-    };
-
-    if (isLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-[50vh]">
-                <Loading />
-            </div>
-        );
-    }
-
-    if (error || !product) {
-        return (
-            <div className="flex items-center justify-center min-h-[50vh]">
-                <p className="text-red-500">{error || 'Artwork not found'}</p>
-            </div>
-        );
-    }
+    if (isLoading) return <div className="flex justify-center py-12"><Loading /></div>;
+    if (!product) return <div className="text-center text-red-500 py-12">Artwork not found</div>;
 
     const imageUrl = `/api/product/image/${product.imageFileId}`;
-    const additionalImageUrls = product.additionalImages
-        ? JSON.parse(product.additionalImages).map((fileId: string) => `/api/product/image/${fileId}`)
-        : [];
-    const tags = product.tags ? product.tags.split(',').map(tag => tag.trim()) : [];
-
+    const additionalImageUrls = product.additionalImages ? JSON.parse(product.additionalImages).map((id: string) => `/api/product/image/${id}`) : [];
+    const tags = product.tags ? product.tags.split(',').map(t => t.trim()) : [];
     return (
         <div className="max-w-7xl mx-auto px-4 py-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Image Section */}
+                {/* Images */}
                 <div className="space-y-4">
-                    <div className="aspect-square overflow-hidden rounded-lg bg-gray-100">
-                        {imageUrl ? (
-                            <img
-                                src={imageUrl}
-                                alt={product.title}
-                                className="w-full h-full object-cover"
-                                onError={(e) => (e.currentTarget.src = '/placeholder-image.jpg')}
-                            />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                                <span className="text-gray-400">No image available</span>
-                            </div>
-                        )}
+                    <img src={imageUrl} onError={(e) => e.currentTarget.src = '/placeholder-image.jpg'} alt={product.title} className="rounded-lg w-full h-auto object-cover" />
+                    <div className="grid grid-cols-4 gap-2">
+                        {additionalImageUrls.map((src, i) => (
+                            <img key={i} src={src} onError={(e) => e.currentTarget.src = '/placeholder-image.jpg'} alt="" className="rounded-lg object-cover" />
+                        ))}
                     </div>
-                    {additionalImageUrls.length > 0 && (
-                        <div className="grid grid-cols-4 gap-2">
-                            {additionalImageUrls.map((image: string, index: number) => (
-                                <div key={index} className="aspect-square rounded-lg overflow-hidden">
-                                    <img
-                                        src={image}
-                                        alt={`${product.title} - View ${index + 1}`}
-                                        className="w-full h-full object-cover"
-                                        onError={(e) => (e.currentTarget.src = '/placeholder-image.jpg')}
-                                    />
-                                </div>
+                    <div className="grid grid-cols-1 ">
+                        <h2 className="text-lg font-semibold">More from {product.artist.name}</h2>
+                        <ArtistProducts artistId={product.artist.id} />
+                    </div>
+                </div>
+
+                {/* Info */}
+                <div className="space-y-6">
+                    <div>
+                        <h1 className="text-3xl font-bold">{product.title}</h1>
+                        <p className="text-lg text-gray-800 mt-1">${product.price?.toLocaleString()}</p>
+                    </div>
+                    <p className="text-gray-600">{product.description}</p>
+
+                    {/* Buttons */}
+                    <div className="flex gap-2">
+                        <Button
+                            onClick={() => handleAction(product.permissions?.canAddToCart, () => alert('Add to cart API needed'))}
+                            disabled={!product.isAvailable}
+                        >
+                            <ShoppingCart className="h-5 w-5 mr-2" /> Add to Cart
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={() => handleAction(product.permissions?.canLike, () => alert('Like API needed'))}
+                        >
+                            <Heart className="h-5 w-5" /> <span className="ml-2">{product.likeCount || 0}</span>
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={() => handleAction(product.permissions?.canComment, () => {
+                                navigator.clipboard.writeText(window.location.href);
+                                alert('Link copied!');
+                            })}
+                        >
+                            <Share2 className="h-5 w-5" />
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={() => product.permissions?.canEdit && navigate(`/edit/${id}`)}
+                            disabled={!product.permissions?.canEdit}
+                        >
+                            <Edit className="h-5 w-5" />
+                        </Button>
+                    </div>
+
+                    {/* Tags */}
+                    {tags.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                            {tags.map(tag => (
+                                <span key={tag} className="px-3 py-1 bg-gray-100 text-sm rounded-full">{tag}</span>
                             ))}
                         </div>
                     )}
-                </div>
 
-                {/* Details Section */}
-                <div className="space-y-6">
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-900">{product.title}</h1>
-                        <p className="mt-2 text-lg text-gray-900">${product.price?.toLocaleString() || 'N/A'}</p>
+                    {/* Artist */}
+                    <div className="pt-6 border-t">
+                        <h2 className="font-semibold text-gray-800 mb-2">About the Artist</h2>
+                        <p className="text-gray-600">{product.artist.name} - Member since {new Date(product.artist.createdAt).getFullYear()}</p>
                     </div>
 
-                    <div className="space-y-2">
-                        <h2 className="text-lg font-semibold text-gray-900">About the Artwork</h2>
-                        <p className="text-gray-600">{product.description || 'No description available'}</p>
-                    </div>
-
-                    {(product.dimensions || product.medium) && (
-                        <div className="space-y-2">
-                            <h2 className="text-lg font-semibold text-gray-900">Details</h2>
-                            <dl className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                                {product.dimensions && (
-                                    <div>
-                                        <dt className="text-sm text-gray-500">Dimensions</dt>
-                                        <dd className="text-sm text-gray-900">{product.dimensions}</dd>
-                                    </div>
-                                )}
-                                {product.medium && (
-                                    <div>
-                                        <dt className="text-sm text-gray-500">Medium</dt>
-                                        <dd className="text-sm text-gray-900">{product.medium}</dd>
-                                    </div>
-                                )}
-                            </dl>
-                        </div>
-                    )}
-
-                    <div className="space-y-4">
-                        <div className="flex space-x-4">
-                            <Button
-                                onClick={handleAddToCart}
-                                className="flex-1"
-                                disabled={!product.isAvailable || !product.permissions?.canAddToCart}
-                            >
-                                <ShoppingCart className="h-5 w-5 mr-2" />
-                                {!product.permissions?.canAddToCart ? 'Login to Add' : product.isAvailable ? 'Add to Cart' : 'Unavailable'}
-                            </Button>
-                            <Button variant="outline" onClick={handleLike} disabled={!product.permissions?.canLike}>
-                                <Heart className={`h-5 w-5 ${product.likeCount === 0 ? 'fill-red-500 text-red-500' : ''}`} />
-                                <span className="ml-2">{product.likeCount || 0}</span>
-                            </Button>
-                            <Button variant="outline" onClick={handleShare} disabled={!product.permissions?.canComment}>
-                                <Share2 className="h-5 w-5" />
-                            </Button>
-                            <Button variant="outline" onClick={handleEdit} disabled={!product.permissions?.canEdit}>
-                                <Edit className="h-5 w-5" />
-                            </Button>
-                        </div>
-                    </div>
-
-                    {tags.length > 0 && (
-                        <div className="space-y-2">
-                            <h2 className="text-lg font-semibold text-gray-900">Tags</h2>
-                            <div className="flex flex-wrap gap-2">
-                                {tags.map((tag) => (
-                                    <span
-                                        key={tag}
-                                        className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800"
-                                    >
-                                        {tag}
-                                    </span>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {product.artist && (
-                        <div className="border-t pt-6 mt-6">
-                            <h2 className="text-lg font-semibold text-gray-900">About the Artist</h2>
-                            <div className="mt-4 flex items-center">
-                                <div className="flex-shrink-0">
-                                    <div className="h-12 w-12 rounded-full bg-gray-200" />
+                    {/* Comments */}
+                    <div className="pt-6 border-t">
+                        <h2 className="font-semibold text-gray-800 mb-4">Comments</h2>
+                        {product.permissions?.canComment ? (
+                            <form onSubmit={handleCommentSubmit} className="mb-4">
+                                <textarea
+                                    className="w-full p-2 border rounded"
+                                    placeholder="Write a comment..."
+                                    value={commentInput}
+                                    onChange={(e) => setCommentInput(e.target.value)}
+                                />
+                                <div className="mt-2 flex gap-2">
+                                    <Button type="submit" disabled={commentLoading || !commentInput.trim()}>
+                                        {commentLoading ? 'Posting...' : 'Post Comment'}
+                                    </Button>
+                                    {commentError && <span className="text-red-500 text-sm">{commentError}</span>}
                                 </div>
-                                <div className="ml-4">
-                                    <p className="text-sm font-medium text-gray-900">{product.artist.name}</p>
-                                    <p className="text-sm text-gray-500">
-                                        Member since {new Date(product.artist.createdAt).getFullYear()}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                            </form>
+                        ) : (
+                            <p className="text-gray-500">Login to comment.</p>
+                        )}
 
-                    {product.comments && product.comments.length > 0 && (
-                        <div className="border-t pt-6 mt-6">
-                            <h2 className="text-lg font-semibold text-gray-900">Comments</h2>
-                            <div className="mt-4 space-y-4">
-                                {product.comments.map((comment) => (
-                                    <div key={comment.id} className="border-b pb-4">
-                                        <div className="flex items-center justify-between">
-                                            <p className="text-sm font-medium text-gray-900">{comment.userName}</p>
-                                            <p className="text-sm text-gray-500">
-                                                {new Date(comment.createdAt).toLocaleDateString()}
-                                            </p>
-                                        </div>
-                                        <p className="mt-2 text-sm text-gray-600">{comment.content}</p>
-                                    </div>
-                                ))}
-                            </div>
+                        <div className="space-y-4 mt-4">
+                            {comments.length === 0 && <p className="text-gray-500">No comments yet.</p>}
+                            {comments.map(c => (
+                                <div key={c.id} className="border-b pb-3">
+                                    <p className="font-medium text-sm text-gray-900">{c.userName}</p>
+                                    <p className="text-xs text-gray-500">{new Date(c.createdAt).toLocaleDateString()}</p>
+                                    <p className="mt-1 text-sm text-gray-700">{c.content}</p>
+                                </div>
+                            ))}
                         </div>
-                    )}
+                    </div>
                 </div>
             </div>
         </div>

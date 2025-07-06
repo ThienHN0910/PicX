@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PicXAPI.Models;
 using PicXAPI.DTOs;
+using PicXAPI.Services;
 using System.Security.Claims;
 using System.Text.Json;
-
+using System.IdentityModel.Tokens.Jwt;
+using Google.Apis.Auth.OAuth2.Responses;
 
 namespace PicXAPI.Controllers
 {
@@ -21,13 +23,14 @@ namespace PicXAPI.Controllers
         private readonly ILogger<ProductController> _logger;
         private readonly string _folderId;
         private readonly DriveService _driveService;
+        private readonly IWatermarkService _watermarkService;
 
-        public ProductController(AppDbContext context, ILogger<ProductController> logger)
+        public ProductController(AppDbContext context, ILogger<ProductController> logger, IWatermarkService watermarkService)
         {
             _context = context;
             _logger = logger;
             _folderId = "1N__Y0n7rDuBwNLUsoRKHkezhAWOn0k24"; // Replace with your Google Drive folder ID
-
+            _watermarkService = watermarkService;
             try
             {
                 var credentialPath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS");
@@ -36,7 +39,7 @@ namespace PicXAPI.Controllers
                     _logger.LogError("GOOGLE_APPLICATION_CREDENTIALS environment variable is not set.");
                     throw new InvalidOperationException("GOOGLE_APPLICATION_CREDENTIALS is not set.");
                 }
-                if (!System.IO.File.Exists(credentialPath)) // Fix: Explicitly use System.IO.File to avoid ambiguity
+                if (!System.IO.File.Exists(credentialPath))
                 {
                     _logger.LogError($"Credentials file not found at: {credentialPath}");
                     throw new InvalidOperationException($"Credentials file not found at: {credentialPath}");
@@ -57,16 +60,17 @@ namespace PicXAPI.Controllers
             }
         }
 
+        // Helper: Lấy userId từ JWT trong Authorization header
         private async Task<int?> GetAuthenticatedUserId()
         {
-            if (!Request.Cookies.TryGetValue("authToken", out var token) || string.IsNullOrEmpty(token))
-            {
+            var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
                 return null;
-            }
+            var token = authHeader.Substring("Bearer ".Length);
 
             try
             {
-                var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                var handler = new JwtSecurityTokenHandler();
                 var jwtToken = handler.ReadJwtToken(token);
                 var userIdClaim = jwtToken.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
                 if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
@@ -82,6 +86,7 @@ namespace PicXAPI.Controllers
                 return null;
             }
         }
+
         private async Task<bool> IsArtistOrAdmin(int userId)
         {
             var user = await _context.Users.FindAsync(userId);
@@ -232,6 +237,60 @@ namespace PicXAPI.Controllers
             }
         }
 
+        [HttpGet("artist/{artistId}")]
+        public async Task<IActionResult> GetProductsByArtist(int artistId, [FromQuery] int page = 1, [FromQuery] int limit = 10)
+        {
+            try
+            {
+                var artistExists = await _context.Users.AnyAsync(u => u.UserId == artistId && u.Role == "artist");
+                if (!artistExists)
+                {
+                    _logger.LogWarning($"Artist with ID {artistId} not found.");
+                    return NotFound(new { error = "Artist not found" });
+                }
+
+                var skip = (page - 1) * limit;
+                var products = await _context.Products
+                    .Where(p => p.ArtistId == artistId)
+                    .Include(p => p.Category)
+                    .Include(p => p.Artist)
+                    .Select(p => new
+                    {
+                        ProductId = p.ProductId,
+                        Title = p.Title,
+                        Description = p.Description,
+                        Price = p.Price,
+                        CategoryId = p.Category.CategoryId,
+                        CategoryName = p.Category.Name,
+                        Dimensions = p.Dimensions,
+                        IsAvailable = p.IsAvailable,
+                        Tags = p.Tags,
+                        ImageFileId = p.ImageDriveId,
+                        AdditionalImages = p.AdditionalImages,
+                        Artist = new
+                        {
+                            Id = p.Artist.UserId,
+                            Name = p.Artist.Name
+                        },
+                        CreatedAt = p.CreatedAt,
+                        LikeCount = p.LikeCount
+                    })
+                    .Skip(skip)
+                    .Take(limit)
+                    .ToListAsync();
+
+                var totalProducts = await _context.Products.Where(p => p.ArtistId == artistId).CountAsync();
+                var hasMore = skip + products.Count < totalProducts;
+
+                return Ok(new { products, hasMore, totalPages = (int)Math.Ceiling((double)totalProducts / limit) });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to retrieve products for artist ID: {artistId}");
+                return StatusCode(500, new { error = "An error occurred while retrieving products for this artist", details = ex.Message });
+            }
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetProduct(int id)
         {
@@ -241,7 +300,7 @@ namespace PicXAPI.Controllers
                 var isAuthenticated = userId != null;
 
                 var product = await _context.Products
-                    .Where(p => p.ProductId == id) // Use column name from schema
+                    .Where(p => p.ProductId == id)
                     .Include(p => p.Category)
                     .Include(p => p.Artist)
                     .Select(p => new
@@ -254,7 +313,7 @@ namespace PicXAPI.Controllers
                         Dimensions = p.Dimensions,
                         IsAvailable = p.IsAvailable,
                         Tags = p.Tags,
-                        ImageFileId = p.ImageDriveId, // Updated to match schema
+                        ImageFileId = p.ImageDriveId,
                         AdditionalImages = p.AdditionalImages,
                         Artist = new
                         {
@@ -262,24 +321,14 @@ namespace PicXAPI.Controllers
                             Name = p.Artist.Name,
                             CreatedAt = p.Artist.CreatedAt
                         },
-                        LikeCount = p.LikeCount, // Fetch from database
-                        Comments = _context.Comments
-                            .Where(c => c.ProductId == p.ProductId)
-                            .Select(c => new
-                            {
-                                Id = c.CommentId,
-                                UserName = c.User.Name, // Assuming Users table has a name field
-                                Content = c.Content,
-                                CreatedAt = c.CreatedAt
-                            })
-                            .ToList(),
+                        LikeCount = p.LikeCount,
                         Permissions = new
                         {
-                            CanView = true, // All users can view
-                            CanLike = isAuthenticated, // Only authenticated users can like (placeholder until roles)
-                            CanComment = isAuthenticated, // Only authenticated users can comment (placeholder)
-                            CanAddToCart = isAuthenticated, // Only authenticated users can add to cart (placeholder)
-                            CanEdit = false // Edit disabled until role checks are added
+                            CanView = true,
+                            CanLike = isAuthenticated,
+                            CanComment = isAuthenticated,
+                            CanAddToCart = isAuthenticated,
+                            CanEdit = false
                         }
                     })
                     .FirstOrDefaultAsync();
@@ -373,7 +422,6 @@ namespace PicXAPI.Controllers
                     {
                         if (additionalImage.ContentType == "text/plain")
                         {
-                            // Keep existing image ID
                             using (var reader = new StreamReader(additionalImage.OpenReadStream()))
                             {
                                 var fileId = await reader.ReadToEndAsync();
@@ -427,22 +475,55 @@ namespace PicXAPI.Controllers
                 request.Fields = "mimeType";
                 var file = await request.ExecuteAsync();
 
-                var stream = new MemoryStream();
-                await _driveService.Files.Get(fileId).DownloadAsync(stream);
-                stream.Position = 0;
+                if (file == null)
+                {
+                    _logger.LogWarning($"File with ID {fileId} not found on Google Drive.");
+                    return NotFound("File not found.");
+                }
 
-                Response.Headers["Cache-Control"] = "public,max-age=86400";
-                return File(stream, file.MimeType ?? "image/jpeg");
+                var imageStream = new MemoryStream();
+                await _driveService.Files.Get(fileId).DownloadAsync(imageStream);
+                imageStream.Position = 0;
+
+                // Only apply watermark to image files with valid MIME type
+                if (!string.IsNullOrEmpty(file.MimeType) && file.MimeType.StartsWith("image/"))
+                {
+                    try
+                    {
+                        string watermarkText = "PicX";
+                        var watermarkedBytes = await _watermarkService.ApplyTextWatermarkAsync(imageStream, watermarkText, file.MimeType);
+                        Response.Headers["Cache-Control"] = "public,max-age=86400";
+                        return File(watermarkedBytes, file.MimeType);
+                    }
+                    catch (SixLabors.ImageSharp.UnknownImageFormatException)
+                    {
+                        // Fallback: return original file if not a valid image
+                        Response.Headers["Cache-Control"] = "public,max-age=86400";
+                        return File(imageStream, file.MimeType ?? "application/octet-stream");
+                    }
+                    catch (System.Exception ex)
+                    {
+                        _logger.LogError(ex, $"Watermarking failed for file ID: {fileId}, returning original file.");
+                        Response.Headers["Cache-Control"] = "public,max-age=86400";
+                        return File(imageStream, file.MimeType ?? "application/octet-stream");
+                    }
+                }
+                else
+                {
+                    // Return non-image files as-is
+                    Response.Headers["Cache-Control"] = "public,max-age=86400";
+                    return File(imageStream, file.MimeType ?? "application/octet-stream");
+                }
             }
-            catch (Google.Apis.Auth.OAuth2.Responses.TokenResponseException ex)
+            catch (TokenResponseException ex)
             {
                 _logger.LogError(ex, $"Authentication error for file ID: {fileId}");
                 return StatusCode(401, new { error = "Authentication failed for Google Drive" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Failed to retrieve image with ID: {fileId}");
-                return StatusCode(500, new { error = $"Failed to retrieve image: {ex.Message}" });
+                _logger.LogError(ex, $"Failed to retrieve or watermark image with ID: {fileId}");
+                return StatusCode(500, new { error = $"Failed to retrieve or watermark image: {ex.Message}" });
             }
         }
 

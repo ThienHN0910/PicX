@@ -1,8 +1,7 @@
-﻿import { useState, useEffect } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { Search } from 'lucide-react';
 import { Input } from '../components/ui/Input';
 import { ProductCard } from '../components/ProductCard';
-import { CategoryFilter } from '../components/CategoryFilter';
 import { useStore } from '../lib/store';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import Masonry from 'react-masonry-css';
@@ -15,17 +14,51 @@ import { ExhibitionCard } from '../components/ExhibitionCard';
 const NUMBER_OF_RANDOM_EXHIBITIONS = 3; // Ví dụ: hiển thị 3 triển lãm ngẫu nhiên
 
 export default function Home() {
-    const [searchQuery, setSearchQuery] = useState('');
+    const { searchQuery, setSearchQuery, products, categories, fetchProducts, fetchCategories, hasMore, page, user, setProducts } = useStore();
     const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
-    const { products, categories, fetchProducts, fetchCategories, hasMore, page, user, setProducts } = useStore();
+
+    // Lắng nghe sự kiện chọn category từ sidebar
+    useEffect(() => {
+        const handler = (e: any) => setSelectedCategory(e.detail);
+        window.addEventListener('select-category', handler);
+        return () => window.removeEventListener('select-category', handler);
+    }, []);
 
     const [randomExhibitions, setRandomExhibitions] = useState<Exhibition[]>([]);
     const [exhibitionsLoading, setExhibitionsLoading] = useState(true);
     const [exhibitionsError, setExhibitionsError] = useState<string | null>(null);
+    const [shuffledItems, setShuffledItems] = useState<(Product | Exhibition)[]>([]);
+    const [randomSeed, setRandomSeed] = useState<number>(Date.now());
+    const prevProductsLength = useRef(0);
+
+    // Helper random với seed (Fisher-Yates)
+    function shuffleWithSeed<T>(array: T[], seed: number): T[] {
+        const result = [...array];
+        let m = result.length, t, i;
+        let s = seed;
+        while (m) {
+            s = (s * 9301 + 49297) % 233280;
+            i = Math.floor((s / 233280) * m--);
+            t = result[m];
+            result[m] = result[i];
+            result[i] = t;
+        }
+        return result;
+    }
+
+    const getAuthHeader = () => {
+        const token = localStorage.getItem("authToken");
+        return token ? { Authorization: `Bearer ${token}` } : {};
+    };
+
+    // Khi refresh hoặc fetchProducts initial, đổi seed để random lại
+    useEffect(() => {
+        setRandomSeed(Date.now());
+    }, []); // chỉ chạy khi mount (refresh)
 
     useEffect(() => {
         fetchCategories();
-        fetchProducts(true); // Initial fetch for products
+        fetchProducts(true); // initial fetch
     }, [fetchCategories, fetchProducts]);
 
     // Effect để fetch và chọn ngẫu nhiên một vài triển lãm
@@ -54,57 +87,64 @@ export default function Home() {
         fetchAndSelectRandomExhibitions();
     }, []); // Chạy một lần khi component mount
 
-    // Lọc sản phẩm như cũ
-    const filteredProducts = products.filter((product) => {
-        const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            product.description?.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesCategory = !selectedCategory || product.category_id === selectedCategory;
-        return matchesSearch && matchesCategory;
-    });
-
-    // --- LOGIC MỚI: Xáo trộn sản phẩm VÀ chèn triển lãm ---
-    // Xáo trộn các sản phẩm đã được lọc
-    const shuffledProducts = [...filteredProducts].sort(() => 0.5 - Math.random());
-
-    // Tạo danh sách cuối cùng để hiển thị
-    const itemsToDisplay: (Product | Exhibition)[] = [...shuffledProducts];
-
-    // Chèn các triển lãm ngẫu nhiên vào các vị trí ngẫu nhiên trong danh sách sản phẩm đã xáo trộn
-    if (randomExhibitions.length > 0 && itemsToDisplay.length > 0) {
-        randomExhibitions.forEach((exhibition) => {
-            // Chọn một vị trí ngẫu nhiên để chèn triển lãm
-            // Đảm bảo vị trí không quá cuối danh sách để Masonry có thể hiển thị tốt
-            // và không chèn quá dày đặc ở một chỗ
-            const insertIndex = Math.floor(Math.random() * (itemsToDisplay.length + 1));
-
-            itemsToDisplay.splice(insertIndex, 0, exhibition);
+    // Xử lý random khi products thay đổi
+    useEffect(() => {
+        // Lọc sản phẩm như cũ
+        const filteredProducts = products.filter((product) => {
+            const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                product.description?.toLowerCase().includes(searchQuery.toLowerCase());
+            const matchesCategory = !selectedCategory || product.category_id === selectedCategory;
+            return matchesSearch && matchesCategory;
         });
-    }
 
-    console.log('hasMore:', hasMore, 'Page:', page, 'Filtered Products:', filteredProducts);
-    console.log('Random Exhibitions:', randomExhibitions);
-    console.log('Items to Display:', itemsToDisplay);
+        // Nếu là lần đầu (refresh hoặc initial), random toàn bộ
+        if (prevProductsLength.current === 0 || filteredProducts.length < prevProductsLength.current) {
+            // Xáo trộn với seed
+            const shuffledProducts = shuffleWithSeed(filteredProducts, randomSeed);
+
+            // Chèn exhibition vào vị trí random (dùng seed)
+            let items: (Product | Exhibition)[] = [...shuffledProducts];
+            if (randomExhibitions.length > 0 && items.length > 0) {
+                let s = randomSeed;
+                randomExhibitions.forEach((exhibition, idx) => {
+                    s = (s * 9301 + 49297 + idx) % 233280;
+                    const insertIndex = Math.floor((s / 233280) * (items.length + 1));
+                    items.splice(insertIndex, 0, exhibition);
+                });
+            }
+            setShuffledItems(items);
+        }
+        // Nếu fetch thêm (infinity scroll), random phần mới rồi nối vào cuối
+        else if (filteredProducts.length > prevProductsLength.current) {
+            const newProducts = filteredProducts.slice(prevProductsLength.current);
+            const newSeed = Date.now();
+            const shuffledNewProducts = shuffleWithSeed(newProducts, newSeed);
+            setShuffledItems((prev) => [...prev, ...shuffledNewProducts]);
+        }
+        prevProductsLength.current = filteredProducts.length;
+    }, [products, randomExhibitions, searchQuery, selectedCategory, randomSeed]);
 
     const handleAddToCart = async (product: Product) => {
         const cartDto = {
             ProductId: product.product_id
-        }
+        };
         try {
             const res = await axios.post('/api/cart/add', cartDto, {
                 headers: {
-                    'Content-Type': 'application/json'
-                },
-                withCredentials: true,
-            })
-            console.log(res.data)
-        } catch(er) {
-            console.log(er)
+                    'Content-Type': 'application/json',
+                    ...getAuthHeader()
+                }
+            });
+            console.log(res.data);
+        } catch (er) {
+            console.log(er);
         }
     };
 
     const handleLike = async (product: Product) => {
         if (!user?.id) {
-            console.error('User not logged in', user );
+            console.error('User not logged in', user);
+            // Optionally: Show a toast or redirect to login
             return;
         }
 
@@ -116,9 +156,9 @@ export default function Home() {
         try {
             const res = await axios.post('/api/favorites', favoriteDto, {
                 headers: {
-                    'Content-Type': 'application/json'
-                },
-                withCredentials: true,
+                    'Content-Type': 'application/json',
+                    ...getAuthHeader()
+                }
             });
             console.log('Liked product:', res.data);
 
@@ -133,32 +173,14 @@ export default function Home() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 p-4">
-            <div className="max-w-6xl mx-auto">
-                <div className="mb-6">
-                    <div className="relative">
-                        <Input
-                            type="text"
-                            placeholder="Tìm kiếm..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        />
-                        <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                    </div>
-                </div>
-
-                <CategoryFilter
-                    categories={categories}
-                    selectedCategory={selectedCategory}
-                    onSelect={setSelectedCategory}
-                />
-
-                {(filteredProducts.length === 0 && !hasMore && randomExhibitions.length === 0 && !exhibitionsLoading) ? (
+        <div className="min-h-screen bg-gray p-4 ml-20">
+            <div >
+                {/* ĐÃ XÓA CategoryFilter */}
+                {(shuffledItems.length === 0 && !hasMore && randomExhibitions.length === 0 && !exhibitionsLoading) ? (
                     <p className="text-center text-gray-500 mt-8">Not found product or any exhibition.</p>
                 ) : (
                     <InfiniteScroll
-                        dataLength={filteredProducts.length}
+                        dataLength={shuffledItems.length}
                         next={() => fetchProducts()}
                         hasMore={hasMore}
                         loader={<Loading />}
@@ -166,11 +188,11 @@ export default function Home() {
                         scrollableTarget="html"
                     >
                         <Masonry
-                            breakpointCols={{ default: 4, 1100: 3, 700: 2, 500: 1 }}
+                            breakpointCols={{ default: 5, 1400: 4, 1100: 3, 700: 2, 500: 1 }}
                             className="flex animate-fade-in"
                             columnClassName="pl-2"
                         >
-                            {itemsToDisplay.map((item, index) => {
+                            {shuffledItems.map((item, index) => {
                                 if ('product_id' in item) {
                                     const product = item as Product;
                                     return (
