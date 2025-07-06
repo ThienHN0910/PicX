@@ -1,5 +1,4 @@
-﻿import React from 'react';
-import { useStore } from '../lib/store';
+﻿import { useStore } from '../lib/store';
 
 import ArtistFinanceReport from '../pages/ArtistFinanceReport';
 import AdminFinanceReport from '../pages/AdminFinanceReport';
@@ -8,12 +7,9 @@ const Dashboard = () => {
     const { user } = useStore();
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-gray-900">Finances Report</h1>
-            </div>
-
-            <div className="space-y-6">
+        <div className="ml-20 px-8 pt-2 space-y-4"> 
+            
+            <div>
                 {user?.role === 'admin' ? (
                     <AdminFinanceReport />
                 ) : user?.role === 'artist' ? (

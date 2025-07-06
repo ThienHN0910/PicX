@@ -6,8 +6,9 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PicXAPI.Models;
-using System.Text;
 using PicXAPI.Services;
+using System.Security.Claims;
+using System.Text;
 
 namespace PicXAPI
 {
