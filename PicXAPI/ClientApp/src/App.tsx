@@ -72,10 +72,10 @@ function App() {
                     {/* Sidebar trái */}
                     <Navbar />
                     {/* Nội dung chính */}
-                    <div className="flex-1 flex flex-col">
+                    <div className="flex-1 flex flex-col pl-20">
                         {/* Topbar */}
                         <Topbar />
-                        <main className="justify-end flex-1 container mx-16 ml-auto">
+                        <main className="flex-1 p-6">
                             <Routes>
                                 {/* Public routes */}
                                 <Route path="/" element={<Home />} />

@@ -26,6 +26,7 @@ namespace PicXAPI.Controllers
                 return null;
 
             var token = authHeader.Substring("Bearer ".Length);
+            Console.WriteLine("Token received: " + token);
 
             try
             {
@@ -105,18 +106,14 @@ namespace PicXAPI.Controllers
         if (!isBuyer && !isArtist && !isAdmin)
             return Forbid();
 
-        var filteredItems = isArtist
-         ? order.OrderDetails.Where(od => od.Product.ArtistId == userId.Value)
-         : order.OrderDetails;
-
         // Tạo response DTO
         var result = new GetOrderDto
         {
             OrderId = order.OrderId,
-            TotalAmount = filteredItems.Sum(i => i.TotalPrice),
+            TotalAmount = order.TotalAmount,
             OrderDate = order.OrderDate,
             BuyerName = order.Buyer?.Name ?? "Unknown",
-            Items = filteredItems.Select(od => new GetOrderDetailDto
+            Items = order.OrderDetails.Select(od => new GetOrderDetailDto
             {
                 ProductId = od.ProductId,
                 ProductTitle = od.Product.Title,
