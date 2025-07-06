@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState, useMemo } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import {
     BarChart,
     Bar,
@@ -7,7 +7,6 @@ import {
     CartesianGrid,
     Tooltip,
     ResponsiveContainer,
-    Cell,
 } from 'recharts';
 
 /* ---------- Types ---------- */
@@ -17,41 +16,77 @@ interface StatsEntry {
     orderCount: number;
 }
 
-interface OrderItem {
+interface Order {
     id: number;
     customer: string;
     total: number;
     date: string;
+    status: string;
+    itemCount: number;
+    products: Array<{
+        title: string;
+        artist: string;
+        price: number;
+    }>;
+}
+
+interface AdminSummary {
+    totalUsers: number;
+    totalArtists: number;
+    totalBuyers: number;
+    totalProducts: number;
+    totalOrders: number;
+    totalRevenue: number;
+    recentOrders: number;
+    recentRevenue: number;
+    topProducts: Array<{
+        productId: number;
+        title: string;
+        artist: string;
+        totalSold: number;
+        totalRevenue: number;
+    }>;
+}
+
+interface ArtistPerformance {
+    artistId: number;
+    artistName: string;
+    totalSales: number;
+    totalOrders: number;
+    productCount: number;
 }
 
 interface CustomTooltipProps {
     active?: boolean;
-    payload?: { payload: { income: number; orderCount: number; net: number } }[];
+    payload?: { payload: { income: number; orderCount: number } }[];
     label?: string;
 }
 
 /* ---------- Constants ---------- */
-const COLORS = ['#3b82f6'];
-
 const currencyFormat = (value: number): string =>
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
 
 const formatMonth = (monthString: string): string => {
-    if (monthString === '-') return 'Unknown';
+    if (monthString === 'Unknown' || monthString === '-') return 'Unknown';
     const [year, month] = monthString.split("-");
+    if (!year || !month) return monthString;
     const date = new Date(Number(year), Number(month) - 1);
-    return date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+    return date.toLocaleString('en-US', { month: 'short', year: 'numeric' });
 };
 
 /* ---------- Main Component ---------- */
 const AdminFinanceReport: React.FC = () => {
     const [data, setData] = useState<StatsEntry[]>([]);
-    const [orders, setOrders] = useState<OrderItem[]>([]);
+    const [orders, setOrders] = useState<Order[]>([]);
+    const [summary, setSummary] = useState<AdminSummary | null>(null);
+    const [artistPerformance, setArtistPerformance] = useState<ArtistPerformance[]>([]);
     const [loading, setLoading] = useState(true);
     const [ordersLoading, setOrdersLoading] = useState(true);
+    const [summaryLoading, setSummaryLoading] = useState(true);
+    const [artistLoading, setArtistLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Lấy token từ localStorage
+    // Get token from localStorage
     const token = localStorage.getItem('authToken') ?? '';
 
     useEffect(() => {
@@ -60,7 +95,6 @@ const AdminFinanceReport: React.FC = () => {
                 setLoading(true);
                 setError(null);
 
-                // Thay thế bằng API call thực
                 const response = await fetch('/api/finance/admin-statistics', {
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -106,29 +140,61 @@ const AdminFinanceReport: React.FC = () => {
             }
         };
 
+        const fetchSummary = async () => {
+            try {
+                setSummaryLoading(true);
+
+                const response = await fetch('/api/finance/admin-summary', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch summary');
+                }
+
+                const result = await response.json();
+                setSummary(result);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setSummaryLoading(false);
+            }
+        };
+
+        const fetchArtistPerformance = async () => {
+            try {
+                setArtistLoading(true);
+
+                const response = await fetch('/api/finance/artist-performance', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch artist performance');
+                }
+
+                const result = await response.json();
+                setArtistPerformance(result || []);
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setArtistLoading(false);
+            }
+        };
+
         fetchStats();
         fetchOrders();
+        fetchSummary();
+        fetchArtistPerformance();
     }, [token]);
 
-    const { totalIncome, totalOrders, averageOrders, bestMonth, bestMonthAmount, chartData } = useMemo(() => {
-        const totalIncome = data.reduce((sum, e) => sum + e.income, 0);
-        const totalOrders = data.reduce((sum, e) => sum + e.orderCount, 0);
-        const averageOrders = data.length ? Math.round(totalOrders / data.length) : 0;
-        const best = data.reduce(
-            (max, e) => (e.income > max.income ? e : max),
-            { month: '-', income: 0, orderCount: 0 }
-        );
-        return {
-            totalIncome,
-            totalOrders,
-            averageOrders,
-            bestMonth: best.month,
-            bestMonthAmount: best.income,
-            chartData: data.map(e => ({ ...e, net: e.income })),
-        };
-    }, [data]);
-
-    if (loading) return <LoadingState />;
+    if (loading && summaryLoading) return <LoadingState />;
     if (error) return <ErrorState message={error} />;
 
     return (
@@ -136,21 +202,87 @@ const AdminFinanceReport: React.FC = () => {
             <div className="max-w-7xl mx-auto">
                 <div className="text-center mb-8 animate-fade-in">
                     <h1 className="text-4xl font-bold text-gray-800 mb-2">
-                        Admin Financial Overview
+                        Admin Financial Dashboard
                     </h1>
                     <p className="text-gray-600">Comprehensive analysis of your business performance</p>
                 </div>
 
-                <SummaryCards
-                    totalIncome={totalIncome}
-                    totalOrders={totalOrders}
-                    bestMonth={bestMonth}
-                    bestMonthAmount={bestMonthAmount}
-                    averageOrders={averageOrders}
-                />
+                {/* Summary Cards */}
+                {summary && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <StatsCard
+                            title="Total Revenue"
+                            value={summary.totalRevenue}
+                            color="from-blue-500 to-blue-600"
+                            delay="0ms"
+                        />
+                        <StatsCard
+                            title="Total Orders"
+                            value={summary.totalOrders}
+                            color="from-emerald-500 to-emerald-600"
+                            isCurrency={false}
+                            delay="100ms"
+                        />
+                        <StatsCard
+                            title="Total Users"
+                            value={summary.totalUsers}
+                            color="from-purple-500 to-purple-600"
+                            isCurrency={false}
+                            delay="200ms"
+                        />
+                        <StatsCard
+                            title="Total Products"
+                            value={summary.totalProducts}
+                            color="from-amber-500 to-amber-600"
+                            isCurrency={false}
+                            delay="300ms"
+                        />
+                    </div>
+                )}
 
-                <BarChartSection data={chartData} />
+                {/* Recent Performance */}
+                {summary && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div className="bg-white rounded-xl p-6 shadow-lg">
+                            <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Activity (30 days)</h3>
+                            <div className="space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-600">Recent Orders</span>
+                                    <span className="text-2xl font-bold text-blue-600">{summary.recentOrders}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-600">Recent Revenue</span>
+                                    <span className="text-2xl font-bold text-green-600">{currencyFormat(summary.recentRevenue)}</span>
+                                </div>
+                            </div>
+                        </div>
 
+                        <div className="bg-white rounded-xl p-6 shadow-lg">
+                            <h3 className="text-lg font-semibold text-gray-800 mb-4">User Breakdown</h3>
+                            <div className="space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-600">Artists</span>
+                                    <span className="text-2xl font-bold text-purple-600">{summary.totalArtists}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-gray-600">Buyers</span>
+                                    <span className="text-2xl font-bold text-orange-600">{summary.totalBuyers}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Charts Section */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <BarChartSection data={data} />
+                    <TopProductsSection products={summary?.topProducts || []} />
+                </div>
+
+                {/* Artist Performance */}
+                <ArtistPerformanceSection artists={artistPerformance} loading={artistLoading} />
+
+                {/* Orders List */}
                 <OrderListSection orders={orders} loading={ordersLoading} />
             </div>
         </div>
@@ -197,44 +329,6 @@ const ErrorState: React.FC<{ message: string }> = ({ message }) => (
     </div>
 );
 
-const SummaryCards: React.FC<{
-    totalIncome: number;
-    totalOrders: number;
-    bestMonth: string;
-    bestMonthAmount: number;
-    averageOrders: number;
-}> = ({ totalIncome, totalOrders, bestMonth, bestMonthAmount, averageOrders }) => (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <StatsCard
-            title="Total Income"
-            value={totalIncome}
-            color="from-blue-500 to-blue-600"
-            delay="0ms"
-        />
-        <StatsCard
-            title="Total Orders"
-            value={totalOrders}
-            color="from-blue-600 to-blue-700"
-            isCurrency={false}
-            delay="100ms"
-        />
-        <StatsCard
-            title="Best Month"
-            value={`${formatMonth(bestMonth)}\n${currencyFormat(bestMonthAmount)}`}
-            color="from-amber-500 to-amber-600"
-            isCurrency={false}
-            delay="200ms"
-        />
-        <StatsCard
-            title="Average Orders"
-            value={`${averageOrders} orders`}
-            color="from-emerald-500 to-emerald-600"
-            isCurrency={false}
-            delay="300ms"
-        />
-    </div>
-);
-
 const StatsCard: React.FC<{
     title: string;
     value: number | string;
@@ -246,8 +340,8 @@ const StatsCard: React.FC<{
         className={`relative overflow-hidden bg-gradient-to-br ${color} rounded-xl p-6 text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl animate-slide-up`}
         style={{ animationDelay: delay }}
     >
-        <div className="relative z-10 whitespace-pre-line flex flex-col gap-2">
-            <div className="mb-1 text-sm opacity-95 font-medium">{title}</div>
+        <div className="relative z-10">
+            <div className="mb-2 text-sm opacity-90 font-medium">{title}</div>
             <div className="text-3xl font-bold">
                 {typeof value === 'number' && isCurrency ? currencyFormat(value) : value}
             </div>
@@ -256,17 +350,11 @@ const StatsCard: React.FC<{
     </div>
 );
 
-const BarChartSection: React.FC<{ data: (StatsEntry & { net: number })[] }> = ({ data }) => (
-    <div className="bg-white rounded-xl p-6 shadow-lg mb-8 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
-        <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-semibold text-gray-800">Monthly Performance</h3>
-            <div className="flex items-center space-x-2 text-sm text-gray-500">
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <span>Net Profit</span>
-            </div>
-        </div>
-        <ResponsiveContainer width="100%" height={350}>
-            <BarChart data={data}>
+const BarChartSection: React.FC<{ data: StatsEntry[] }> = ({ data }) => (
+    <div className="bg-white rounded-xl p-6 shadow-lg animate-fade-in-up">
+        <h3 className="text-xl font-semibold text-gray-800 mb-16">Monthly Revenue</h3>
+        <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={data} barCategoryGap="5%" barGap={2}>
                 <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                 <XAxis
                     dataKey="month"
@@ -276,21 +364,86 @@ const BarChartSection: React.FC<{ data: (StatsEntry & { net: number })[] }> = ({
                 <YAxis
                     tickFormatter={currencyFormat}
                     tick={{ fontSize: 12 }}
+                    domain={[0, 'auto']}
                 />
                 <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="net" radius={[6, 6, 0, 0]}>
-                    {data.map((_, i) => (
-                        <Cell key={i} fill={COLORS[0]} />
-                    ))}
-                </Bar>
+                <Bar dataKey="income" radius={[4, 4, 0, 0]} fill="#3b82f6" />
             </BarChart>
         </ResponsiveContainer>
     </div>
 );
 
+const TopProductsSection: React.FC<{ products: AdminSummary['topProducts'] }> = ({ products }) => (
+    <div className="bg-white rounded-xl p-6 shadow-lg animate-fade-in-up">
+        <h3 className="text-xl font-semibold text-gray-800 mb-4">Top Products</h3>
+        <div className="space-y-3">
+            {products.length === 0 ? (
+                <p className="text-gray-500 text-center py-8">No products data available</p>
+            ) : (
+                products.map((product) => (
+                    <div key={product.productId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex-1">
+                            <h4 className="font-medium text-gray-800">{product.title}</h4>
+                            <p className="text-sm text-gray-600">by {product.artist}</p>
+                        </div>
+                        <div className="text-right">
+                            <div className="font-semibold text-blue-600">{currencyFormat(product.totalRevenue)}</div>
+                            <div className="text-sm text-gray-500">{product.totalSold} sold</div>
+                        </div>
+                    </div>
+                ))
+            )}
+        </div>
+    </div>
+);
+
+const ArtistPerformanceSection: React.FC<{ artists: ArtistPerformance[]; loading: boolean }> = ({ artists, loading }) => (
+    <div className="bg-white rounded-xl p-6 shadow-lg mb-8 animate-fade-in-up">
+        <h3 className="text-xl font-semibold text-gray-800 mb-4">Top Artists Performance</h3>
+        {loading ? (
+            <div className="text-center py-8">
+                <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                <p className="text-gray-500">Loading artist performance...</p>
+            </div>
+        ) : (
+            <div className="overflow-x-auto">
+                <table className="w-full">
+                    <thead>
+                        <tr className="border-b border-gray-200">
+                            <th className="text-center py-3 px-4 font-semibold text-gray-700">Artist</th>
+                            <th className="text-center py-3 px-4 font-semibold text-gray-700">Total Sales</th>
+                            <th className="text-center py-3 px-4 font-semibold text-gray-700">Orders</th>
+                            <th className="text-center py-3 px-4 font-semibold text-gray-700">Products</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {artists.map((artist, index) => (
+                            <tr key={artist.artistId} className="border-b border-gray-100 hover:bg-gray-50">
+                                <td className="py-3 px-4 text-center">
+                                    <div className="flex items-center justify-center">
+                                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold mr-3">
+                                            {index + 1}
+                                        </div>
+                                        <span className="font-medium text-gray-800">{artist.artistName}</span>
+                                    </div>
+                                </td>
+                                <td className="py-3 px-4 text-center font-semibold text-green-600">
+                                    {currencyFormat(artist.totalSales)}
+                                </td>
+                                <td className="py-3 px-4 text-center text-gray-700">{artist.totalOrders}</td>
+                                <td className="py-3 px-4 text-center text-gray-700">{artist.productCount}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        )}
+    </div>
+);
+
 const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label }) => {
     if (active && payload?.length) {
-        const { income, orderCount, net } = payload[0].payload;
+        const { income, orderCount } = payload[0].payload;
         return (
             <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200 text-sm">
                 <div className="font-semibold text-gray-800 mb-2 pb-2 border-b border-gray-100">
@@ -298,16 +451,12 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label })
                 </div>
                 <div className="space-y-1">
                     <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Income:</span>
-                        <span className="text-green-600 font-semibold">{currencyFormat(income)}</span>
+                        <span className="text-gray-600">Revenue:</span>
+                        <span className="text-blue-600 font-semibold">{currencyFormat(income)}</span>
                     </div>
                     <div className="flex justify-between items-center">
                         <span className="text-gray-600">Orders:</span>
                         <span className="text-gray-700 font-semibold">{orderCount}</span>
-                    </div>
-                    <div className="flex justify-between items-center pt-1 border-t border-gray-100">
-                        <span className="text-gray-600">Net:</span>
-                        <span className="text-blue-600 font-bold">{currencyFormat(net)}</span>
                     </div>
                 </div>
             </div>
@@ -316,8 +465,8 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label })
     return null;
 };
 
-const OrderListSection: React.FC<{ orders: OrderItem[]; loading: boolean }> = ({ orders, loading }) => (
-    <div className="animate-fade-in-up" style={{ animationDelay: '600ms' }}>
+const OrderListSection: React.FC<{ orders: Order[]; loading: boolean }> = ({ orders, loading }) => (
+    <div className="animate-fade-in-up">
         <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-semibold text-gray-800">Recent Orders</h3>
             <div className="text-sm text-gray-500">
@@ -328,21 +477,18 @@ const OrderListSection: React.FC<{ orders: OrderItem[]; loading: boolean }> = ({
         {loading ? (
             <div className="bg-white rounded-xl shadow-lg p-8">
                 <div className="text-center">
-                    <div className="inline-flex items-center space-x-2">
-                        <div className="w-4 h-4 bg-blue-500 rounded-full animate-pulse"></div>
-                        <div className="w-4 h-4 bg-blue-400 rounded-full animate-pulse" style={{ animationDelay: '0.1s' }}></div>
-                        <div className="w-4 h-4 bg-blue-300 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                    </div>
-                    <p className="text-gray-500 mt-4">Loading orders...</p>
+                    <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                    <p className="text-gray-500">Loading orders...</p>
                 </div>
             </div>
         ) : (
             <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                <div className="grid grid-cols-4 gap-4 px-6 py-4 bg-gray-50 border-b border-gray-200 font-semibold text-gray-700 text-sm">
-                    <div>Order ID</div>
-                    <div>Date</div>
-                    <div>Customer</div>
-                    <div>Total</div>
+                <div className="grid grid-cols-5 gap-4 px-6 py-4 bg-gray-50 border-b border-gray-200 font-semibold text-gray-700 text-sm">
+                    <div className="text-center">Order ID</div>
+                    <div className="text-center">Date</div>
+                    <div className="text-center">Customer</div>
+                    <div className="text-center">Items</div>
+                    <div className="text-center">Total</div>
                 </div>
                 <div className="divide-y divide-gray-100">
                     {orders.length === 0 ? (
@@ -356,13 +502,14 @@ const OrderListSection: React.FC<{ orders: OrderItem[]; loading: boolean }> = ({
                         orders.map((order, index) => (
                             <div
                                 key={order.id}
-                                className="grid grid-cols-4 gap-4 px-6 py-4 hover:bg-gray-50 transition-colors duration-150 animate-fade-in"
+                                className="grid grid-cols-5 gap-4 px-6 py-4 hover:bg-gray-50 transition-colors duration-150 animate-fade-in"
                                 style={{ animationDelay: `${index * 50}ms` }}
                             >
-                                <div className="font-medium text-blue-600">#{order.id}</div>
-                                <div className="text-gray-500">{order.date}</div>
-                                <div className="text-gray-800 font-medium">{order.customer}</div>
-                                <div className="text-green-600 font-bold">{currencyFormat(order.total)}</div>
+                                <div className="text-center font-medium text-blue-600">#{order.id}</div>
+                                <div className="text-center text-gray-500">{order.date}</div>
+                                <div className="text-center text-gray-800 font-medium">{order.customer}</div>
+                                <div className="text-center text-gray-600">{order.itemCount} items</div>
+                                <div className="text-center text-green-600 font-bold">{currencyFormat(order.total)}</div>
                             </div>
                         ))
                     )}
@@ -373,32 +520,3 @@ const OrderListSection: React.FC<{ orders: OrderItem[]; loading: boolean }> = ({
 );
 
 export default AdminFinanceReport;
-
-<style>{`
-@keyframes fade-in {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slide-up {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fade-in-up {
-    from { opacity: 0; transform: translateY(40px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-fade-in {
-    animation: fade-in 0.8s ease-out forwards;
-}
-
-.animate-slide-up {
-    animation: slide-up 0.6s ease-out forwards;
-}
-
-.animate-fade-in-up {
-    animation: fade-in-up 0.8s ease-out forwards;
-}
-`}</style>
