@@ -41,11 +41,17 @@ const OrderDetail = () => {
 
     const [order, setOrder] = useState<Order | null>(null);
 
+    // Helper to get auth header
+    const getAuthHeader = () => {
+        const token = localStorage.getItem('authToken');
+        return token ? { Authorization: `Bearer ${token}` } : {};
+    };
+
     useEffect(() => {
         const fetchOrder = async () => {
             try {
                 const response = await axios.get(`/api/orders/${id}`, {
-                    withCredentials: true
+                    headers: getAuthHeader()
                 });
                 setOrder(response.data);
             } catch (err) {
