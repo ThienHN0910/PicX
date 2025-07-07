@@ -8,9 +8,9 @@ const Dashboard = () => {
     const { user } = useStore();
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 ml-20">
             <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-gray-900">Finances Report</h1>
+                <h1 className="text-2xl font-bold text-gray-900 ml-6">Finances Report</h1>
             </div>
 
             <div className="space-y-6">

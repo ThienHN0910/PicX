@@ -27,6 +27,8 @@ import ArtistProfile from './pages/ArtistProfile';
 import ArtistFinanceReport from './pages/ArtistFinanceReport';
 import Favorites from './pages/Favorites';
 import GoogleAuthSuccess from './pages/GoogleAuthSuccess';
+import { ResetPassword } from './pages/ResetPassword';
+import Deposit from './pages/Deposit';
 
 const ProtectedRoute = ({ children }) => {
     const { isAuthenticated, loading } = useAuth();
@@ -73,7 +75,7 @@ function App() {
                     <div className="flex-1 flex flex-col">
                         {/* Topbar */}
                         <Topbar />
-                        <main className="justify-end flex-1 container mx-16 ml-auto">
+                        <main className="justify-end flex-1 container" style={{ maxWidth: "1480px" }}>
                             <Routes>
                                 {/* Public routes */}
                                 <Route path="/" element={<Home />} />
@@ -97,7 +99,7 @@ function App() {
                                 <Route path="/forgot-password" element={<ForgotPassword />} />
                                 <Route path="/art/:id" element={<ArtDetail />} />
                                 <Route path="/artist/:id" element={<ArtistProfile />} />
-
+                                <Route path="/reset-pass" element={<ResetPassword />} />
                                 {/* Protected routes - Buyer & Artist */}
                                 <Route
                                     path="/profile"
@@ -130,6 +132,15 @@ function App() {
                                 <Route path="/orders" element={<OrderHistory />} />
                                 <Route path="/orders/:id" element={<OrderDetail />} />
                                 <Route path="/chat" element={<Chat />} />
+                                {/* Thêm route nạp tiền cho buyer */}
+                                <Route
+                                    path="/deposit"
+                                    element={
+                                        <ProtectedRoute>
+                                            <Deposit />
+                                        </ProtectedRoute>
+                                    }
+                                />
 
                                 {/* Artist & Admin routes */}
                                 <Route path="/products" element={<ProductManagement />} />

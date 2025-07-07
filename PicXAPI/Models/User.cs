@@ -51,6 +51,9 @@ public partial class User
     public virtual ICollection<Session> Sessions { get; set; } = new List<Session>();
 
     public virtual ICollection<Cart> Carts { get; set; } = new List<Cart>();
+    public Wallet Wallet { get; set; }
+    public ICollection<WithdrawRequest> WithdrawRequests { get; set; } = new List<WithdrawRequest>();
+
     // public string? ResetToken { get; set; }
     // public DateTime? ResetTokenExpiry { get; set; }
 
