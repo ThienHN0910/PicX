@@ -172,5 +172,79 @@ namespace PicXAPI.Controllers
                 deletedProducts = order.OrderDetails.Select(od => od.ProductId).ToList()
             });
         }
+
+        // POST: api/orders/{orderId}/pay-wallet
+        [HttpPost("{id}/pay-wallet")]
+        public async Task<IActionResult> PayOrderWithWallet(int orderId)
+        {
+            var userId = await GetAuthenticatedUserId();
+            if (!userId.HasValue)
+                return Unauthorized(new { message = "Login first" });
+
+            // Gọi SP xử lý nghiệp vụ chính
+            var result = await _context.Database
+                .ExecuteSqlRawAsync("EXEC sp_ProcessOrderWithWallet @p0, @p1", orderId, userId.Value);
+
+            // Có thể kiểm tra kết quả trả về từ SP (nếu SP trả về output)
+            // Ví dụ: nếu SP trả về lỗi, return BadRequest
+
+            // Sau khi SP thành công, ghi log giao dịch bằng C#
+            var order = await _context.Orders
+                .Include(o => o.OrderDetails)
+                .FirstOrDefaultAsync(o => o.OrderId == orderId && o.BuyerId == userId);
+
+            if (order == null)
+                return NotFound(new { message = "Order not found" });
+
+            // Lấy ví buyer và artist
+            var buyerWallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
+            if (buyerWallet != null)
+            {
+                _context.WalletTransactions.Add(new WalletTransaction
+                {
+                    WalletId = buyerWallet.WalletId,
+                    Amount = -order.TotalAmount,
+                    TransactionType = "purchase",
+                    Description = $"Thanh toán đơn hàng #{order.OrderId}",
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            // Ghi log cho từng artist (nếu đơn có nhiều artist)
+            foreach (var od in order.OrderDetails)
+            {
+                var product = await _context.Products.FindAsync(od.ProductId);
+                if (product == null) continue;
+
+                var artistWallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == product.ArtistId);
+                if (artistWallet == null) continue;
+
+                var commission = od.TotalPrice * 0.10m;
+                var artistAmount = od.TotalPrice - commission;
+
+                _context.WalletTransactions.Add(new WalletTransaction
+                {
+                    WalletId = artistWallet.WalletId,
+                    Amount = artistAmount,
+                    TransactionType = "sale",
+                    Description = $"Nhận tiền bán sản phẩm #{product.ProductId} từ đơn hàng #{order.OrderId}",
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            // Ghi log Payment
+            _context.Payments.Add(new Payment
+            {
+                OrderId = order.OrderId,
+                Amount = order.TotalAmount,
+                PaymentMethod = "wallet",
+                PaymentProvider = "internal",
+                PaymentDate = DateTime.UtcNow
+            });
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Thanh toán đơn hàng thành công bằng ví nội bộ." });
+        }
     }
 }

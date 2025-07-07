@@ -14,36 +14,24 @@ public partial class AppDbContext : DbContext
     }
 
     public virtual DbSet<ArtistProfile> ArtistProfiles { get; set; }
-
     public virtual DbSet<Category> Categories { get; set; }
-
     public virtual DbSet<Chat> Chats { get; set; }
-
     public virtual DbSet<Comment> Comments { get; set; }
-
     public virtual DbSet<CommentReply> CommentReplies { get; set; }
-
     public virtual DbSet<Favorite> Favorites { get; set; }
-
     public virtual DbSet<FinancialReport> FinancialReports { get; set; }
-
     public virtual DbSet<Notification> Notifications { get; set; }
-
     public virtual DbSet<Order> Orders { get; set; }
-
     public virtual DbSet<OrderDetail> OrderDetails { get; set; }
-
     public virtual DbSet<Payment> Payments { get; set; }
-
     public virtual DbSet<Products> Products { get; set; }
-
     public virtual DbSet<Reporting> Reportings { get; set; }
-
     public virtual DbSet<Session> Sessions { get; set; }
-
     public virtual DbSet<User> Users { get; set; }
-
     public virtual DbSet<Cart> Carts { get; set; }
+    public virtual DbSet<Wallet> Wallets { get; set; }
+    public virtual DbSet<WalletTransaction> WalletTransactions { get; set; }
+    public virtual DbSet<WithdrawRequest> WithdrawRequests { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -75,7 +63,8 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(255)
                 .HasColumnName("website_url");
 
-            entity.HasOne(d => d.Artist).WithOne(p => p.ArtistProfile)
+            entity.HasOne(d => d.Artist)
+                .WithOne(p => p.ArtistProfile)
                 .HasForeignKey<ArtistProfile>(d => d.ArtistId)
                 .HasConstraintName("FK__ArtistPro__artis__2E1BDC42");
         });
@@ -96,7 +85,8 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("name");
             entity.Property(e => e.ParentCategoryId).HasColumnName("parent_category_id");
 
-            entity.HasOne(d => d.ParentCategory).WithMany(p => p.InverseParentCategory)
+            entity.HasOne(d => d.ParentCategory)
+                .WithMany(p => p.InverseParentCategory)
                 .HasForeignKey(d => d.ParentCategoryId)
                 .HasConstraintName("FK__Categorie__paren__31EC6D26");
         });
@@ -117,12 +107,14 @@ public partial class AppDbContext : DbContext
                 .HasColumnType("datetime")
                 .HasColumnName("sent_at");
 
-            entity.HasOne(d => d.Receiver).WithMany(p => p.ChatReceivers)
+            entity.HasOne(d => d.Receiver)
+                .WithMany(p => p.ChatReceivers)
                 .HasForeignKey(d => d.ReceiverId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Chats__receiver___5AEE82B9");
 
-            entity.HasOne(d => d.Sender).WithMany(p => p.ChatSenders)
+            entity.HasOne(d => d.Sender)
+                .WithMany(p => p.ChatSenders)
                 .HasForeignKey(d => d.SenderId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Chats__sender_id__59FA5E80");
@@ -141,11 +133,13 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.ProductId).HasColumnName("product_id");
             entity.Property(e => e.UserId).HasColumnName("user_id");
 
-            entity.HasOne(d => d.Product).WithMany(p => p.Comments)
+            entity.HasOne(d => d.Product)
+                .WithMany(p => p.Comments)
                 .HasForeignKey(d => d.ProductId)
                 .HasConstraintName("FK__Comments__produc__4AB81AF0");
 
-            entity.HasOne(d => d.User).WithMany(p => p.Comments)
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.Comments)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Comments__user_i__49C3F6B7");
@@ -164,11 +158,13 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("created_at");
             entity.Property(e => e.UserId).HasColumnName("user_id");
 
-            entity.HasOne(d => d.Comment).WithMany(p => p.CommentReplies)
+            entity.HasOne(d => d.Comment)
+                .WithMany(p => p.CommentReplies)
                 .HasForeignKey(d => d.CommentId)
                 .HasConstraintName("FK__CommentRe__comme__4E88ABD4");
 
-            entity.HasOne(d => d.User).WithMany(p => p.CommentReplies)
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.CommentReplies)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__CommentRe__user___4F7CD00D");
@@ -188,12 +184,14 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.ProductId).HasColumnName("product_id");
             entity.Property(e => e.UserId).HasColumnName("user_id");
 
-            entity.HasOne(d => d.Product).WithMany(p => p.Favorites)
+            entity.HasOne(d => d.Product)
+                .WithMany(p => p.Favorites)
                 .HasForeignKey(d => d.ProductId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Favorites__produ__5535A963");
 
-            entity.HasOne(d => d.User).WithMany(p => p.Favorites)
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.Favorites)
                 .HasForeignKey(d => d.UserId)
                 .HasConstraintName("FK__Favorites__user___5441852A");
         });
@@ -227,7 +225,8 @@ public partial class AppDbContext : DbContext
                 .HasColumnType("decimal(12, 2)")
                 .HasColumnName("total_sales");
 
-            entity.HasOne(d => d.Artist).WithMany(p => p.FinancialReports)
+            entity.HasOne(d => d.Artist)
+                .WithMany(p => p.FinancialReports)
                 .HasForeignKey(d => d.ArtistId)
                 .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("FK__Financial__artis__73BA3083");
@@ -260,7 +259,8 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("type");
             entity.Property(e => e.UserId).HasColumnName("user_id");
 
-            entity.HasOne(d => d.User).WithMany(p => p.Notifications)
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.Notifications)
                 .HasForeignKey(d => d.UserId)
                 .HasConstraintName("FK__Notificat__user___6C190EBB");
         });
@@ -279,7 +279,8 @@ public partial class AppDbContext : DbContext
                 .HasColumnType("decimal(10, 2)")
                 .HasColumnName("total_amount");
 
-            entity.HasOne(d => d.Buyer).WithMany(p => p.Orders)
+            entity.HasOne(d => d.Buyer)
+                .WithMany(p => p.Orders)
                 .HasForeignKey(d => d.BuyerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Orders__buyer_id__3D5E1FD2");
@@ -296,11 +297,13 @@ public partial class AppDbContext : DbContext
                 .HasColumnType("decimal(10, 2)")
                 .HasColumnName("total_price");
 
-            entity.HasOne(d => d.Order).WithMany(p => p.OrderDetails)
+            entity.HasOne(d => d.Order)
+                .WithMany(p => p.OrderDetails)
                 .HasForeignKey(d => d.OrderId)
                 .HasConstraintName("FK__OrderDeta__order__403A8C7D");
 
-            entity.HasOne(d => d.Product).WithMany(p => p.OrderDetails)
+            entity.HasOne(d => d.Product)
+                .WithMany(p => p.OrderDetails)
                 .HasForeignKey(d => d.ProductId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__OrderDeta__produ__412EB0B6");
@@ -334,7 +337,8 @@ public partial class AppDbContext : DbContext
                 .HasMaxLength(100)
                 .HasColumnName("transaction_id");
 
-            entity.HasOne(d => d.Order).WithMany(p => p.Payments)
+            entity.HasOne(d => d.Order)
+                .WithMany(p => p.Payments)
                 .HasForeignKey(d => d.OrderId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Payments__order___45F365D3");
@@ -379,11 +383,13 @@ public partial class AppDbContext : DbContext
                 .HasColumnType("datetime")
                 .HasColumnName("updated_at");
 
-            entity.HasOne(d => d.Artist).WithMany(p => p.Products)
+            entity.HasOne(d => d.Artist)
+                .WithMany(p => p.Products)
                 .HasForeignKey(d => d.ArtistId)
                 .HasConstraintName("FK__Products__artist__38996AB5");
 
-            entity.HasOne(d => d.Category).WithMany(p => p.Products)
+            entity.HasOne(d => d.Category)
+                .WithMany(p => p.Products)
                 .HasForeignKey(d => d.CategoryId)
                 .HasConstraintName("FK__Products__catego__398D8EEE");
         });
@@ -412,11 +418,13 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("updated_at");
             entity.Property(e => e.UserId).HasColumnName("user_id");
 
-            entity.HasOne(d => d.Product).WithMany(p => p.Reportings)
+            entity.HasOne(d => d.Product)
+                .WithMany(p => p.Reportings)
                 .HasForeignKey(d => d.ProductId)
                 .HasConstraintName("FK__Reporting__produ__66603565");
 
-            entity.HasOne(d => d.User).WithMany(p => p.Reportings)
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.Reportings)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Reporting__user___6754599E");
@@ -447,7 +455,8 @@ public partial class AppDbContext : DbContext
                 .HasColumnName("user_agent");
             entity.Property(e => e.UserId).HasColumnName("user_id");
 
-            entity.HasOne(d => d.User).WithMany(p => p.Sessions)
+            entity.HasOne(d => d.User)
+                .WithMany(p => p.Sessions)
                 .HasForeignKey(d => d.UserId)
                 .HasConstraintName("FK__Sessions__user_i__5FB337D6");
         });
@@ -529,6 +538,64 @@ public partial class AppDbContext : DbContext
             entity.HasIndex(e => new { e.UserId, e.ProductId })
                 .IsUnique()
                 .HasDatabaseName("UQ_UserProduct");
+        });
+
+        modelBuilder.Entity<Wallet>(entity =>
+        {
+            entity.HasKey(e => e.WalletId).HasName("PK__Wallets__0EE6F0414E6896D2");
+
+            entity.Property(e => e.WalletId).HasColumnName("wallet_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.Balance)
+                  .HasColumnType("decimal(18, 2)")
+                  .HasDefaultValue(0)
+                  .HasColumnName("balance");
+
+            entity.HasIndex(e => e.UserId)
+                  .IsUnique()
+                  .HasDatabaseName("UQ__Wallets__B9BE370EFE45A351");
+
+            entity.HasOne(d => d.User)
+                  .WithOne(p => p.Wallet)
+                  .HasForeignKey<Wallet>(d => d.UserId)
+                  .OnDelete(DeleteBehavior.Cascade)
+                  .HasConstraintName("FK__Wallets__user_id__2B0A656D");
+        });
+
+        modelBuilder.Entity<WalletTransaction>(entity =>
+        {
+            entity.HasKey(e => e.TransactionId).HasName("PK__WalletTr__85C600AF64BBD695");
+
+            entity.Property(e => e.TransactionId).HasColumnName("transaction_id");
+            entity.Property(e => e.WalletId).HasColumnName("wallet_id");
+            entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)").HasColumnName("amount");
+            entity.Property(e => e.TransactionType).HasMaxLength(20).HasColumnName("type"); // deposit/withdraw/purchase
+            entity.Property(e => e.Description).HasMaxLength(500).HasColumnName("description");
+            entity.Property(e => e.CreatedAt).HasColumnType("datetime").HasDefaultValueSql("(getdate())").HasColumnName("created_at");
+
+            entity.HasOne(d => d.Wallet)
+                  .WithMany(p => p.Transactions)
+                  .HasForeignKey(d => d.WalletId)
+                  .OnDelete(DeleteBehavior.Cascade)
+                  .HasConstraintName("FK__WalletTransactions__wallet_id");
+        });
+
+        modelBuilder.Entity<WithdrawRequest>(entity =>
+        {
+            entity.HasKey(e => e.RequestId).HasName("PK__Withdraw__18D3B90F1E0D8D75");
+
+            entity.Property(e => e.RequestId).HasColumnName("request_id");
+            entity.Property(e => e.ArtistId).HasColumnName("artist_id");
+            entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)").HasColumnName("amount");
+            entity.Property(e => e.Status).HasMaxLength(20).HasColumnName("status"); // pending, approved, rejected
+            entity.Property(e => e.RequestedAt).HasColumnType("datetime").HasDefaultValueSql("(getdate())").HasColumnName("requested_at");
+            entity.Property(e => e.ProcessedAt).HasColumnType("datetime").HasColumnName("processed_at");
+
+            entity.HasOne(d => d.User)
+                  .WithMany(p => p.WithdrawRequests)
+                  .HasForeignKey(d => d.ArtistId)
+                  .OnDelete(DeleteBehavior.SetNull)
+                  .HasConstraintName("FK__WithdrawR__artis__339FAB6E");
         });
 
         OnModelCreatingPartial(modelBuilder);
