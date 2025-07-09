@@ -13,6 +13,7 @@ export default function Navbar() {
     const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
     const [showCategory, setShowCategory] = useState(false);
     const categoryRef = useRef<HTMLDivElement>(null);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Đóng dropdown khi click ra ngoài
     useEffect(() => {
@@ -32,8 +33,22 @@ export default function Navbar() {
         setShowCategory(false);
     };
 
+    const handleMouseEnter = () => {
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current); // Hủy timeout nếu chuột quay lại
+        }
+        setShowCategory(true);
+    };
+
+    const handleMouseLeave = () => {
+        // Trì hoãn việc đóng dropdown 300ms
+        timeoutRef.current = setTimeout(() => {
+            setShowCategory(false);
+        }, 100);
+    };
+
     return (
-        <nav className="w-20 bg-white border-r flex flex-col items-center gap-y-2 fixed top-0 left-0 h-full z-20">
+        <nav className="w-20 bg-white border-r flex flex-col items-center space-y-4 fixed top-0 left-0 h-full z-20">
             <Link to="/" title="Home" className="flex items-center justify-center w-10 mt-3 mb-6">
                 <img src="./src/resource/img/logo.png" alt="PicX" className="w-24" />
             </Link>
@@ -65,8 +80,8 @@ export default function Navbar() {
                 <div
                     className="relative"
                     ref={categoryRef}
-                    onMouseEnter={() => setShowCategory(true)}
-                    onMouseLeave={() => setShowCategory(false)}
+                    onMouseEnter={handleMouseEnter}
+                    onMouseLeave={handleMouseLeave}
                 >
                     <button
                         title="Categories"
@@ -76,7 +91,7 @@ export default function Navbar() {
                     </button>
                     {showCategory && (
                         <div
-                            className="absolute left-full top-1/2 -translate-y-1/2 z-50 bg-white shadow-lg rounded-lg py-2 w-48 border"
+                            className="fixed left-20 top-1/2 -translate-y-1/2 z-50 bg-white shadow-lg rounded-lg py-2 w-48 border max-h-[80vh] overflow-y-auto"
                             style={{ minWidth: 180 }}
                         >
                             <CategoryFilter
@@ -164,7 +179,6 @@ export default function Navbar() {
                                 >
                                     <Plus className="w-6 h-6" />
                                 </Link>
-
                                 <Link
                                     to="/admin/orders"
                                     title="Order List"

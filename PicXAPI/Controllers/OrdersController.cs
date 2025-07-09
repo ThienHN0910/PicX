@@ -144,6 +144,7 @@ namespace PicXAPI.Controllers
                 OrderId = o.OrderId,
                 TotalAmount = o.TotalAmount,
                 OrderDate = o.OrderDate,
+                Buyer = o.Buyer,
                 Items = o.OrderDetails
                     .Where(od => od.Product.ArtistId == userId)
                     .Select(od => new GetOrderDetailDto
@@ -178,6 +179,7 @@ namespace PicXAPI.Controllers
                 OrderId = o.OrderId,
                 TotalAmount = o.TotalAmount,
                 OrderDate = o.OrderDate,
+                Buyer = o.Buyer,
                 Items = o.OrderDetails.Select(od => new GetOrderDetailDto
                 {
                     ProductId = od.ProductId,
@@ -229,6 +231,7 @@ namespace PicXAPI.Controllers
                 OrderId = o.OrderId,
                 TotalAmount = o.TotalAmount,
                 OrderDate = o.OrderDate,
+                Buyer = o.Buyer,
                 Items = o.OrderDetails
                     .Where(od => od.Product.ArtistId == artistId)
                     .Select(od => new GetOrderDetailDto
