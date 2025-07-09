@@ -7,7 +7,7 @@ const Dashboard = () => {
     const { user } = useStore();
 
     return (
-        <div className="ml-20 px-8 pt-2 space-y-4"> 
+        <div className="px-8 pt-2 space-y-4"> 
             
             <div>
                 {user?.role === 'admin' ? (

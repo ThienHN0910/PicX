@@ -66,23 +66,6 @@ export interface Category {
   is_active: boolean;
 }
 
-export interface Order {
-  order_id: number;
-  buyer_id: number;
-  total_amount: number;
-  order_date: Date;
-  buyer?: User;
-  details?: OrderDetail[];
-}
-
-export interface OrderDetail {
-  order_detail_id: number;
-  order_id: number;
-  product_id: number;
-  total_price: number;
-  product?: Product;
-}
-
 export interface Comment {
   comment_id: number;
   user_id: number;
@@ -164,6 +147,7 @@ export interface Order {
     totalAmount: number;
     orderDate: string;
     items: OrderItem[];
+    buyer: User;
 }
 
 export interface Artist {
