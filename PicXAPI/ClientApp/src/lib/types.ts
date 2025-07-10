@@ -40,7 +40,7 @@ interface ArtistProfileData {
 }
 
 export interface Product {
-  productId: number;
+  product_id: number;
   artist_id: number;
   category_id?: number;
   title: string;
@@ -86,6 +86,9 @@ export interface CommentReply {
 }
 
 export interface Favorite {
+  title: any;
+  description: any;
+  category_id: number;
   favorite_id: number;
   user_id: number;
   product_id: number;

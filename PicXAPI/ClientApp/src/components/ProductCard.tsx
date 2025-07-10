@@ -59,6 +59,7 @@ export const ProductCard = ({ product, onLike, onAddToCart }: ProductCardProps) 
         try {
             await onLike?.();
             setIsFavorited(true); // Update heart color immediately
+            toast.success(isFavorited ? 'Removed from favorites' : 'Added to favorites');
         } catch (error) {
             console.error('Error liking product:', error);
         }

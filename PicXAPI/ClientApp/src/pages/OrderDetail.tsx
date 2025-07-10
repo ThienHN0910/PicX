@@ -228,7 +228,10 @@ const OrderDetail = () => {
                                         </div>
 
                                         {/* Download Button */}
-                                        <button className="w-full bg-main-gradient  hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] group">
+                                        <button
+                                            className="w-full bg-main-gradient  hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] group"
+                                            onClick={() => handleDownload(extractFileId(item.imageUrl), item.productTitle)}
+                                        >
                                             <div className="flex items-center justify-center space-x-1.5">
                                                 <svg className="w-4 h-4 group-hover:animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -238,14 +241,7 @@ const OrderDetail = () => {
                                         </button>
                                     </div>
                                 </div>
-                                <p className="text-lg font-medium text-gray-900">${item.totalPrice.toFixed(2)}</p>
-                                {/* Download button */}
-                                <button
-                                    className="ml-2 px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-                                    onClick={() => handleDownload(extractFileId(item.imageUrl), item.productTitle)}
-                                >
-                                    Download
-                                </button>
+                                
                             </div>
                         ))}
                     </div>
