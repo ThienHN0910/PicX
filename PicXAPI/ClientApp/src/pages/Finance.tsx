@@ -47,7 +47,7 @@ const Finance = () => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 ml-20">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Financial Overview</h1>
         {/* <div className="flex space-x-2">
