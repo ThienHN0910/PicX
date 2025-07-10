@@ -45,7 +45,7 @@ export default function ArtistOrders() {
 
     const filteredOrders = orders.filter((order) =>
         order.orderId.toString().toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (order.buyer.name.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
+        (order.buyerName.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
         formatDate(order.orderDate).toLowerCase().includes(searchQuery.toLowerCase())
     );
 
@@ -146,7 +146,7 @@ export default function ArtistOrders() {
                                             {/*Buyer*/ }
                                             <div className="flex items-center gap-2">
                                                 <span className="text-sm font-medium text-gray-900 text-center">
-                                                    {order.buyer.name}
+                                                    {order.buyerName}
                                                 </span>
                                             </div>
 

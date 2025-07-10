@@ -1,4 +1,4 @@
-﻿﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PicXAPI.Models;
 using PicXAPI.DTOs;
@@ -75,112 +75,33 @@ namespace PicXAPI.Controllers
             return Ok(new { orders });
         }
 
-    // GET: api/orders/5 Phuong thuc GetOrder moi thay the cho phuong thuc GetOrder cu
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetOrder(int id)
-    {
-        var userId = await GetAuthenticatedUserId();
-        if (!userId.HasValue) return Unauthorized();
-
-        var currentUser = await _context.Users.FindAsync(userId.Value);
-        if (currentUser == null) return Unauthorized();
-
-        // Tìm đơn hàng và kèm theo tất cả thông tin cần thiết
-        var order = await _context.Orders
-            .Where(o => o.OrderId == id)
-            .Include(o => o.Buyer)
-            .Include(o => o.OrderDetails)
-                .ThenInclude(od => od.Product)
-                    .ThenInclude(p => p.Artist)
-            .FirstOrDefaultAsync();
-
-        if (order == null)
-            return NotFound(new { message = "Order not found" });
-
-        // Quyền truy cập:
-        var isBuyer = order.BuyerId == userId.Value;
-        var isArtist = currentUser.Role == "artist" &&
-                       order.OrderDetails.Any(od => od.Product.ArtistId == userId.Value);
-        var isAdmin = currentUser.Role == "admin";
-
-        if (!isBuyer && !isArtist && !isAdmin)
-            return Forbid();
-
-        // Tạo response DTO
-        var result = new GetOrderDto
+        // GET: api/orders/5 Phuong thuc GetOrder moi thay the cho phuong thuc GetOrder cu
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetOrder(int id)
         {
-            OrderId = order.OrderId,
-            TotalAmount = order.TotalAmount,
-            OrderDate = order.OrderDate,
-            BuyerName = order.Buyer?.Name ?? "Unknown",
-            Items = order.OrderDetails.Select(od => new GetOrderDetailDto
+            var userId = await GetAuthenticatedUserId();
+            if (!userId.HasValue) return Unauthorized();
+
+            // Tìm đơn hàng và kèm theo tất cả thông tin cần thiết
+            var order = await _context.Orders
+                .Where(o => o.OrderId == id)
+                .Include(o => o.Buyer)
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(od => od.Product)
+                        .ThenInclude(p => p.Artist)
+                .FirstOrDefaultAsync();
+
+            if (order == null)
+                return NotFound(new { message = "Order not found" });
+
+            // Tạo response DTO
+            var result = new GetOrderDto
             {
-                ProductId = od.ProductId,
-                ProductTitle = od.Product.Title,
-                TotalPrice = od.TotalPrice,
-                ImageUrl = "/api/product/image/" + od.Product.ImageDriveId,
-                ArtistName = od.Product.Artist.Name
-            }).ToList()
-        };
-
-        return Ok(result);
-    }
-
-    //HttpGet for only Artist
-    [HttpGet("artist")]
-    public async Task<IActionResult> GetOrdersForArtist()
-    {
-        var userId = await GetAuthenticatedUserId();
-        if (!userId.HasValue) return Unauthorized();
-
-        var user = await _context.Users.FindAsync(userId);
-        if (user == null || user.Role != "artist")
-            return Forbid();
-
-        var orders = await _context.Orders
-            .Where(o => o.OrderDetails.Any(od => od.Product.ArtistId == userId))
-            .Select(o => new GetOrderDto
-            {
-                OrderId = o.OrderId,
-                TotalAmount = o.TotalAmount,
-                OrderDate = o.OrderDate,
-                Buyer = o.Buyer,
-                Items = o.OrderDetails
-                    .Where(od => od.Product.ArtistId == userId)
-                    .Select(od => new GetOrderDetailDto
-                    {
-                        ProductId = od.ProductId,
-                        ProductTitle = od.Product.Title,
-                        TotalPrice = od.TotalPrice,
-                        ImageUrl = "/api/product/image/" + od.Product.ImageDriveId,
-                        ArtistName = od.Product.Artist.Name
-                    }).ToList()
-            })
-            .ToListAsync();
-
-        return Ok(new { orders });
-    }
-
-    //HttpGet for only Admin
-    [HttpGet("admin")]
-    public async Task<IActionResult> GetAllOrdersForAdmin()
-    {
-        var userId = await GetAuthenticatedUserId();
-        if (!userId.HasValue) return Unauthorized();
-
-        var user = await _context.Users.FindAsync(userId);
-        if (user == null || user.Role != "admin")
-            return Forbid();
-
-        var orders = await _context.Orders
-            .Include(o => o.Buyer)
-            .Select(o => new GetOrderDto
-            {
-                OrderId = o.OrderId,
-                TotalAmount = o.TotalAmount,
-                OrderDate = o.OrderDate,
-                Buyer = o.Buyer,
-                Items = o.OrderDetails.Select(od => new GetOrderDetailDto
+                OrderId = order.OrderId,
+                TotalAmount = order.TotalAmount,
+                OrderDate = order.OrderDate,
+                BuyerName = order.Buyer?.Name ?? "Unknown",
+                Items = order.OrderDetails.Select(od => new GetOrderDetailDto
                 {
                     ProductId = od.ProductId,
                     ProductTitle = od.Product.Title,
@@ -188,53 +109,66 @@ namespace PicXAPI.Controllers
                     ImageUrl = "/api/product/image/" + od.Product.ImageDriveId,
                     ArtistName = od.Product.Artist.Name
                 }).ToList()
-            })
-            .ToListAsync();
+            };
 
-        return Ok(new { orders });
-    }
+            return Ok(result);
+        }
 
-    //HttpGet Artist list for Admin
-    [HttpGet("admin/artists")]
-    public async Task<IActionResult> GetAllArtists()
-    {
-        var userId = await GetAuthenticatedUserId();
-        if (!userId.HasValue) return Unauthorized();
+        //HttpGet for only Artist
+        [HttpGet("artist")]
+        public async Task<IActionResult> GetOrdersForArtist()
+        {
+            var userId = await GetAuthenticatedUserId();
+            if (!userId.HasValue) return Unauthorized();
 
-        var user = await _context.Users.FindAsync(userId);
-        if (user == null || user.Role != "admin") return Forbid();
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null || user.Role != "artist")
+                return Forbid();
 
-        var artists = await _context.Users
-            .Where(u => u.Role == "artist")
-            .Select(a => new
-            {
-                artistId = a.UserId,
-                name = a.Name
-            })
-            .ToListAsync();
+            var orders = await _context.Orders
+                .Where(o => o.OrderDetails.Any(od => od.Product.ArtistId == userId))
+                .Select(o => new GetOrderDto
+                {
+                    OrderId = o.OrderId,
+                    TotalAmount = o.TotalAmount,
+                    OrderDate = o.OrderDate,
+                    BuyerName = o.Buyer.Name ?? "Unknow",
+                    Items = o.OrderDetails
+                        .Where(od => od.Product.ArtistId == userId)
+                        .Select(od => new GetOrderDetailDto
+                        {
+                            ProductId = od.ProductId,
+                            ProductTitle = od.Product.Title,
+                            TotalPrice = od.TotalPrice,
+                            ImageUrl = "/api/product/image/" + od.Product.ImageDriveId,
+                            ArtistName = od.Product.Artist.Name
+                        }).ToList()
+                })
+                .ToListAsync();
 
-        return Ok(artists);
-    }
+            return Ok(new { orders });
+        }
 
-    //HttpGet specific Artist for Admin
-    [HttpGet("admin/by-artist/{artistId}")]
-    public async Task<IActionResult> GetOrdersByArtist(int artistId)
-    {
-        var currentUserId = await GetAuthenticatedUserId();
-        var currentUser = await _context.Users.FindAsync(currentUserId);
-        if (currentUser == null || currentUser.Role != "admin") return Forbid();
+        //HttpGet for only Admin
+        [HttpGet("admin")]
+        public async Task<IActionResult> GetAllOrdersForAdmin()
+        {
+            var userId = await GetAuthenticatedUserId();
+            if (!userId.HasValue) return Unauthorized();
 
-        var orders = await _context.Orders
-            .Where(o => o.OrderDetails.Any(od => od.Product.ArtistId == artistId))
-            .Select(o => new GetOrderDto
-            {
-                OrderId = o.OrderId,
-                TotalAmount = o.TotalAmount,
-                OrderDate = o.OrderDate,
-                Buyer = o.Buyer,
-                Items = o.OrderDetails
-                    .Where(od => od.Product.ArtistId == artistId)
-                    .Select(od => new GetOrderDetailDto
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null || user.Role != "admin")
+                return Forbid();
+
+            var orders = await _context.Orders
+                .Include(o => o.Buyer)
+                .Select(o => new GetOrderDto
+                {
+                    OrderId = o.OrderId,
+                    TotalAmount = o.TotalAmount,
+                    OrderDate = o.OrderDate,
+                    BuyerName = o.Buyer.Name ?? "Unknow",
+                    Items = o.OrderDetails.Select(od => new GetOrderDetailDto
                     {
                         ProductId = od.ProductId,
                         ProductTitle = od.Product.Title,
@@ -242,11 +176,65 @@ namespace PicXAPI.Controllers
                         ImageUrl = "/api/product/image/" + od.Product.ImageDriveId,
                         ArtistName = od.Product.Artist.Name
                     }).ToList()
-            })
-            .ToListAsync();
+                })
+                .ToListAsync();
 
-        return Ok(new { orders });
-    }
+            return Ok(new { orders });
+        }
+
+        //HttpGet Artist list for Admin
+        [HttpGet("admin/artists")]
+        public async Task<IActionResult> GetAllArtists()
+        {
+            var userId = await GetAuthenticatedUserId();
+            if (!userId.HasValue) return Unauthorized();
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null || user.Role != "admin") return Forbid();
+
+            var artists = await _context.Users
+                .Where(u => u.Role == "artist")
+                .Select(a => new
+                {
+                    artistId = a.UserId,
+                    name = a.Name
+                })
+                .ToListAsync();
+
+            return Ok(artists);
+        }
+
+        //HttpGet specific Artist for Admin
+        [HttpGet("admin/by-artist/{artistId}")]
+        public async Task<IActionResult> GetOrdersByArtist(int artistId)
+        {
+            var currentUserId = await GetAuthenticatedUserId();
+            var currentUser = await _context.Users.FindAsync(currentUserId);
+            if (currentUser == null || currentUser.Role != "admin") return Forbid();
+
+            var orders = await _context.Orders
+                .Where(o => o.OrderDetails.Any(od => od.Product.ArtistId == artistId))
+                .Select(o => new GetOrderDto
+                {
+                    OrderId = o.OrderId,
+                    TotalAmount = o.TotalAmount,
+                    OrderDate = o.OrderDate,
+                    BuyerName = o.Buyer.Name ?? "Unknow",
+                    Items = o.OrderDetails
+                        .Where(od => od.Product.ArtistId == artistId)
+                        .Select(od => new GetOrderDetailDto
+                        {
+                            ProductId = od.ProductId,
+                            ProductTitle = od.Product.Title,
+                            TotalPrice = od.TotalPrice,
+                            ImageUrl = "/api/product/image/" + od.Product.ImageDriveId,
+                            ArtistName = od.Product.Artist.Name
+                        }).ToList()
+                })
+                .ToListAsync();
+
+            return Ok(new { orders });
+        }
 
 
         // POST: api/orders - Create a new order

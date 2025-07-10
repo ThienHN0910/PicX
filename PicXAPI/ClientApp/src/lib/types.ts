@@ -40,7 +40,7 @@ interface ArtistProfileData {
 }
 
 export interface Product {
-  product_id: number;
+  productId: number;
   artist_id: number;
   category_id?: number;
   title: string;
@@ -146,8 +146,8 @@ export interface Order {
     orderId: number;
     totalAmount: number;
     orderDate: string;
+    buyerName: string;
     items: OrderItem[];
-    buyer: User;
 }
 
 export interface Artist {

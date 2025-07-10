@@ -1,4 +1,5 @@
 ﻿import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
     BarChart,
     Bar,
@@ -283,7 +284,7 @@ const AdminFinanceReport: React.FC = () => {
                 <ArtistPerformanceSection artists={artistPerformance} loading={artistLoading} />
 
                 {/* Orders List */}
-                <OrderListSection orders={orders} loading={ordersLoading} />
+                <OrderListSection orders={orders.slice(0, 10)} loading={ordersLoading} />
             </div>
         </div>
     );
@@ -467,10 +468,19 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label })
 
 const OrderListSection: React.FC<{ orders: Order[]; loading: boolean }> = ({ orders, loading }) => (
     <div className="animate-fade-in-up">
-        <div className="flex items-center justify-between mb-6">
+        <div className="mb-6">
             <h3 className="text-xl font-semibold text-gray-800">Recent Orders</h3>
-            <div className="text-sm text-gray-500">
-                {loading ? 'Loading...' : `${orders.length} orders`}
+            <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2 mt-2">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span className="text-sm text-gray-500" >{loading ? 'Loading...' : `${orders.length} orders`}</span>                   
+                </div>
+                <Link
+                    to="/admin/orders"
+                    className="text-blue-600 hover:text-blue-800 font-semibold transition-colors duration-150"
+                >
+                    View Order List
+                </Link>
             </div>
         </div>
 
