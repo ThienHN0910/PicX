@@ -63,7 +63,7 @@ export default function ProductManagement() {
     }
 
     return (
-        <div className="space-y-6 ml-24 mr-4">
+        <div className="space-y-6 mr-4">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold text-gray-900">Product Management</h1>
                 <Link
