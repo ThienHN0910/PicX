@@ -29,6 +29,8 @@ import Favorites from './pages/Favorites';
 import AdminOrders from './pages/AdminOrders';
 import ArtistOrders from './pages/ArtistOrders';
 import GoogleAuthSuccess from './pages/GoogleAuthSuccess';
+import { ResetPassword } from './pages/ResetPassword';
+import Deposit from './pages/Deposit';
 
 const ProtectedRoute = ({ children }) => {
     const { isAuthenticated, loading } = useAuth();
@@ -99,7 +101,7 @@ function App() {
                                 <Route path="/forgot-password" element={<ForgotPassword />} />
                                 <Route path="/art/:id" element={<ArtDetail />} />
                                 <Route path="/artist/:id" element={<ArtistProfile />} />
-
+                                <Route path="/reset-pass" element={<ResetPassword />} />
                                 {/* Protected routes - Buyer & Artist */}
                                 <Route
                                     path="/profile"
@@ -132,6 +134,15 @@ function App() {
                                 <Route path="/orders" element={<OrderHistory />} />
                                 <Route path="/orders/:id" element={<OrderDetail />} />
                                 <Route path="/chat" element={<Chat />} />
+                                {/* Thêm route nạp tiền cho buyer */}
+                                <Route
+                                    path="/deposit"
+                                    element={
+                                        <ProtectedRoute>
+                                            <Deposit />
+                                        </ProtectedRoute>
+                                    }
+                                />
 
                                 {/* Artist & Admin routes */}
                                 <Route path="/products" element={<ProductManagement />} />

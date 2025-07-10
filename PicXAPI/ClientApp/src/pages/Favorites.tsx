@@ -103,9 +103,9 @@ export default function Favorites() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-100 p-4 pl-24">
-            <div className="max-w-6xl mx-auto">
-                <h1 className="text-2xl font-bold mb-6">Your Favorite Products</h1>
+        <div className="min-h-screen bg-gray-100 ml-20">
+            <div>
+                <h1 className="text-2xl font-bold mb-6 ml-2">Your Favorite Products</h1>
 
                 {/* Đã xóa CategoryFilter */}
 

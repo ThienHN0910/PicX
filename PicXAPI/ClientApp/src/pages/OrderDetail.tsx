@@ -34,6 +34,46 @@ const OrderDetail = () => {
         navigate(`/art/${productId}`);
     };
 
+    // Helper to extract fileId from imageUrl (assuming /api/product/image/{fileId} or Google Drive link)
+    const extractFileId = (imageUrl: string) => {
+        if (!imageUrl) return '';
+        // If imageUrl is like /api/product/image/{fileId}
+        const match = imageUrl.match(/(?:image\/)([\w-]+)/);
+        if (match && match[1]) return match[1];
+        // If imageUrl is a Google Drive link (e.g., .../d/{fileId}/...)
+        const driveMatch = imageUrl.match(/\/d\/([\w-]+)/);
+        if (driveMatch && driveMatch[1]) return driveMatch[1];
+        // Otherwise, return the whole string (maybe it's already the fileId)
+        return imageUrl;
+    };
+
+    // Robust download handler for any file
+    const handleDownload = async (fileId: string, fileName: string) => {
+        try {
+            const response = await fetch(`/api/download/file/${fileId}`);
+            const contentDisposition = response.headers.get('Content-Disposition');
+            const contentType = response.headers.get('Content-Type');
+            if (response.ok && contentDisposition && contentType) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                let downloadName = fileName;
+                const match = contentDisposition.match(/filename="?([^";]+)"?/);
+                if (match && match[1]) downloadName = match[1];
+                a.href = url;
+                a.download = downloadName;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+            } else {
+                alert('Download failed: File not found or server error.');
+            }
+        } catch (err) {
+            alert('Download failed.');
+        }
+    };
+
     if (!order || !Array.isArray(order.items)) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 flex items-center justify-center">
@@ -198,6 +238,14 @@ const OrderDetail = () => {
                                         </button>
                                     </div>
                                 </div>
+                                <p className="text-lg font-medium text-gray-900">${item.totalPrice.toFixed(2)}</p>
+                                {/* Download button */}
+                                <button
+                                    className="ml-2 px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                    onClick={() => handleDownload(extractFileId(item.imageUrl), item.productTitle)}
+                                >
+                                    Download
+                                </button>
                             </div>
                         ))}
                     </div>
