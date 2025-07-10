@@ -2,44 +2,13 @@
 import { Package, CreditCard, Calendar, User, Wallet } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { Order } from '../lib/types'
+import { useNavigate } from 'react-router-dom';
 
 const OrderDetail = () => {
     const { id } = useParams();
-
-    interface OrderItem {
-        productId: number;
-        productTitle: string;
-        totalPrice: number;
-        imageUrl: string;
-        artistName: string;
-    }
-
-    interface Order {
-        orderId: string;
-        orderDate: string;
-        totalAmount: number;
-        buyerName: string;
-        items: OrderItem[];
-    }
-
-    useEffect(() => {
-        // Scroll to top when component mounts
-        window.scrollTo(0, 0);
-
-        const fetchOrder = async () => {
-            try {
-                const response = await axios.get(`/api/orders/${id}`, {
-                    withCredentials: true
-                });
-                setOrder(response.data);
-            } catch (err) {
-                console.error("Failed to fetch order", err);
-            }
-        };
-        fetchOrder();
-    }, [id]);
-
     const [order, setOrder] = useState<Order | null>(null);
+    const navigate = useNavigate();
 
     // Helper to get auth header
     const getAuthHeader = () => {
@@ -61,23 +30,8 @@ const OrderDetail = () => {
         fetchOrder();
     }, [id]);
 
-    //Debug
-    console.log("productIds:", order?.items.map(item => item.productId));
-    //
-
-    const getStatusColor = (status) => {
-        switch (status.toLowerCase()) {
-            case 'pending':
-                return 'bg-yellow-100 text-yellow-800';
-            case 'paid':
-                return 'bg-green-100 text-green-800';
-            case 'shipped':
-                return 'bg-blue-100 text-blue-800';
-            case 'delivered':
-                return 'bg-indigo-100 text-indigo-800';
-            default:
-                return 'bg-gray-100 text-gray-800';
-        }
+    const handleProductClick = (productId: number) => {
+        navigate(`/art/${productId}`);
     };
 
     if (!order || !Array.isArray(order.items)) {
@@ -202,7 +156,8 @@ const OrderDetail = () => {
                                             <img
                                                 src={item.imageUrl}
                                                 alt={item.productTitle}
-                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 cursor-pointer"
+                                                onClick={() => handleProductClick(item.productId)}
                                                 onError={(e) => e.currentTarget.src = '/placeholder-image.jpg'}
                                             />
                                         </div>
@@ -211,8 +166,11 @@ const OrderDetail = () => {
                                     {/* Product Info */}
                                     <div className="flex-1">
                                         <div className="mb-3">
-                                            <h4 className="text-xl font-bold text-slate-800 mb-1">
-                                                🎨 {item.productTitle}
+                                            <h4
+                                                className="text-xl font-bold text-slate-800 mb-1 cursor-pointer"
+                                                onClick={() => handleProductClick(item.productId)}
+                                            >
+                                                {item.productTitle}
                                             </h4>
                                             <p className="text-slate-600 flex items-center gap-2">
                                                 <User className="h-4 w-4" />

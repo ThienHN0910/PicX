@@ -10,7 +10,6 @@ namespace PicXAPI.DTOs
         public DateTime? OrderDate { get; set; }
         public string BuyerName { get; set; } = string.Empty;
         public List<GetOrderDetailDto> Items { get; set; } = new();
-        public User Buyer { get; set; }
     }
 
 

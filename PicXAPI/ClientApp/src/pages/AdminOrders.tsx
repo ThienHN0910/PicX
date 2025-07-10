@@ -83,18 +83,6 @@ export default function AdminOrders() {
         fetchOrdersByArtist(artistId);
     };
 
-    const getStatusStyle = (status: string) => {
-        const styles = {
-            'Complete': 'bg-green-100 text-green-700',
-            'In Progress': 'bg-purple-100 text-purple-700',
-            'Pending': 'bg-blue-100 text-blue-700',
-            'Approved': 'bg-yellow-100 text-yellow-700',
-            'Rejected': 'bg-gray-100 text-gray-600'
-        };
-        return styles[status as keyof typeof styles] || 'bg-gray-100 text-gray-600';
-    };
-
-
     const handleSort = (key: 'totalAmount' | 'orderDate') => {
         setSortConfig((prev) => ({
             key,
@@ -104,7 +92,7 @@ export default function AdminOrders() {
 
     const filteredOrders = orders.filter((order) =>
         order.orderId.toString().toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (order.buyer.name.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
+        (order.buyerName.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
         formatDate(order.orderDate).toLowerCase().includes(searchQuery.toLowerCase())
     );
 
@@ -228,7 +216,7 @@ export default function AdminOrders() {
                                             {/*Buyer*/}
                                             <div className="flex items-center gap-2">
                                                 <span className="text-sm font-medium text-gray-900 text-center">
-                                                    {order.buyer.name}
+                                                    {order.buyerName}
                                                 </span>
                                             </div>
 
