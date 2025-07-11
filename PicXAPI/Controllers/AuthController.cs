@@ -185,6 +185,41 @@ namespace PicXAPI.Controllers
             return Ok(new { token });
         }
 
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.CurrentPassword) || string.IsNullOrWhiteSpace(dto.NewPassword))
+                return BadRequest(new { message = "All fields are required" });
+
+            // Lấy user từ token
+            var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                return Unauthorized(new { message = "Token not provided" });
+            var token = authHeader.Substring("Bearer ".Length);
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(token);
+            var userIdClaim = jwtToken.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+                return Unauthorized(new { message = "Token invalid" });
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+                return Unauthorized(new { message = "User not found" });
+
+            // Kiểm tra mật khẩu hiện tại
+            var result = _passwordHasher.VerifyHashedPassword(user, user.Password, dto.CurrentPassword);
+            if (result == PasswordVerificationResult.Failed)
+                return BadRequest(new { message = "Current password is incorrect" });
+
+            // Kiểm tra mật khẩu mới khác mật khẩu cũ
+            if (dto.CurrentPassword == dto.NewPassword)
+                return BadRequest(new { message = "New password must be different from current password" });
+
+            // Đổi mật khẩu
+            user.Password = _passwordHasher.HashPassword(user, dto.NewPassword);
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Password changed successfully" });
+        }
+
         private string GenerateJwtToken(User user)
         {
             var jwtSettings = _config.GetSection("Jwt");

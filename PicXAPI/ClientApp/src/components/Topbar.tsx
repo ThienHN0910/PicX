@@ -3,12 +3,16 @@ import { Input } from './ui/Input';
 import { Search, LogIn, UserPlus } from 'lucide-react';
 import { useStore } from '../lib/store';
 import { Link, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 export default function Topbar() {
     const { user, searchQuery, setSearchQuery } = useStore();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
+    const location = useLocation();
+
+
 
     // Đóng dropdown khi click ra ngoài
     useEffect(() => {
@@ -42,7 +46,7 @@ export default function Topbar() {
     };
 
     return (
-        <div className="sticky top-0 z-10 bg-gray-50 flex items-center px-8 py-3" style={{ marginLeft: 80 }}>
+        <div className="sticky top-0 z-10 bg-gray-50 flex items-center px-8 py-3">
             <div className="flex-1 flex items-center !w-full">
                 <div className="relative w-full">
                     <Input
@@ -55,6 +59,8 @@ export default function Topbar() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 self-center text-gray-600 mr-2" />
                 </div>
             </div>
+
+
             <div className="ml-6 relative" ref={dropdownRef}>
                 {user && user.role !== 'guest' ? (
                     <>
@@ -67,6 +73,9 @@ export default function Topbar() {
                         <div className={`absolute right-0 w-48 mt-2 py-2 bg-white rounded-lg shadow-xl border border-gray-200 z-50 transition-all duration-200 ${isDropdownOpen ? 'opacity-100 visible transform translate-y-0' : 'opacity-0 invisible transform -translate-y-2'}`}>
                             <Link to="/profile" className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors">
                                 Profile
+                            </Link>
+                            <Link to="/change-password" className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors">
+                                Change Password
                             </Link>
                             <hr className="my-1 border-gray-200" />
                             <button
@@ -83,7 +92,7 @@ export default function Topbar() {
                             <LogIn className="h-5 w-5" />
                             <span>Login</span>
                         </Link>
-                            <Link to="/register" className="flex items-center space-x-1 text-white px-4 py-2 rounded-lg cursor-pointer focus:outline-none bg-[linear-gradient(180deg,_rgb(66,230,149),_rgb(59,178,184),_rgb(66,230,149))]
+                        <Link to="/register" className="flex items-center space-x-1 text-white px-4 py-2 rounded-lg cursor-pointer focus:outline-none bg-[linear-gradient(180deg,_rgb(66,230,149),_rgb(59,178,184),_rgb(66,230,149))]
                                bg-[length:100%_200%]
                                bg-top hover:bg-bottom
                                transition-all duration-500 ease-in-out
