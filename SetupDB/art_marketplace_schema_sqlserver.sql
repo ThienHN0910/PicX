@@ -230,3 +230,8 @@ CREATE TABLE Carts (
     FOREIGN KEY (product_id) REFERENCES Products(product_id) ON DELETE NO ACTION,
     CONSTRAINT UQ_UserProduct UNIQUE (user_id, product_id) -- Prevent duplicate entries in cart
 );
+
+
+ALTER TABLE Users
+ADD OtpCode NVARCHAR(10), 
+    OtpExpiry DATETIME;

@@ -103,7 +103,7 @@ export default function Favorites() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-100 ml-20">
+        <div className="min-h-screen bg-gray-100 p-8">
             <div>
                 <h1 className="text-2xl font-bold mb-6 ml-2">Your Favorite Products</h1>
 
