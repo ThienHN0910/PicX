@@ -174,14 +174,14 @@ namespace PicXAPI.Controllers
         }
 
         // POST: api/orders/{orderId}/pay-wallet
-        [HttpPost("{id}/pay-wallet")]
+        [HttpPost("{orderId}/pay-wallet")]
         public async Task<IActionResult> PayOrderWithWallet(int orderId)
         {
             var userId = await GetAuthenticatedUserId();
             if (!userId.HasValue)
                 return Unauthorized(new { message = "Login first" });
 
-            // Gọi SP xử lý nghiệp vụ chính
+            Console.WriteLine($"Processing order {orderId} for user {userId.Value} using wallet payment.");
             var result = await _context.Database
                 .ExecuteSqlRawAsync("EXEC sp_ProcessOrderWithWallet @p0, @p1", orderId, userId.Value);
 

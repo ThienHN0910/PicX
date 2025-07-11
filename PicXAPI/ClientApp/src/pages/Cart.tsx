@@ -1,9 +1,10 @@
 ﻿import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Trash2, ShoppingCart } from 'lucide-react';
 import axios from 'axios';
 import { Button } from '../components/ui/Button';
 import Loading from '../components/Loading';
+import { useStore } from '../lib/store';
 import { type Product } from '../lib/types';
 
 interface CartItem {
@@ -19,6 +20,8 @@ const Cart: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
     const token = localStorage.getItem('authToken');
+    const navigate = useNavigate();
+    const setSelectedItems = useStore(state => state.setSelectedItems);
 
     const toggleProduct = (productId: number) => {
         setSelectedProductIds(prev =>
@@ -33,18 +36,13 @@ const Cart: React.FC = () => {
             setLoading(true);
             const response = await axios.get('/api/cart', {
                 headers: {
-                    'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`
                 }
             });
             setCart(response.data.cartItems);
             setError(null);
         } catch (err: any) {
-            if (err.response?.status === 401) {
-                setError(err.response.data.message);
-            } else {
-                setError('Failed to load cart. Please try again.');
-            }
+            setError('Lỗi khi tải giỏ hàng.');
             setCart([]);
         } finally {
             setLoading(false);
@@ -55,13 +53,12 @@ const Cart: React.FC = () => {
         try {
             await axios.delete(`/api/cart/${cartId}`, {
                 headers: {
-                    'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`
                 }
             });
             setCart(prevCart => prevCart.filter(item => item.cartId !== cartId));
-        } catch (err: any) {
-            alert('Failed to remove item from cart. Please try again.');
+        } catch (err) {
+            alert('Xóa sản phẩm thất bại.');
         }
     };
 
@@ -79,7 +76,7 @@ const Cart: React.FC = () => {
         );
 
         if (selectedItems.length === 0) {
-            alert("Please select product to checkout.");
+            alert("Vui lòng chọn ít nhất một sản phẩm để thanh toán.");
             return;
         }
 
@@ -91,49 +88,39 @@ const Cart: React.FC = () => {
         };
 
         try {
-            await axios.post('/api/orders', orderDto, {
+            const res = await axios.post('/api/orders', orderDto, {
                 headers: {
-                    'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`
                 }
             });
 
-            await axios.post('/api/cart/remove-multiple', selectedProductIds, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                }
-            });
+            // Lưu selectedItems vào Zustand store
+            setSelectedItems(selectedItems);
+            
 
-            setCart(prev => prev.filter(item =>
-                !selectedProductIds.includes(item.productId)
-            ));
-            setSelectedProductIds([]);
-
-            alert("Thanh toán thành công!");
-            window.location.href = "/orders";
-        } catch (error: any) {
-            console.error("Checkout error:", error.response?.data || error);
-            alert("Có lỗi xảy ra khi thanh toán.");
+            // Điều hướng sang trang thanh toán
+            const orderId = res.data.orderId;
+            navigate(`/payment/${orderId}`);
+        } catch (err) {
+            console.error(err);
+            alert("Thanh toán thất bại.");
         }
     };
 
     if (loading) {
         return (
-            <div className="max-w-4xl mx-auto py-12 px-4 text-center">
-                <Loading message="Loading your cart..." />
+            <div className="max-w-4xl mx-auto py-12 text-center">
+                <Loading message="Đang tải giỏ hàng..." />
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="max-w-4xl mx-auto py-12 px-4 text-center">
-                <ShoppingCart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Error</h2>
-                <p className="text-gray-600 mb-6">{error}</p>
+            <div className="max-w-4xl mx-auto py-12 text-center">
+                <p className="text-red-500">{error}</p>
                 <Link to="/">
-                    <Button>Continue Shopping</Button>
+                    <Button>Quay lại trang chủ</Button>
                 </Link>
             </div>
         );
@@ -141,23 +128,20 @@ const Cart: React.FC = () => {
 
     if (cart.length === 0) {
         return (
-            <div className="max-w-4xl mx-auto py-12 px-4">
-                <div className="text-center">
-                    <ShoppingCart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty</h2>
-                    <p className="text-gray-600 mb-6">Looks like you haven't added any artwork to your cart yet.</p>
-                    <Link to="/">
-                        <Button>Continue Shopping</Button>
-                    </Link>
-                </div>
+            <div className="max-w-4xl mx-auto py-12 text-center">
+                <ShoppingCart className="h-10 w-10 mx-auto text-gray-400 mb-4" />
+                <h2 className="text-xl font-semibold">Giỏ hàng của bạn trống</h2>
+                <Link to="/">
+                    <Button className="mt-4">Mua sắm ngay</Button>
+                </Link>
             </div>
         );
     }
 
     return (
         <div className="max-w-4xl mx-auto py-8 px-4">
-            <h1 className="text-2xl font-bold text-gray-900 mb-8">Shopping Cart</h1>
-            <div className="bg-white rounded-lg shadow overflow-hidden">
+            <h1 className="text-2xl font-bold mb-6">Giỏ hàng</h1>
+            <div className="bg-white shadow rounded-lg">
                 <div className="divide-y divide-gray-200">
                     {cart.map((item) => (
                         <div key={item.cartId} className="p-6 flex items-center">
@@ -167,50 +151,34 @@ const Cart: React.FC = () => {
                                 checked={selectedProductIds.includes(item.productId)}
                                 onChange={() => toggleProduct(item.productId)}
                             />
-                            <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md">
-                                <img
-                                    src={item.product.image_url}
-                                    alt={item.product.title || 'Product image'}
-                                    className="h-full w-full object-cover"
-                                    onError={(e) => {
-                                        e.currentTarget.src = '/placeholder-image.jpg';
-                                    }}
-                                />
-                            </div>
+                            <img
+                                src={item.product.image_url}
+                                alt={item.product.title}
+                                className="h-24 w-24 rounded object-cover"
+                            />
                             <div className="ml-6 flex-1">
-                                <div className="flex items-start justify-between">
-                                    <div>
-                                        <h3 className="text-lg font-medium text-gray-900">
-                                            {item.product.title}
-                                        </h3>
-                                        <p className="mt-1 text-sm text-gray-500">
-                                            by {item.product.artist?.name || 'Unknown Artist'}
-                                        </p>
-                                        <p className="mt-1 text-sm text-gray-900">
-                                            ${item.product.price.toLocaleString()}
-                                        </p>
-                                    </div>
-                                    <button
-                                        onClick={() => removeFromCart(item.cartId)}
-                                        className="text-gray-400 hover:text-red-500"
-                                    >
-                                        <Trash2 className="h-5 w-5" />
-                                    </button>
-                                </div>
+                                <h3 className="text-lg font-medium">{item.product.title}</h3>
+                                <p className="text-sm text-gray-500">by {item.product.artist?.name || 'Unknown'}</p>
+                                <p className="text-sm font-semibold mt-1">${item.product.price.toLocaleString()}</p>
                             </div>
+                            <button
+                                onClick={() => removeFromCart(item.cartId)}
+                                className="text-gray-400 hover:text-red-500"
+                            >
+                                <Trash2 className="w-5 h-5" />
+                            </button>
                         </div>
                     ))}
                 </div>
-                <div className="bg-gray-50 p-6">
-                    <div className="flex items-center justify-between">
-                        <p className="text-lg font-medium text-gray-900">Total</p>
-                        <p className="text-xl font-semibold text-gray-900">
-                            ${total.toLocaleString()}
-                        </p>
+
+                <div className="p-6 bg-gray-50">
+                    <div className="flex justify-between items-center">
+                        <p className="text-lg font-medium">Tổng</p>
+                        <p className="text-xl font-bold">${total.toFixed(2)}</p>
                     </div>
-                    <div className="mt-6">
-                        <Button className="w-full" onClick={handleCheckout}>Proceed to Checkout</Button>
-                    </div>
+                    <Button className="mt-4 w-full" onClick={handleCheckout}>
+                        Tiến hành thanh toán
+                    </Button>
                 </div>
             </div>
         </div>

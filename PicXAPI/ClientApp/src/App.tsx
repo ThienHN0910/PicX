@@ -128,7 +128,7 @@ function App() {
                                 />
                                 <Route path="/dashboard" element={<Dashboard />} />
                                 <Route path="/cart" element={<Cart />} />
-                                <Route path="/payments" element={<Payments />} />
+                                <Route path="/payment/:orderId" element={<Payments />} />
                                 <Route path="/orders" element={<OrderHistory />} />
                                 <Route path="/orders/:id" element={<OrderDetail />} />
                                 <Route path="/chat" element={<Chat />} />
