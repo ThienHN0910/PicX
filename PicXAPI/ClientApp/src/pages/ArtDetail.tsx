@@ -5,6 +5,7 @@ import axios from 'axios';
 import { Button } from '../components/ui/Button';
 import Loading from '../components/Loading';
 import ArtistProducts from '../components/ArtistProducts';
+import { useAuth } from '../components/AuthProvider';
 
 interface Comment {
     id: number;
@@ -45,12 +46,18 @@ interface Product {
 const ArtDetail = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [product, setProduct] = useState<Product | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [comments, setComments] = useState<Comment[]>([]);
     const [commentInput, setCommentInput] = useState('');
     const [commentError, setCommentError] = useState<string | null>(null);
     const [commentLoading, setCommentLoading] = useState(false);
+    const [showReport, setShowReport] = useState(false);
+    const [reportContent, setReportContent] = useState('');
+    const [reportError, setReportError] = useState('');
+    const [reportSuccess, setReportSuccess] = useState('');
+    const [reportLoading, setReportLoading] = useState(false);
     const token = localStorage.getItem('authToken');
 
     useEffect(() => {
@@ -102,9 +109,44 @@ const ArtDetail = () => {
         }
     };
 
+    const handleReportSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setReportError('');
+        setReportSuccess('');
+        setReportLoading(true);
+        try {
+            await axios.post('/api/report', {
+                productId: product?.productId,
+                content: reportContent,
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setReportSuccess('Report submitted successfully!');
+            setReportContent('');
+            setTimeout(() => setShowReport(false), 1500);
+        } catch (err) {
+            setReportError('Failed to submit report.');
+        } finally {
+            setReportLoading(false);
+        }
+    };
+
     const handleAction = (permission: boolean | undefined, fallback: () => void) => {
         if (!permission) return navigate('/login');
         fallback();
+    };
+
+    const handleDeleteProduct = async () => {
+        if (!window.confirm('Are you sure you want to delete this product?')) return;
+        try {
+            await axios.delete(`/api/product/${id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            alert('Product deleted successfully!');
+            navigate('/');
+        } catch (err) {
+            alert('Failed to delete product.');
+        }
     };
 
     if (isLoading) return <div className="flex justify-center py-12"><Loading /></div>;
@@ -168,6 +210,17 @@ const ArtDetail = () => {
                         >
                             <Edit className="h-5 w-5" />
                         </Button>
+                        <Button onClick={() => setShowReport(true)} variant="outline" className="border-red-500 text-red-500 hover:bg-red-50">
+                            Report
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={handleDeleteProduct}
+                            className="border-red-500 ml-2 text-red-500 hover:bg-red-50"
+                            style={{ display: user?.role === 'admin' ? 'inline-flex' : 'none' }}
+                        >
+                            Delete
+                        </Button>
                     </div>
 
                     {/* Tags */}
@@ -220,6 +273,31 @@ const ArtDetail = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Report Popup */}
+            {showReport && (
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+                    <form onSubmit={handleReportSubmit} className="bg-white p-8 rounded shadow-md w-full max-w-sm">
+                        <h2 className="text-xl font-bold mb-4 text-center text-red-600">Report Product</h2>
+                        <textarea
+                            className="w-full border rounded px-3 py-2 mb-2"
+                            placeholder="Describe the issue..."
+                            value={reportContent}
+                            onChange={e => setReportContent(e.target.value)}
+                            rows={4}
+                            required
+                        />
+                        {reportError && <div className="text-red-500 text-sm mb-2 text-center">{reportError}</div>}
+                        {reportSuccess && <div className="text-green-600 text-sm mb-2 text-center">{reportSuccess}</div>}
+                        <div className="flex gap-2 mt-2">
+                            <button type="button" className="flex-1 py-2 rounded bg-gray-200" onClick={() => setShowReport(false)}>Cancel</button>
+                            <button type="submit" className="flex-1 py-2 rounded bg-red-500 text-white" disabled={reportLoading}>
+                                {reportLoading ? 'Reporting...' : 'Submit'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
         </div>
     );
 };

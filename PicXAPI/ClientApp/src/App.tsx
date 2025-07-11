@@ -32,6 +32,7 @@ import GoogleAuthSuccess from './pages/GoogleAuthSuccess';
 import { ResetPassword } from './pages/ResetPassword';
 import Deposit from './pages/Deposit';
 import ChangePassword from './pages/ChangePassword';
+import AdminReportList from './pages/AdminReportList';
 
 const ProtectedRoute = ({ children }) => {
     const { isAuthenticated, loading } = useAuth();
@@ -161,6 +162,7 @@ function App() {
                                 <Route path="/finance" element={<Finance />} />
                                 <Route path="/admin/orders" element={<AdminOrders />} />
                                 <Route path="/admin/order/:id" element={<OrderDetail />} />
+                                <Route path="/admin/reports" element={<AdminReportList />} />
                             </Routes>
                         </main>
                         <ToastContainer position="top-right" autoClose={3000} />
