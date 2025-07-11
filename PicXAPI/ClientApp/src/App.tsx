@@ -29,6 +29,7 @@ import Favorites from './pages/Favorites';
 import GoogleAuthSuccess from './pages/GoogleAuthSuccess';
 import { ResetPassword } from './pages/ResetPassword';
 import Deposit from './pages/Deposit';
+import ChangePassword from './pages/ChangePassword';
 
 const ProtectedRoute = ({ children }) => {
     const { isAuthenticated, loading } = useAuth();
@@ -94,6 +95,10 @@ function App() {
                                             <Register />
                                         </PublicRoute>
                                     }
+                                />
+                                <Route
+                                    path="/change-password"
+                                    element={<ChangePassword />}
                                 />
                                 <Route path="/google-auth-success" element={<GoogleAuthSuccess />} />
                                 <Route path="/forgot-password" element={<ForgotPassword />} />
