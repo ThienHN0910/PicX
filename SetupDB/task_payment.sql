@@ -15,17 +15,8 @@ CREATE TABLE [dbo].[WalletTransactions] (
     FOREIGN KEY ([wallet_id]) REFERENCES [Wallets]([wallet_id]) ON DELETE CASCADE
 );
 go
-CREATE TABLE [dbo].[WithdrawRequests] (
-    [request_id] INT IDENTITY(1,1) PRIMARY KEY,
-    [artist_id] INT NOT NULL,
-    [amount_requested] DECIMAL(18, 2) NOT NULL,
-    [amount_received] AS ([amount_requested] * 0.9) PERSISTED,
-    [status] NVARCHAR(20) NOT NULL DEFAULT 'pending',
-    [admin_note] NVARCHAR(500),
-    [requested_at] DATETIME DEFAULT GETDATE(),
-    [processed_at] DATETIME NULL,
-    FOREIGN KEY ([artist_id]) REFERENCES [Users]([user_id])
-);
+If OBJECT_ID('sp_ProcessOrderWithWallet','P') IS NOT NULL
+DROP PROC sp_ProcessOrderWithWallet
 go
 CREATE PROCEDURE sp_ProcessOrderWithWallet
     @OrderId INT,
@@ -76,23 +67,54 @@ BEGIN
         FETCH NEXT FROM cur INTO @ProductId, @ProductPrice, @ArtistId;
 
         WHILE @@FETCH_STATUS = 0
-        BEGIN
-            SET @Commission = @ProductPrice * 0.1;
-            SET @NetAmount = @ProductPrice - @Commission;
+BEGIN
+    SET @Commission = @ProductPrice * 0.1;
+    SET @NetAmount = @ProductPrice - @Commission;
 
-            SELECT @ArtistWalletId = wallet_id FROM Wallets WHERE user_id = @ArtistId;
+    -- Lấy ví của artist, nếu chưa có thì tạo
+    SELECT @ArtistWalletId = wallet_id FROM Wallets WHERE user_id = @ArtistId;
+    IF @ArtistWalletId IS NULL
+    BEGIN
+        INSERT INTO Wallets(user_id, balance) VALUES (@ArtistId, 0);
+        SET @ArtistWalletId = SCOPE_IDENTITY();
+    END
 
-            -- Cộng tiền cho artist
-            UPDATE Wallets
-            SET balance = balance + @NetAmount
-            WHERE wallet_id = @ArtistWalletId;
+    -- Cộng tiền cho artist
+    UPDATE Wallets
+    SET balance = balance + @NetAmount
+    WHERE wallet_id = @ArtistWalletId;
 
-            -- Log giao dịch
-            INSERT INTO WalletTransactions(wallet_id, type, amount, description)
-            VALUES (@ArtistWalletId, 'sale', @NetAmount, CONCAT('Bán sản phẩm #', @ProductId, ' từ đơn hàng #', @OrderId));
+    -- Log giao dịch
+    INSERT INTO WalletTransactions(wallet_id, type, amount, description)
+    VALUES (@ArtistWalletId, 'sale', @NetAmount, CONCAT('Bán sản phẩm #', @ProductId, ' từ đơn hàng #', @OrderId));
 
-            FETCH NEXT FROM cur INTO @ProductId, @ProductPrice, @ArtistId;
-        END
+    FETCH NEXT FROM cur INTO @ProductId, @ProductPrice, @ArtistId;
+END
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @Commission = @ProductPrice * 0.1;
+    SET @NetAmount = @ProductPrice - @Commission;
+
+    -- Lấy ví của artist, nếu chưa có thì tạo
+    SELECT @ArtistWalletId = wallet_id FROM Wallets WHERE user_id = @ArtistId;
+    IF @ArtistWalletId IS NULL
+    BEGIN
+        INSERT INTO Wallets(user_id, balance) VALUES (@ArtistId, 0);
+        SET @ArtistWalletId = SCOPE_IDENTITY();
+    END
+
+    -- Cộng tiền cho artist
+    UPDATE Wallets
+    SET balance = balance + @NetAmount
+    WHERE wallet_id = @ArtistWalletId;
+
+    -- Log giao dịch
+    INSERT INTO WalletTransactions(wallet_id, type, amount, description)
+    VALUES (@ArtistWalletId, 'sale', @NetAmount, CONCAT('Bán sản phẩm #', @ProductId, ' từ đơn hàng #', @OrderId));
+
+    FETCH NEXT FROM cur INTO @ProductId, @ProductPrice, @ArtistId;
+END
+
 
         CLOSE cur;
         DEALLOCATE cur;
@@ -106,8 +128,29 @@ BEGIN
     END CATCH
 END
 go
-CREATE PROCEDURE sp_ArtistRequestWithdraw
-    @ArtistId INT,
+
+DROP TABLE IF EXISTS WithdrawRequests;
+GO
+
+CREATE TABLE [dbo].[WithdrawRequests] (
+    [request_id] INT IDENTITY(1,1) PRIMARY KEY,
+    [user_id] INT NOT NULL,
+    [amount_requested] DECIMAL(18, 2) NOT NULL,
+    [amount_received] AS ([amount_requested] * 0.9) PERSISTED,
+    [status] NVARCHAR(20) NOT NULL DEFAULT 'pending', -- 'pending', 'approved', 'rejected'
+    [admin_note] NVARCHAR(500),
+    [requested_at] DATETIME DEFAULT GETDATE(),
+    [processed_at] DATETIME NULL,
+    FOREIGN KEY ([user_id]) REFERENCES [Users]([user_id]) ON DELETE CASCADE
+);
+GO
+
+IF OBJECT_ID('sp_RequestWithdraw', 'P') IS NOT NULL
+    DROP PROCEDURE sp_RequestWithdraw;
+GO
+
+CREATE PROCEDURE sp_RequestWithdraw
+    @UserId INT,
     @Amount DECIMAL(18,2)
 AS
 BEGIN
@@ -116,7 +159,15 @@ BEGIN
 
     BEGIN TRY
         DECLARE @WalletId INT, @Balance DECIMAL(18,2);
-        SELECT @WalletId = wallet_id, @Balance = balance FROM Wallets WHERE user_id = @ArtistId;
+
+        SELECT @WalletId = wallet_id, @Balance = balance
+        FROM Wallets
+        WHERE user_id = @UserId;
+
+        IF @WalletId IS NULL
+        BEGIN
+            THROW 60003, 'Người dùng chưa có ví.', 1;
+        END
 
         IF @Balance < @Amount
         BEGIN
@@ -128,13 +179,13 @@ BEGIN
         SET balance = balance - @Amount
         WHERE wallet_id = @WalletId;
 
-        -- Ghi log rút tiền
+        -- Ghi log giao dịch
         INSERT INTO WalletTransactions(wallet_id, type, amount, description)
         VALUES (@WalletId, 'withdraw_request', -@Amount, 'Yêu cầu rút tiền');
 
-        -- Tạo yêu cầu rút
-        INSERT INTO WithdrawRequests(artist_id, amount_requested)
-        VALUES (@ArtistId, @Amount);
+        -- Tạo yêu cầu rút tiền
+        INSERT INTO WithdrawRequests(user_id, amount_requested)
+        VALUES (@UserId, @Amount);
 
         COMMIT TRANSACTION;
     END TRY
@@ -144,6 +195,6 @@ BEGIN
         THROW 60002, @Err, 1;
     END CATCH
 END
-
+GO
 
 

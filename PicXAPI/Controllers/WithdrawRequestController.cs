@@ -18,9 +18,9 @@ namespace PicXAPI.Controllers
             _context = context;
         }
 
-        // Artist gửi yêu cầu rút tiền (gọi SP)
+        // Gửi yêu cầu rút tiền (artist hoặc buyer)
         [HttpPost]
-        [Authorize(Roles = "artist")]
+        [Authorize] // Cho phép cả artist và buyer
         public async Task<IActionResult> Create([FromBody] WithdrawRequestDto dto)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -31,13 +31,13 @@ namespace PicXAPI.Controllers
             try
             {
                 await _context.Database.ExecuteSqlRawAsync(
-                    "EXEC sp_ArtistRequestWithdraw @p0, @p1",
+                    "EXEC sp_RequestWithdraw @p0, @p1",
                     userId, dto.Amount
                 );
 
-                // Lấy yêu cầu rút mới nhất của artist để trả về
+                // Lấy yêu cầu rút mới nhất của user để trả về
                 var withdrawRequest = await _context.WithdrawRequests
-                    .Where(w => w.ArtistId == userId)
+                    .Where(w => w.UserId == userId)
                     .OrderByDescending(w => w.RequestedAt)
                     .FirstOrDefaultAsync();
 
@@ -59,14 +59,14 @@ namespace PicXAPI.Controllers
             }
         }
 
-        // (Optional) Lấy danh sách yêu cầu rút tiền của artist
+        // Lấy danh sách yêu cầu rút tiền của người dùng hiện tại
         [HttpGet("my-requests")]
-        [Authorize(Roles = "artist")]
+        [Authorize] // Cả artist và buyer đều được xem
         public async Task<IActionResult> GetMyRequests()
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             var requests = await _context.WithdrawRequests
-                .Where(w => w.ArtistId == userId)
+                .Where(w => w.UserId == userId)
                 .OrderByDescending(w => w.RequestedAt)
                 .ToListAsync();
 

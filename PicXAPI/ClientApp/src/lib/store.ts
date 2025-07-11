@@ -2,11 +2,14 @@ import { create } from 'zustand';
 import axios from 'axios';
 import type { User, Product, Category, Favorite } from './types';
 
+interface CartItem {
+    product: Product;
+}
 interface AppState {
     user: User | null;
     products: Product[];
     categories: Category[];
-    cart: { product: Product; quantity: number }[];
+    cart: { product: Product }[];
     hasMore: boolean;
     page: number;
     favorites: Favorite[];
@@ -14,9 +17,11 @@ interface AppState {
     setUser: (user: User | null) => void;
     setProducts: (products: Product[]) => void;
     setCategories: (categories: Category[]) => void;
-    addToCart: (product: Product, quantity?: number) => void;
+    addToCart: (product: Product) => void;
     removeFromCart: (productId: number) => void;
     clearCart: () => void;
+    selectedItems: CartItem[];
+    setSelectedItems: (items: CartItem[]) => void;
     fetchProducts: (initial?: boolean) => Promise<void>;
     fetchCategories: () => Promise<void>;
     setFavorites: (favorites: Favorite[]) => void;
@@ -41,20 +46,22 @@ export const useStore = create<AppState>((set, get) => ({
     searchQuery: '',
     setUser: (user) => set({ user }),
     setProducts: (products) => set({ products }),
+    selectedItems: [],
+    setSelectedItems: (items) => set({ selectedItems: items }),
     setCategories: (categories) => set({ categories }),
-    addToCart: (product, quantity = 1) =>
+    addToCart: (product) =>
         set((state) => {
             const existingItem = state.cart.find((item) => item.product.product_id === product.product_id);
             if (existingItem) {
                 return {
                     cart: state.cart.map((item) =>
                         item.product.product_id === product.product_id
-                            ? { ...item, quantity: item.quantity + quantity }
+                            ? { ...item }
                             : item
                     ),
                 };
             }
-            return { cart: [...state.cart, { product, quantity }] };
+            return { cart: [...state.cart, { product }] };
         }),
     removeFromCart: (productId) =>
         set((state) => ({
