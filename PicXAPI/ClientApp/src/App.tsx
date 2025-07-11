@@ -26,6 +26,8 @@ import { AuthProvider, useAuth } from './components/AuthProvider';
 import ArtistProfile from './pages/ArtistProfile';
 import ArtistFinanceReport from './pages/ArtistFinanceReport';
 import Favorites from './pages/Favorites';
+import AdminOrders from './pages/AdminOrders';
+import ArtistOrders from './pages/ArtistOrders';
 import GoogleAuthSuccess from './pages/GoogleAuthSuccess';
 import { ResetPassword } from './pages/ResetPassword';
 import Deposit from './pages/Deposit';
@@ -73,10 +75,10 @@ function App() {
                     {/* Sidebar trái */}
                     <Navbar />
                     {/* Nội dung chính */}
-                    <div className="flex-1 flex flex-col">
+                    <div className="flex-1 flex flex-col pl-20">
                         {/* Topbar */}
                         <Topbar />
-                        <main className="justify-end flex-1 container" style={{ maxWidth: "1480px" }}>
+                        <main className="flex-1 p-6">
                             <Routes>
                                 {/* Public routes */}
                                 <Route path="/" element={<Home />} />
@@ -152,10 +154,13 @@ function App() {
                                 <Route path="/products/add" element={<AddProduct />} />
                                 <Route path="/products/edit/:id" element={<EditProduct />} />
                                 <Route path="/ArtistFinanceReport" element={<ArtistFinanceReport />} />
-
+                                <Route path="/artist/orders" element={<ArtistOrders />} />
+                                <Route path="/artist/order/:id" element={<OrderDetail />} />
                                 {/* Admin only routes */}
                                 <Route path="/users" element={<UserList />} />
                                 <Route path="/finance" element={<Finance />} />
+                                <Route path="/admin/orders" element={<AdminOrders />} />
+                                <Route path="/admin/order/:id" element={<OrderDetail />} />
                             </Routes>
                         </main>
                         <ToastContainer position="top-right" autoClose={3000} />

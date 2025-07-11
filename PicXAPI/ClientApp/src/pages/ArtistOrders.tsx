@@ -1,13 +1,14 @@
-﻿import { Link } from 'react-router-dom';
-import { Package, Search} from 'lucide-react';
-import { useStore } from '../lib/store';
-import React, { useEffect, useState } from 'react';
+﻿/* eslint-disable @typescript-eslint/no-unused-vars */
+import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { formatDate, sortOrders } from '../lib/utils'
 import { useNavigate } from 'react-router-dom';
-import { Order} from '../lib/types'
+import { useStore } from '../lib/store';
+import { getAuthHeader } from '../lib/store'
+import { Package, Search } from 'lucide-react';
+import { formatDate, sortOrders } from '../lib/utils'
+import { Order } from '../lib/types'
 
-const OrderHistory = () => {
+export default function ArtistOrders() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [sortConfig, setSortConfig] = useState<{
         key: 'totalAmount' | 'orderDate' | null;
@@ -16,26 +17,24 @@ const OrderHistory = () => {
     const [searchQuery, setSearchQuery] = useState<string>('');
     const navigate = useNavigate();
 
-    // Helper to get auth header
-    const getAuthHeader = () => {
-        const token = localStorage.getItem('authToken');
-        return token ? { Authorization: `Bearer ${token}` } : {};
-    };
-
     useEffect(() => {
         const fetchOrders = async () => {
             try {
-                const res = await axios.get('/api/orders', {
-                    headers: getAuthHeader()
+                const response = await axios.get('/api/orders/artist', {
+                    headers: getAuthHeader(), 
                 });
-                setOrders(res.data.orders);
-            } catch (error) {
-                console.error("Failed to fetch orders", error);
+                setOrders(response.data.orders || []);
+            } catch (err) {
+                console.error('Error fetching orders:', err);
+                alert('Cannot load Orders. Please try again.');
+                if (err.response?.status === 401) {
+                    navigate('/login'); 
+                }
             }
         };
 
         fetchOrders();
-    }, []);
+    }, [navigate]);
 
     const handleSort = (key: 'totalAmount' | 'orderDate') => {
         setSortConfig((prev) => ({
@@ -46,6 +45,7 @@ const OrderHistory = () => {
 
     const filteredOrders = orders.filter((order) =>
         order.orderId.toString().toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (order.buyerName.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
         formatDate(order.orderDate).toLowerCase().includes(searchQuery.toLowerCase())
     );
 
@@ -74,7 +74,7 @@ const OrderHistory = () => {
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Search by ID or Date"
+                                placeholder="Search by ID, Buyer or Date"
                                 className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                             />
                         </div>
@@ -94,9 +94,10 @@ const OrderHistory = () => {
                         ) : (
                             <div className="overflow-x-auto">
                                 {/* Column headers */}
-                                <div className="grid grid-cols-5 gap-4 px-3 py-3 bg-gray-50 border-b border-gray-200 text-sm font-bold text-gray-500 uppercase tracking-wider">
+                                <div className="grid grid-cols-6 gap-4 px-3 py-3 bg-gray-50 border-b border-gray-200 text-sm font-bold text-gray-500 uppercase tracking-wider">
                                     <div>Order ID</div>
                                     <div>Items</div>
+                                    <div>Buyer</div>
                                     <div
                                         className={`flex items-center cursor-pointer hover:text-gray-700 ${sortConfig.key === 'totalAmount' ? 'text-gray-900' : ''
                                             }`}
@@ -125,7 +126,7 @@ const OrderHistory = () => {
                                     {sortedOrders.map((order) => (
                                         <div
                                             key={order.orderId}
-                                            className="grid grid-cols-5 gap-4 px-6 py-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                                            className="grid grid-cols-6 gap-4 px-6 py-4 hover:bg-gray-50 cursor-pointer transition-colors"
                                             onClick={() => navigate(`/admin/order/${order.orderId}`)}
                                         >
                                             {/* Order ID */}
@@ -139,6 +140,13 @@ const OrderHistory = () => {
                                             <div className="flex items-center gap-2 ml-3">
                                                 <span className="text-sm font-medium text-gray-900 text-center">
                                                     {order.items.length || '---'}
+                                                </span>
+                                            </div>
+
+                                            {/*Buyer*/ }
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-sm font-medium text-gray-900 text-center">
+                                                    {order.buyerName}
                                                 </span>
                                             </div>
 
@@ -175,6 +183,4 @@ const OrderHistory = () => {
             </div>
         </div>
     );
-};
-
-export default OrderHistory;
+}

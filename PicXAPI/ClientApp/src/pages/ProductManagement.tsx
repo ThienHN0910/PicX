@@ -63,7 +63,7 @@ export default function ProductManagement() {
     }
 
     return (
-        <div className="space-y-6 ml-24 mr-4">
+        <div className="space-y-6 mr-4">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold text-gray-900">Product Management</h1>
                 <Link
@@ -94,8 +94,8 @@ export default function ProductManagement() {
                 <Button variant="outline">Sort</Button>
             </div>
 
-            <div className="bg-white rounded-lg shadow overflow-x-auto">
-                <table className="max-w-full divide-y divide-gray-200">
+            <div className="bg-white rounded-lg shadow overflow-x-auto w-full">
+                <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -234,8 +234,8 @@ export default function ProductManagement() {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span
                                             className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${product.isAvailable
-                                                    ? 'bg-green-100 text-green-800'
-                                                    : 'bg-red-100 text-red-800'
+                                                ? 'bg-green-100 text-green-800'
+                                                : 'bg-red-100 text-red-800'
                                                 }`}
                                         >
                                             {product.isAvailable ? 'Available' : 'Sold'}
