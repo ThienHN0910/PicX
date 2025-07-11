@@ -186,6 +186,13 @@ export default function Navbar() {
                                 >
                                     <List className="w-6 h-6" />
                                 </Link>
+                                <Link
+                                    to="/admin/reports"
+                                    title="Manage Reports"
+                                    className={`p-3 rounded-lg hover:bg-gray-100 ${location.pathname === '/admin/reports' ? 'bg-gray-200' : ''}`}
+                                >
+                                    <ClipboardList className="w-6 h-6" />
+                                </Link>
                             </>
                         )}
                     </>
