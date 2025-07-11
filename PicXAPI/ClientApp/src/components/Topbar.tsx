@@ -68,6 +68,9 @@ export default function Topbar() {
                             <Link to="/profile" className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors">
                                 Profile
                             </Link>
+                            <Link to="/change-password" className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100 transition-colors">
+                                Change Password
+                            </Link>
                             <hr className="my-1 border-gray-200" />
                             <button
                                 onClick={handleLogout}
