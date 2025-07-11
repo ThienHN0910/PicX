@@ -66,23 +66,6 @@ export interface Category {
   is_active: boolean;
 }
 
-export interface Order {
-  order_id: number;
-  buyer_id: number;
-  total_amount: number;
-  order_date: Date;
-  buyer?: User;
-  details?: OrderDetail[];
-}
-
-export interface OrderDetail {
-  order_detail_id: number;
-  order_id: number;
-  product_id: number;
-  total_price: number;
-  product?: Product;
-}
-
 export interface Comment {
   comment_id: number;
   user_id: number;
@@ -103,6 +86,9 @@ export interface CommentReply {
 }
 
 export interface Favorite {
+  title: any;
+  description: any;
+  category_id: number;
   favorite_id: number;
   user_id: number;
   product_id: number;
@@ -149,4 +135,25 @@ export interface Exhibition {
     description?: string | null;
     imageUrl?: string | null; // URL hình ảnh của triển lãm
     sourceApi?: string | null; // Nguồn API
+}
+
+export interface OrderItem {
+    productId: number;
+    productTitle: string;
+    totalPrice: number;
+    imageUrl: string;
+    artistName: string;
+}
+
+export interface Order {
+    orderId: number;
+    totalAmount: number;
+    orderDate: string;
+    buyerName: string;
+    items: OrderItem[];
+}
+
+export interface Artist {
+    artistId: number;
+    name: string;
 }

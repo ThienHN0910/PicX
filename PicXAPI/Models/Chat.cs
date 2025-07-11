@@ -1,4 +1,4 @@
-﻿
+
 namespace PicXAPI.Models;
 
 public partial class Chat

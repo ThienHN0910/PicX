@@ -25,7 +25,7 @@ interface AppState {
     setSearchQuery: (query: string) => void;
 }
 
-const getAuthHeader = () => {
+export const getAuthHeader = () => {
     const token = localStorage.getItem("authToken");
     return token ? { Authorization: `Bearer ${token}` } : {};
 };

@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using PicXAPI.Models;
 
 namespace PicXAPI.DTOs
 {
@@ -7,6 +8,7 @@ namespace PicXAPI.DTOs
         public int OrderId { get; set; }
         public decimal TotalAmount { get; set; }
         public DateTime? OrderDate { get; set; }
+        public string BuyerName { get; set; } = string.Empty;
         public List<GetOrderDetailDto> Items { get; set; } = new();
     }
 

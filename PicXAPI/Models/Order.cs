@@ -1,4 +1,4 @@
-﻿namespace PicXAPI.Models;
+namespace PicXAPI.Models;
 
 public partial class Order
 {
