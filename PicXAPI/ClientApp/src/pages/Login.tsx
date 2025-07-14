@@ -20,7 +20,12 @@ const Login = () => {
         const result = await login(email, password);
 
         if (result.success) {
-            navigate('/');
+            const unverifiedEmail = localStorage.getItem("unverifiedEmail");
+            if (unverifiedEmail) {
+                navigate('/verify-email');
+            } else {
+                navigate('/');
+            }
         } else {
             setErrorMessage(result.message);
         }
