@@ -1,15 +1,17 @@
 export interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: 'guest' | 'buyer' | 'artist' | 'admin';
-  phone?: string;
-  address?: string;
-  is_active: boolean;
-  email_verified: boolean;
-  last_login?: Date;
-  created_at: Date;
-  updated_at: Date;
+    id: number;
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+    role: "guest" | "buyer" | "artist" | "admin";
+    bank_name: string;
+    bank_account_number: string;
+    momo_number: string;
+    is_active: boolean;
+    email_verified: boolean;
+    created_at: string;
+    updated_at: string;
 }
 
 export interface ArtistProfile {

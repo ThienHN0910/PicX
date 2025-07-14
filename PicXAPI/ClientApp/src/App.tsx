@@ -33,6 +33,8 @@ import { ResetPassword } from './pages/ResetPassword';
 import Deposit from './pages/Deposit';
 import ChangePassword from './pages/ChangePassword';
 import AdminReportList from './pages/AdminReportList';
+import Wallet from './pages/Wallet';
+import AdminWithdrawals from './pages/AdminWithdrawals'; 
 
 const ProtectedRoute = ({ children }) => {
     const { isAuthenticated, loading } = useAuth();
@@ -149,6 +151,14 @@ function App() {
                                         </ProtectedRoute>
                                     }
                                 />
+                                <Route
+                                    path="/wallet"
+                                    element={
+                                        <ProtectedRoute>
+                                            <Wallet />
+                                        </ProtectedRoute>
+                                    }
+                                />
 
                                 {/* Artist & Admin routes */}
                                 <Route path="/products" element={<ProductManagement />} />
@@ -163,6 +173,14 @@ function App() {
                                 <Route path="/admin/orders" element={<AdminOrders />} />
                                 <Route path="/admin/order/:id" element={<OrderDetail />} />
                                 <Route path="/admin/reports" element={<AdminReportList />} />
+                                <Route
+                                    path="/admin/withdrawals"
+                                    element={
+                                        <ProtectedRoute>
+                                            <AdminWithdrawals />
+                                        </ProtectedRoute>
+                                    }
+                                />
                             </Routes>
                         </main>
                         <ToastContainer position="top-right" autoClose={3000} />

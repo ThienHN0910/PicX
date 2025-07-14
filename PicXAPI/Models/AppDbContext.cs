@@ -503,6 +503,17 @@ public partial class AppDbContext : DbContext
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
                 .HasColumnName("updated_at");
+            entity.Property(e => e.BankAccountNumber)
+                .HasMaxLength(100)
+                .HasColumnName("bank_account_number");
+
+            entity.Property(e => e.BankName)
+                .HasMaxLength(100)
+                .HasColumnName("bank_name");
+
+            entity.Property(e => e.MomoNumber)
+                .HasMaxLength(20)
+                .HasColumnName("momo_number");
         });
 
         modelBuilder.Entity<Cart>(entity =>
@@ -585,15 +596,16 @@ public partial class AppDbContext : DbContext
             entity.HasKey(e => e.RequestId).HasName("PK__Withdraw__18D3B90F1E0D8D75");
 
             entity.Property(e => e.RequestId).HasColumnName("request_id");
-            entity.Property(e => e.ArtistId).HasColumnName("artist_id");
-            entity.Property(e => e.Amount).HasColumnType("decimal(18, 2)").HasColumnName("amount");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.AmountReceived).HasColumnType("decimal(18, 2)").HasColumnName("amount_received");
+            entity.Property(e => e.AmountRequested).HasColumnType("decimal(18, 2)").HasColumnName("amount_requested");
             entity.Property(e => e.Status).HasMaxLength(20).HasColumnName("status"); // pending, approved, rejected
             entity.Property(e => e.RequestedAt).HasColumnType("datetime").HasDefaultValueSql("(getdate())").HasColumnName("requested_at");
             entity.Property(e => e.ProcessedAt).HasColumnType("datetime").HasColumnName("processed_at");
 
             entity.HasOne(d => d.User)
                   .WithMany(p => p.WithdrawRequests)
-                  .HasForeignKey(d => d.ArtistId)
+                  .HasForeignKey(d => d.UserId)
                   .OnDelete(DeleteBehavior.SetNull)
                   .HasConstraintName("FK__WithdrawR__artis__339FAB6E");
         });

@@ -34,7 +34,10 @@ namespace PicXAPI.Controllers
                     r.AmountRequested,
                     r.AmountReceived,
                     r.RequestedAt,
-                    r.Status
+                    r.Status,
+                    BankName = r.User.BankName,
+                    BankAccountNumber = r.User.BankAccountNumber,
+                    MomoNumber = r.User.MomoNumber
                 })
                 .ToListAsync();
 

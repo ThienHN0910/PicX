@@ -131,5 +131,21 @@ namespace PicXAPI.Controllers
                 return BadRequest(new { message = "Nạp tiền thất bại." });
             }
         }
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> GetWallet()
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var wallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);
+
+            if (wallet == null)
+                return NotFound(new { message = "Ví không tồn tại." });
+
+            return Ok(new
+            {
+                balance = wallet.Balance
+            });
+        }
+
     }
 }

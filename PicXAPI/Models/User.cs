@@ -1,4 +1,4 @@
-namespace PicXAPI.Models;
+﻿namespace PicXAPI.Models;
 
 public partial class User
 {
@@ -25,6 +25,10 @@ public partial class User
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
+    public string? BankAccountNumber { get; set; }  // Số tài khoản ngân hàng
+    public string? BankName { get; set; }           // Tên ngân hàng
+    public string? MomoNumber { get; set; }         // Số điện thoại Momo/Zalo
+
 
     public virtual ArtistProfile? ArtistProfile { get; set; }
 
