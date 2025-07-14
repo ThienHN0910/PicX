@@ -197,6 +197,12 @@ BEGIN
 END
 GO
 
+ALTER TABLE Users
+ADD
+    email_otp NVARCHAR(10) NULL,
+    email_otp_expiry DATETIME NULL;
+
+
 
 ALTER TABLE WalletTransactions add external_transaction_id BIGINT NULL;
 

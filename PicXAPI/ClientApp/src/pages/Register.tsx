@@ -36,7 +36,8 @@ const Register = () => {
 
             if (response.ok) {
                 toast.success(data.message || "Đăng ký thành công");
-                setTimeout(() => navigate("/login"), 500);
+                localStorage.setItem("unverifiedEmail", email);
+                navigate("/verify-email");
             } else {
                 toast.error(data.message || "Đăng ký thất bại");
             }

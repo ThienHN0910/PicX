@@ -92,7 +92,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
             if (response.ok) {
                 localStorage.setItem("authToken", data.token);
+
+                if (!data.user.emailVerified) {
+                    localStorage.setItem("unverifiedEmail", data.user.email);
+                } else {
+                    localStorage.removeItem("unverifiedEmail");
+                }
+
                 setUser(data.user);
+
                 return { success: true };
             } else {
                 return {
@@ -108,6 +116,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             };
         }
     };
+
 
     const logout = async (): Promise<void> => {
         localStorage.removeItem("authToken");
