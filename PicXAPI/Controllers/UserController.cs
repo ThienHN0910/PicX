@@ -31,7 +31,10 @@ namespace PicXAPI.Controllers
                 Email = u.Email,
                 Phone = u.Phone,
                 Address = u.Address,
-                Role = u.Role
+                Role = u.Role,
+                BankName = u.BankName,
+                BankAccountNumber = u.BankAccountNumber,
+                MomoNumber = u.MomoNumber
             }).FirstOrDefaultAsync();
             if (user == null)
                 return NotFound();
@@ -54,6 +57,9 @@ namespace PicXAPI.Controllers
             user.Email = profile.Email;
             user.Phone = profile.Phone;
             user.Address = profile.Address;
+            user.BankName = profile.BankName;
+            user.BankAccountNumber = profile.BankAccountNumber;
+            user.MomoNumber = profile.MomoNumber;
 
             // Only allow role change if switching from buyer to artist
             if (user.Role == "buyer" && profile.Role == "artist")

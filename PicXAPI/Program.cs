@@ -33,6 +33,7 @@ namespace PicXAPI
             builder.Services.AddHttpClient();
             builder.Services.AddScoped<CrawlExhibitionService>();
             builder.Services.AddScoped<IWatermarkService, WatermarkService>();
+            builder.Services.AddScoped<IEmailService, EmailService>();
             // Register Google DriveService for DI
             builder.Services.AddSingleton(provider =>
             {

@@ -2,7 +2,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import {
     Home, Bell, MessageCircle, Settings, ShoppingCart, Star, ClipboardList, Users, BarChart2, Grid, Plus,
-    List
+    List, Wallet, Inbox
 } from 'lucide-react';
 import { useStore } from '../lib/store';
 import { CategoryFilter } from './CategoryFilter';
@@ -122,6 +122,7 @@ export default function Navbar() {
                             <Star className="w-6 h-6" />
                         </Link>
                         {user.role === 'buyer' && (
+                            <>
                             <Link
                                 to="/orders"
                                 title="Your Orders"
@@ -129,6 +130,14 @@ export default function Navbar() {
                             >
                                 <ClipboardList className="w-6 h-6" />
                             </Link>
+                            <Link
+                                to="/wallet"
+                                title="Wallet"
+                                className={`p-3 rounded-lg hover:bg-gray-100 ${location.pathname === '/wallet' ? 'bg-gray-200' : ''}`}
+                            >
+                                <Wallet className="w-6 h-6" />
+                                </Link>
+                            </>
                         )}
                         {user.role === 'artist' && (
                             <>
@@ -192,6 +201,13 @@ export default function Navbar() {
                                     className={`p-3 rounded-lg hover:bg-gray-100 ${location.pathname === '/admin/reports' ? 'bg-gray-200' : ''}`}
                                 >
                                     <ClipboardList className="w-6 h-6" />
+                                </Link>
+                                <Link
+                                    to="admin/withdrawals"
+                                    title="Manage withdrawal Request"
+                                    className={`p-3 rounded-lg hover:bg-gray-100 ${location.pathname === '/admin/withdrawals' ? 'bg-gray-200' : ''}`}
+                                >
+                                    <Inbox className="w-6 h-6" />
                                 </Link>
                             </>
                         )}
