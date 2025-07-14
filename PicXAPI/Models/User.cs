@@ -28,6 +28,8 @@ public partial class User
     public string? BankAccountNumber { get; set; }  // Số tài khoản ngân hàng
     public string? BankName { get; set; }           // Tên ngân hàng
     public string? MomoNumber { get; set; }         // Số điện thoại Momo/Zalo
+    public string? EmailOtp { get; set; }
+    public DateTime? EmailOtpExpiry { get; set; }
 
 
     public virtual ArtistProfile? ArtistProfile { get; set; }

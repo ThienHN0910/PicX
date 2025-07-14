@@ -514,6 +514,12 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.MomoNumber)
                 .HasMaxLength(20)
                 .HasColumnName("momo_number");
+            entity.Property(e => e.EmailOtp)
+                .HasMaxLength(100)
+                .HasColumnName("email_otp");
+            entity.Property(e => e.EmailOtpExpiry)
+                .HasMaxLength(100)
+                .HasColumnName("email_otp_expiry");
         });
 
         modelBuilder.Entity<Cart>(entity =>

@@ -8,6 +8,7 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using PicXAPI.DTOs;
 using PicXAPI.Models;
+using PicXAPI.Services;
 
 namespace PicXAPI.Controllers
 {
@@ -18,12 +19,14 @@ namespace PicXAPI.Controllers
         private readonly AppDbContext _context;
         private readonly IPasswordHasher<User> _passwordHasher;
         private readonly IConfiguration _config;
+        private readonly IEmailService _emailService;
 
-        public AuthController(AppDbContext context, IPasswordHasher<User> passwordHasher, IConfiguration config)
+        public AuthController(AppDbContext context, IPasswordHasher<User> passwordHasher, IConfiguration config, IEmailService emailService)
         {
             _context = context;
             _passwordHasher = passwordHasher;
             _config = config;
+            _emailService = emailService;
         }
 
         [HttpPost("register")]
@@ -41,14 +44,23 @@ namespace PicXAPI.Controllers
                 Email = dto.Email.ToLower(),
                 Name = dto.Name,
                 CreatedAt = DateTime.UtcNow,
-                Role = "buyer"
+                Role = "buyer",
             };
 
             user.Password = _passwordHasher.HashPassword(user, dto.Password);
+
+            // Tạo OTP
+            var otp = new Random().Next(100000, 999999).ToString();
+
+            user.EmailOtp = otp;
+            user.EmailOtpExpiry = DateTime.UtcNow.AddMinutes(5);
+
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Register successfully" });
+            await _emailService.SendEmailAsync(user.Email, "Mã xác thực tài khoản PicX", $"Mã OTP của bạn là <b>{otp}</b>. Có hiệu lực trong 5 phút.");
+
+            return Ok(new { message = "Đăng ký thành công. Vui lòng xác thực email.", redirectToVerify = true });
         }
 
         [HttpPost("login")]
