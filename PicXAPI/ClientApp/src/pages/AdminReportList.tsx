@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { Modal } from '../components/ui/Modal';
 
 interface Report {
   reviewId: number;
@@ -19,6 +20,9 @@ const AdminReportList: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const [showHandleModal, setShowHandleModal] = useState(false);
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [handleLoading, setHandleLoading] = useState(false);
 
   const fetchReports = async () => {
     setLoading(true);
@@ -41,33 +45,73 @@ const AdminReportList: React.FC = () => {
   }, []);
 
   const handleApprove = async (id: number) => {
-    setActionLoading(id);
+    const report = reports.find(r => r.reviewId === id) || null;
+    setSelectedReport(report);
+    setShowHandleModal(true);
+  };
+
+  const handleModalSubmit = async (status: 'approved' | 'rejected', reason: string) => {
+    if (!selectedReport) return;
+    setHandleLoading(true);
     try {
       const token = localStorage.getItem('authToken');
-      await axios.put(`/api/report/approve/${id}`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      if (status === 'approved') {
+        await axios.put(`/api/report/approve/${selectedReport.reviewId}`, { reason }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      } else {
+        await axios.put(`/api/report/reject/${selectedReport.reviewId}`, { reason }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
       await fetchReports();
+      setShowHandleModal(false);
+      setSelectedReport(null);
     } catch {
-      setError('Failed to approve report');
+      setError('Failed to handle report.');
     } finally {
-      setActionLoading(null);
+      setHandleLoading(false);
     }
   };
 
-  const handleDelete = async (id: number) => {
-    setActionLoading(id);
-    try {
-      const token = localStorage.getItem('authToken');
-      await axios.delete(`/api/report/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      await fetchReports();
-    } catch {
-      setError('Failed to delete report');
-    } finally {
-      setActionLoading(null);
-    }
+  const HandleReportModal: React.FC<HandleReportModalProps> = ({ isOpen, onClose, onSubmit, report }) => {
+    const [status, setStatus] = useState<'approved' | 'rejected'>('approved');
+    const [reason, setReason] = useState('');
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+      setReason('');
+      setStatus('approved');
+      setError('');
+    }, [isOpen]);
+
+    if (!report) return null;
+
+    return (
+      <Modal isOpen={isOpen} onClose={onClose} title="Handle Report">
+        <div>
+          <div className="mb-2">
+            <label className="font-semibold">Report Content:</label>
+            <div className="bg-gray-100 p-2 rounded text-sm">{report.content}</div>
+          </div>
+          <div className="mb-2">
+            <label className="font-semibold">Action:</label>
+            <select className="w-full border rounded p-2" value={status} onChange={e => setStatus(e.target.value as any)}>
+              <option value="approved">Approve (Artwork violates policy)</option>
+              <option value="rejected">Reject (No violation)</option>
+            </select>
+          </div>
+          {error && <div className="text-red-500 text-sm mb-2">{error}</div>}
+          <div className="flex gap-2 mt-2">
+            <button type="button" className="flex-1 py-2 rounded bg-gray-200" onClick={onClose}>Cancel</button>
+            <button type="button" className="flex-1 py-2 rounded bg-blue-500 text-white" onClick={() => {
+              if (!reason.trim()) { setReason("message will be solve in be"); return; }
+              onSubmit(status, reason);
+            }}>Submit</button>
+          </div>
+        </div>
+      </Modal>
+    );
   };
 
   return (
@@ -118,7 +162,7 @@ const AdminReportList: React.FC = () => {
                   {r.isApproved ? <span className="text-green-600 font-semibold">Approved</span> : <span className="text-yellow-600">Pending</span>}
                 </td>
                 <td className="p-2 border text-center">
-                  {!r.isApproved && (
+                  {!r.isApproved ? 
                     <button
                       className="bg-green-500 text-white px-3 py-1 rounded mr-2"
                       onClick={() => handleApprove(r.reviewId)}
@@ -126,20 +170,19 @@ const AdminReportList: React.FC = () => {
                     >
                       {actionLoading === r.reviewId ? 'Approving...' : 'Approve'}
                     </button>
-                  )}
-                  <button
-                    className="bg-red-500 text-white px-3 py-1 rounded"
-                    onClick={() => handleDelete(r.reviewId)}
-                    disabled={actionLoading === r.reviewId}
-                  >
-                    {actionLoading === r.reviewId ? 'Deleting...' : 'Delete'}
-                  </button>
+                 : <span className="text-yellow-600">Approved</span>}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       )}
+      <HandleReportModal
+        isOpen={showHandleModal}
+        onClose={() => { setShowHandleModal(false); setSelectedReport(null); }}
+        onSubmit={handleModalSubmit}
+        report={selectedReport}
+      />
     </div>
   );
 };

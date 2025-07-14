@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using PicXAPI.Controllers;
 using PicXAPI.Models;
 using PicXAPI.Services;
 using System.Security.Claims;
@@ -122,6 +123,7 @@ namespace PicXAPI
             app.UseAuthorization();
             app.MapControllers();
             app.MapHub<PrivateChatHub>("/chatHub");
+            app.MapHub<NotificationHub>("/notificationHub");
 
             app.Run();
         }

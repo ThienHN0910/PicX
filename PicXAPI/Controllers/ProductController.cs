@@ -12,6 +12,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using System.IdentityModel.Tokens.Jwt;
 using Google.Apis.Auth.OAuth2.Responses;
+using Microsoft.AspNetCore.SignalR;
 
 namespace PicXAPI.Controllers
 {
@@ -469,6 +470,12 @@ namespace PicXAPI.Controllers
         [HttpGet("image/{fileId}")]
         public async Task<IActionResult> GetImage(string fileId)
         {
+            // Chỉ trả ảnh cho product còn available
+            var product = await _context.Products.FirstOrDefaultAsync(p => p.ImageDriveId == fileId);
+            if (product == null || product.IsAvailable == false)
+            {
+                return NotFound("Image not found or product is unavailable.");
+            }
             try
             {
                 var request = _driveService.Files.Get(fileId);
@@ -694,6 +701,50 @@ namespace PicXAPI.Controllers
                 _logger.LogError(ex, $"Failed to delete product with ID: {id}");
                 return StatusCode(500, new { error = "Failed to delete product", details = ex.Message });
             }
+        }
+
+        [HttpPut("set-unavailable/{id}")]
+        [Authorize(Roles = "admin,artist")]
+        public async Task<IActionResult> SetProductUnavailable(int id)
+        {
+            var product = await _context.Products.FindAsync(id);
+            if (product == null)
+            {
+                return NotFound(new { error = "Product not found" });
+            }
+            if (product.IsAvailable == false)
+            {
+                return BadRequest(new { error = "Product is already unavailable" });
+            }
+            product.IsAvailable = false;
+            await _context.SaveChangesAsync();
+
+            // Gửi notification cho artist
+            if (product.ArtistId != null)
+            {
+                var notification = new Notification
+                {
+                    UserId = product.ArtistId,
+                    Type = "Product",
+                    Title = "Artwork Locked",
+                    Message = $"Your artwork '{product.Title}' was locked by admin.",
+                    CreatedAt = DateTime.UtcNow,
+                    IsRead = false
+                };
+                _context.Notifications.Add(notification);
+                await _context.SaveChangesAsync();
+                try
+                {
+                    var hubContext = HttpContext.RequestServices.GetService(typeof(IHubContext<NotificationHub>)) as IHubContext<NotificationHub>;
+                    if (hubContext != null)
+                    {
+                        await hubContext.Clients.Group(notification.UserId.ToString()).SendCoreAsync("ReceiveNotification", new object[] { notification });
+                    }
+                }
+                catch { /* ignore real-time errors */ }
+            }
+
+            return Ok(new { message = "Product is now unavailable" });
         }
     }
 }

@@ -233,5 +233,5 @@ CREATE TABLE Carts (
 
 
 ALTER TABLE Users
-ADD OtpCode NVARCHAR(10), 
-    OtpExpiry DATETIME;
+ADD email_otp NVARCHAR(10), 
+    email_otp_expiry DATETIME;

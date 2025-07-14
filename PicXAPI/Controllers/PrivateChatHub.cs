@@ -83,6 +83,26 @@ namespace PicXAPI
             };
             await Clients.Group(userId.Value.ToString()).SendAsync("ReceiveMessage", messageData);
             await Clients.Group(receiverId.ToString()).SendAsync("ReceiveMessage", messageData);
+
+            // Tạo notification cho người nhận khi có tin nhắn mới
+            var notification = new Notification
+            {
+                UserId = receiverId,
+                Type = "Chat",
+                Title = "Tin nhắn mới",
+                Message = $"Bạn có tin nhắn mới từ {sender.Name}",
+                CreatedAt = DateTime.UtcNow,
+                IsRead = false
+            };
+            _context.Notifications.Add(notification);
+            await _context.SaveChangesAsync();
+
+            // Gửi notification real-time qua NotificationHub
+            var hubContext = Context.GetHttpContext()?.RequestServices.GetService(typeof(IHubContext<PicXAPI.Controllers.NotificationHub>)) as IHubContext<PicXAPI.Controllers.NotificationHub>;
+            if (hubContext != null)
+            {
+                await hubContext.Clients.Group(receiverId.ToString()).SendAsync("ReceiveNotification", notification);
+            }
         }
 
         public async Task MarkMessageAsRead(int chatId)
@@ -133,7 +153,7 @@ namespace PicXAPI
             await Clients.Caller.SendAsync("ReceiveChatHistory", messages);
         }
 
-        public override async Task OnDisconnectedAsync(Exception exception)
+        public override async Task OnDisconnectedAsync(Exception? exception)
         {
             var userId = await GetAuthenticatedUserId();
             if (userId.HasValue)
@@ -146,7 +166,7 @@ namespace PicXAPI
         private async Task<int?> GetAuthenticatedUserId()
         {
             var httpContext = Context.GetHttpContext();
-            string token = null;
+            string? token = null;
 
             // Prefer getting token from Authorization header
             var authHeader = httpContext?.Request.Headers["Authorization"].FirstOrDefault();

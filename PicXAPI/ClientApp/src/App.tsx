@@ -36,6 +36,9 @@ import AdminReportList from './pages/AdminReportList';
 import Wallet from './pages/Wallet';
 import AdminWithdrawals from './pages/AdminWithdrawals'; 
 import VerifyEmail from './pages/VerifyEmail';
+import { createNotificationConnection } from './lib/notification.tsx';
+import { toast } from 'react-toastify';
+import NotificationPage from './pages/NotificationPage';
 
 const ProtectedRoute = ({ children }) => {
     const { isAuthenticated, loading } = useAuth();
@@ -71,6 +74,19 @@ function App() {
     useEffect(() => {
         fetchAndSetUser();
     }, [fetchAndSetUser]);
+
+    useEffect(() => {
+        const token = localStorage.getItem('authToken');
+        if (!token) return;
+        const connection = createNotificationConnection(token);
+        connection.on('ReceiveNotification', (notification) => {
+            toast.info(notification.Message || notification.message || 'Bạn có thông báo mới!');
+        });
+        connection.start().catch(() => {});
+        return () => {
+            connection.stop();
+        };
+    }, []);
 
     return (
         <AuthProvider>
@@ -110,6 +126,11 @@ function App() {
                                         </PublicRoute>
                                     }
                                 />
+                                <Route 
+                                path="/notifications"
+                                element={<ProtectedRoute>
+                                    <NotificationPage />
+                                </ProtectedRoute>} />
                                 <Route
                                     path="/change-password"
                                     element={<ChangePassword />}

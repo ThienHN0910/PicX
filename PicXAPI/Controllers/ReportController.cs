@@ -5,6 +5,8 @@ using PicXAPI.Models;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace PicXAPI.Controllers
 {
@@ -86,10 +88,35 @@ namespace PicXAPI.Controllers
             report.IsApproved = true;
             report.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
+
+            // Gửi notification cho người report
+            if (report.UserId != null)
+            {
+                var notification = new Notification
+                {
+                    UserId = report.UserId,
+                    Type = "Report",
+                    Title = "Report Approved",
+                    Message = $"Cảm ơn bạn đã report. Tác phẩm có id {report.ProductId} đã bị khóa.",
+                    CreatedAt = DateTime.UtcNow,
+                    IsRead = false
+                };
+                _context.Notifications.Add(notification);
+                await _context.SaveChangesAsync();
+                try
+                {
+                    var hubContext = HttpContext.RequestServices.GetService(typeof(IHubContext<NotificationHub>)) as IHubContext<NotificationHub>;
+                    if (hubContext != null)
+                    {
+                        await hubContext.Clients.Group(notification.UserId.ToString()).SendCoreAsync("ReceiveNotification", new object[] { notification });
+                    }
+                }
+                catch { /* ignore real-time errors */ }
+            }
+
             return Ok(report);
         }
 
-        // Xóa report (admin)
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

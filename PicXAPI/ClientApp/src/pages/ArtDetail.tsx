@@ -6,6 +6,7 @@ import { Button } from '../components/ui/Button';
 import Loading from '../components/Loading';
 import ArtistProducts from '../components/ArtistProducts';
 import { useAuth } from '../components/AuthProvider';
+import { Modal } from '../components/ui/Modal';
 
 interface Comment {
     id: number;
@@ -58,6 +59,10 @@ const ArtDetail = () => {
     const [reportError, setReportError] = useState('');
     const [reportSuccess, setReportSuccess] = useState('');
     const [reportLoading, setReportLoading] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteReason, setDeleteReason] = useState('');
+    const [deleteLoading, setDeleteLoading] = useState(false);
+    const [deleteError, setDeleteError] = useState('');
     const token = localStorage.getItem('authToken');
 
     useEffect(() => {
@@ -77,7 +82,7 @@ const ArtDetail = () => {
             }
         };
         fetchProduct();
-    }, [id, navigate]);
+    }, [id, navigate, token]);
 
     useEffect(() => {
         if (!id) return;
@@ -124,7 +129,7 @@ const ArtDetail = () => {
             setReportSuccess('Report submitted successfully!');
             setReportContent('');
             setTimeout(() => setShowReport(false), 1500);
-        } catch (err) {
+        } catch {
             setReportError('Failed to submit report.');
         } finally {
             setReportLoading(false);
@@ -137,15 +142,33 @@ const ArtDetail = () => {
     };
 
     const handleDeleteProduct = async () => {
-        if (!window.confirm('Are you sure you want to delete this product?')) return;
+        setShowDeleteModal(true);
+    };
+
+    const confirmDeleteProduct = async () => {
+        setDeleteReason("the reason is not important");
+        setDeleteLoading(true);
+        setDeleteError('');
         try {
-            await axios.delete(`/api/product/${id}`, {
+            // Gọi API lock sản phẩm (set isAvailable = 0)
+            await axios.put(`/api/product/set-unavailable/${id}`, {}, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            alert('Product deleted successfully!');
+            alert('Product locked successfully!');
             navigate('/');
-        } catch (err) {
-            alert('Failed to delete product.');
+        } catch (err: any) {
+            let msg = 'Failed to lock product.';
+            if (err.response) {
+                console.error('Lock product error response:', err.response);
+                if (err.response.data && err.response.data.error) {
+                    msg = err.response.data.error;
+                }
+            }
+            setDeleteError(msg);
+            console.error('Lock product error:', err);
+        } finally {
+            setDeleteLoading(false);
+            setShowDeleteModal(false);
         }
     };
 
@@ -162,7 +185,7 @@ const ArtDetail = () => {
                 <div className="space-y-4">
                     <img src={imageUrl} onError={(e) => e.currentTarget.src = '/placeholder-image.jpg'} alt={product.title} className="rounded-lg w-full h-auto object-cover" />
                     <div className="grid grid-cols-4 gap-2">
-                        {additionalImageUrls.map((src, i) => (
+                        {additionalImageUrls.map((src: string, i: number) => (
                             <img key={i} src={src} onError={(e) => e.currentTarget.src = '/placeholder-image.jpg'} alt="" className="rounded-lg object-cover" />
                         ))}
                     </div>
@@ -214,12 +237,12 @@ const ArtDetail = () => {
                             Report
                         </Button>
                         <Button
-                            variant="destructive"
+                            variant="outline"
                             onClick={handleDeleteProduct}
                             className="border-red-500 ml-2 text-red-500 hover:bg-red-50"
                             style={{ display: user?.role === 'admin' ? 'inline-flex' : 'none' }}
                         >
-                            Delete
+                            Lock
                         </Button>
                     </div>
 
@@ -298,6 +321,19 @@ const ArtDetail = () => {
                     </form>
                 </div>
             )}
+
+            {/* Delete Modal */}
+            <Modal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} title="Lock Artwork">
+                <div>
+                    <span>Are you sure you want to lock this artwork? This action cannot be undone.</span>
+                    <div className="flex gap-2 mt-2">
+                        <button type="button" className="flex-1 py-2 rounded bg-gray-200" onClick={() => setShowDeleteModal(false)}>Cancel</button>
+                        <button type="button" className="flex-1 py-2 rounded bg-red-500 text-white" onClick={confirmDeleteProduct} disabled={deleteLoading}>
+                            {deleteLoading ? 'Locking...' : 'Lock'}
+                        </button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 };
