@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
 const Wallet = () => {
     const [balance, setBalance] = useState<number>(0);
@@ -10,6 +11,7 @@ const Wallet = () => {
     const [requests, setRequests] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const token = localStorage.getItem('authToken');
+    const navigate = useNavigate();
 
     const fetchWallet = async () => {
         try {
@@ -64,7 +66,13 @@ const Wallet = () => {
 
     return (
         <div className="max-w-3xl mx-auto py-10 px-4">
-            <h1 className="text-2xl font-bold mb-4">Ví của bạn</h1>
+            <div className="flex items-center justify-between mb-6">
+                <h1 className="text-2xl font-bold">Ví của bạn</h1>
+                <Button onClick={() => navigate('/deposit')} variant="primary">
+                    Nạp tiền vào ví
+                </Button>
+            </div>
+
             <p className="text-lg mb-4">Số dư hiện tại: <span className="font-semibold text-green-600">${balance.toFixed(2)}</span></p>
 
             <div className="bg-white p-4 rounded-lg shadow mb-6">

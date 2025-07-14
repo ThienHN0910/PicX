@@ -87,8 +87,10 @@ export default function Home() {
         fetchAndSelectRandomExhibitions();
     }, []); // Chạy một lần khi component mount
 
-    // Xử lý random khi products thay đổi
+    // Xử lý random khi products hoặc randomExhibitions thay đổi
     useEffect(() => {
+        // Chỉ thực hiện khi exhibitions đã load xong
+        if (exhibitionsLoading) return;
         // Lọc sản phẩm như cũ
         const filteredProducts = products.filter((product) => {
             const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -111,6 +113,9 @@ export default function Home() {
                     const insertIndex = Math.floor((s / 233280) * (items.length + 1));
                     items.splice(insertIndex, 0, exhibition);
                 });
+            } else if (randomExhibitions.length > 0 && items.length === 0) {
+                // Nếu không có sản phẩm, vẫn hiển thị exhibition
+                items = [...randomExhibitions];
             }
             setShuffledItems(items);
         }
@@ -122,7 +127,7 @@ export default function Home() {
             setShuffledItems((prev) => [...prev, ...shuffledNewProducts]);
         }
         prevProductsLength.current = filteredProducts.length;
-    }, [products, randomExhibitions, searchQuery, selectedCategory, randomSeed]);
+    }, [products, randomExhibitions, searchQuery, selectedCategory, randomSeed, exhibitionsLoading]);
 
     const handleAddToCart = async (product: Product) => {
         const cartDto = {
