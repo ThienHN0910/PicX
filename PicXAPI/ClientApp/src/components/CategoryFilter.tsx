@@ -18,7 +18,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
         <div className="flex flex-col">
             {showAll && (
                 <button
-                    className={`text-left px-4 py-2 font-bold rounded transition-colors mx-2
+                    className={`text-left px-4 py-2 font-s rounded transition-colors mx-2
                         text-gray-800 hover:bg-gray-100`}
                     onClick={() => onSelect(undefined)}
                 >
@@ -28,7 +28,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
             {categories.map((cat) => (
                 <button
                     key={cat.category_id}
-                    className={`text-left px-4 py-2 font-bold rounded transition-colors mx-2
+                    className={`text-left px-4 py-2 font-s rounded transition-colors mx-2
                         text-gray-800 hover:bg-gray-100`}
                     onClick={() => onSelect(cat.category_id)}
                 >

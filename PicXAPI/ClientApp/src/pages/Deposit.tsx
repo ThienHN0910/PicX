@@ -47,13 +47,11 @@ const Deposit: React.FC = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 bg-white rounded-lg shadow p-8">
+    < >
       <h1 className="text-2xl font-bold mb-6 text-gray-900">Deposit to Wallet</h1>
-      <form onSubmit={handleDeposit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Amount
-          </label>
+      <h3 className="text-lg font-semibold mb-4">Enter the amount you want to deposit:</h3>
+      <form onSubmit={handleDeposit} className="flex p-4">
+        <div className="w-full mr-4">
           <Input
             type="number"
             min={1}
@@ -64,31 +62,26 @@ const Deposit: React.FC = () => {
             required
           />
         </div>
+          <p className="text-lg font-semibold mt-2">,000VND</p>
+        <div className="w-full flex justify-end">
+          <Button type="submit" className="w-[200px]" disabled={loading}>
+            {loading ? "Processing..." : "Create Deposit"}
+          </Button>
+        </div>
         {error && (
           <div className="text-red-500 text-sm">{error}</div>
         )}
-        <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Processing..." : "Create Deposit"}
-        </Button>
       </form>
 
       {paymentUrl && (
-        <div className="mt-8 text-center">
-          <p className="mb-2 text-green-600 font-semibold">
-            Scan QR code or click the link to pay:
-          </p>
-          <a
-            href={paymentUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 underline break-all"
-          >
-            {paymentUrl}
-          </a>
-          {/* Nếu muốn hiển thị QR code, có thể dùng thư viện qrcode.react */}
-        </div>
+          <iframe
+            src={paymentUrl}
+            title="PayOS Payment"
+            className="w-full h-[700px] mx-auto rounded-lg border"
+            allow="payment"
+          />
       )}
-    </div>
+    </>
   );
 };
 

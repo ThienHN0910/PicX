@@ -163,6 +163,13 @@ export default function Navbar() {
                                 >
                                     <List className="w-6 h-6" />
                                 </Link>
+                                <Link
+                                to="/wallet"
+                                title="Wallet"
+                                className={`p-3 rounded-lg hover:bg-gray-100 ${location.pathname === '/wallet' ? 'bg-gray-200' : ''}`}
+                            >
+                                <Wallet className="w-6 h-6" />
+                                </Link>
                             </>
                         )}
                         {user.role === 'admin' && (

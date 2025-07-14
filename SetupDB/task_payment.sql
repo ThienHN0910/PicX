@@ -198,3 +198,6 @@ END
 GO
 
 
+ALTER TABLE WalletTransactions add external_transaction_id BIGINT NULL;
+
+ALTER TABLE Users add bank_account_number NVARCHAR(100) NULL, bank_name NVARCHAR(100) NULL, momo_number NVARCHAR(100) NULL;
