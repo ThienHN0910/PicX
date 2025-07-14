@@ -35,6 +35,7 @@ import ChangePassword from './pages/ChangePassword';
 import AdminReportList from './pages/AdminReportList';
 import Wallet from './pages/Wallet';
 import AdminWithdrawals from './pages/AdminWithdrawals'; 
+import VerifyEmail from './pages/VerifyEmail';
 
 const ProtectedRoute = ({ children }) => {
     const { isAuthenticated, loading } = useAuth();
@@ -98,6 +99,14 @@ function App() {
                                     element={
                                         <PublicRoute>
                                             <Register />
+                                        </PublicRoute>
+                                    }
+                                />
+                                <Route
+                                    path="/verify-email"
+                                    element={
+                                        <PublicRoute>
+                                            <VerifyEmail />
                                         </PublicRoute>
                                     }
                                 />

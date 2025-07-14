@@ -197,4 +197,10 @@ BEGIN
 END
 GO
 
+ALTER TABLE Users
+ADD
+    email_otp NVARCHAR(10) NULL,
+    email_otp_expiry DATETIME NULL;
+
+
 
