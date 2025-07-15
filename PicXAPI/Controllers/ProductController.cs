@@ -472,9 +472,9 @@ namespace PicXAPI.Controllers
         {
             // Chỉ trả ảnh cho product còn available
             var product = await _context.Products.FirstOrDefaultAsync(p => p.ImageDriveId == fileId);
-            if (product == null || product.IsAvailable == false)
+            if (product == null)
             {
-                return NotFound("Image not found or product is unavailable.");
+                return NotFound("Image not found.");
             }
             try
             {

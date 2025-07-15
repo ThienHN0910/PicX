@@ -140,6 +140,7 @@ export interface Exhibition {
 }
 
 export interface OrderItem {
+    orderDetailId: number; // Thêm dòng này để fix lỗi typescript
     productId: number;
     productTitle: string;
     totalPrice: number;
