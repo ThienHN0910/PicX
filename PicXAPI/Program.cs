@@ -13,6 +13,7 @@ using PicXAPI.Models;
 using PicXAPI.Services;
 using System.Security.Claims;
 using System.Text;
+using IronPdf;
 
 namespace PicXAPI
 {
@@ -25,6 +26,9 @@ namespace PicXAPI
 
             var jwtSettings = builder.Configuration.GetSection("Jwt");
             var key = Encoding.UTF8.GetBytes(jwtSettings["Key"]);
+
+            IronPdf.License.LicenseKey = builder.Configuration["IronPdf:LicenseKey"];
+
 
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();

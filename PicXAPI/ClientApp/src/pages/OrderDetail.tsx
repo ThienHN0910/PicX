@@ -23,7 +23,6 @@ const OrderDetail = () => {
                 const response = await axios.get(`/api/orders/${id}`, {
                     headers: getAuthHeader()
                 });
-                console.log(OrderItem);
                 // Map lại items để đảm bảo orderDetailId luôn đúng
                 const mappedItems = response.data.items.map((item: OrderItem) => {
                     const raw = item as unknown as { orderDetailId?: number; order_detail_id?: number };
@@ -33,8 +32,8 @@ const OrderDetail = () => {
                     };
                 });
                 setOrder({ ...response.data, items: mappedItems });
-            } catch {
-                console.error("Failed to fetch order");
+            } catch (err) {
+                console.error("Failed to fetch order", err);
             }
         };
         fetchOrder();
@@ -274,12 +273,12 @@ const OrderDetail = () => {
                                                 <svg className="w-4 h-4 group-hover:animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                                 </svg>
-                                                <span className="text-sm font-semibold">Download</span>
+                                                <span className="text-sm font-semibold">Download Image</span>
                                             </div>
                                         </button>
                                         <button
                                             className="w-full mt-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] group"
-                                            onClick={() => handleDownloadCert(order.orderId, item.productTitle)}
+                                            onClick={() => handleDownloadCert(item.orderDetailId, item.productTitle)}
                                         >
                                             <div className="flex items-center justify-center space-x-1.5">
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
