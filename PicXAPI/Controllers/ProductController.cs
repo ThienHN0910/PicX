@@ -153,7 +153,7 @@ namespace PicXAPI.Controllers
             try
             {
                 var skip = (page - 1) * limit;
-                var products = await _context.Products
+                var products = await _context.Products.Where(p => p.IsAvailable == true)
                     .Include(p => p.Category)
                     .Include(p => p.Artist)
                     .Select(p => new
@@ -252,7 +252,7 @@ namespace PicXAPI.Controllers
 
                 var skip = (page - 1) * limit;
                 var products = await _context.Products
-                    .Where(p => p.ArtistId == artistId)
+                    .Where(p => p.ArtistId == artistId & p.IsAvailable == true)
                     .Include(p => p.Category)
                     .Include(p => p.Artist)
                     .Select(p => new

@@ -274,6 +274,12 @@ namespace PicXAPI.Controllers
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 
+            foreach(var product in products)
+            {
+                product.IsAvailable = false;
+            }
+            await _context.SaveChangesAsync();
+
             return Ok(new { message = "Order created", orderId = order.OrderId });
         }
 
