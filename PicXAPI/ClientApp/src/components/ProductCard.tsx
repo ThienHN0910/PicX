@@ -12,10 +12,11 @@ interface ProductCardProps {
     onAddToCart?: () => void;
 }
 
-export const ProductCard = ({ product, onLike, onAddToCart }: ProductCardProps) => {
+export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
     const navigate = useNavigate();
     const { isAuthenticated, user } = useAuth(); // 👈 check login
     const [isFavorited, setIsFavorited] = useState(false);
+    const [favoriteId, setFavoriteId] = useState<number | null>(null);
 
     // Function to get auth header
     const getAuthHeader = () => {
@@ -26,45 +27,76 @@ export const ProductCard = ({ product, onLike, onAddToCart }: ProductCardProps) 
     // Check if the product is in user's favorites
     useEffect(() => {
         const checkFavoriteStatus = async () => {
-            if (!isAuthenticated) return;
+            if (!isAuthenticated || !user?.id || !product) return;
             try {
-                const response = await axios.get(`/api/favorites/user/${user?.id}`, {
+                const response = await axios.get(`/api/favorites/user/${user.id}`, {
                     headers: {
                         'Content-Type': 'application/json',
                         ...getAuthHeader(),
                     },
                 });
-                const favorites = response.data; // Assuming this returns an array of favorite product IDs
-                const isProductFavorited = favorites.some(
+                const favorites = response.data;
+                const favorite = favorites.find(
                     (fav: any) => fav.productId === product.product_id
                 );
-                setIsFavorited(isProductFavorited);
+                setIsFavorited(!!favorite);
+                setFavoriteId(favorite ? favorite.favoriteId : null);
             } catch (error) {
                 console.error('Error checking favorite status:', error);
             }
         };
-
         checkFavoriteStatus();
-    }, [isAuthenticated, product.product_id]);
+    }, [isAuthenticated, user, product]);
 
     const handleImageClick = () => {
         navigate(`/art/${product.product_id}`);
     };
 
-    const handleLike = async () => {
+    const handleFavoriteToggle = async (action: 'like' | 'dislike') => {
         if (!isAuthenticated) {
             navigate('/login');
             return;
         }
+        if (!user?.id || !product) {
+            toast.error('Invalid user or product data.');
+            return;
+        }
+
         try {
-            await onLike?.();
-            setIsFavorited(true); // Update heart color immediately
-            toast.success(isFavorited ? 'Removed from favorites' : 'Added to favorites');
+            if (action === 'like') {
+                const favoriteDto = {
+                    userId: user.id,
+                    productId: product.product_id,
+                };
+                const response = await axios.post('/api/favorites', favoriteDto, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...getAuthHeader(),
+                    },
+                });
+                setIsFavorited(true);
+                setFavoriteId(response.data.id); // Giả sử API trả về ID của favorite mới
+                toast.success('Added to favorites');
+            } else {
+                if (!favoriteId) {
+                    toast.error('Product is not favorited.');
+                    return;
+                }
+                await axios.delete(`/api/favorites/${favoriteId}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...getAuthHeader(),
+                    },
+                });
+                setIsFavorited(false);
+                setFavoriteId(null);                
+                toast.success('Removed from favorites');
+            }
         } catch (error) {
-            console.error('Error liking product:', error);
+            console.error('Unexpected error:', error);
+            toast.error(`Failed to ${action} product: ${error.message}`);
         }
     };
-
     const handleAddToCart = async () => {
         if (!isAuthenticated) {
             navigate('/login');
@@ -97,7 +129,7 @@ export const ProductCard = ({ product, onLike, onAddToCart }: ProductCardProps) 
                 </div>
             )}
             <button
-                onClick={handleLike}
+                onClick={() => handleFavoriteToggle(isFavorited ? 'dislike' : 'like')}
                 className="absolute top-2 right-2 p-2 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
             >
                 <Heart

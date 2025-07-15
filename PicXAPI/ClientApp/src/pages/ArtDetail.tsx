@@ -7,6 +7,8 @@ import Loading from '../components/Loading';
 import ArtistProducts from '../components/ArtistProducts';
 import { useAuth } from '../components/AuthProvider';
 import { Modal } from '../components/ui/Modal';
+import { toast } from 'react-toastify';
+import { Favorite } from '../lib/types';
 
 interface Comment {
     id: number;
@@ -47,7 +49,7 @@ interface Product {
 const ArtDetail = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { isAuthenticated, user } = useAuth();
     const [product, setProduct] = useState<Product | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [comments, setComments] = useState<Comment[]>([]);
@@ -64,6 +66,8 @@ const ArtDetail = () => {
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [deleteError, setDeleteError] = useState('');
     const token = localStorage.getItem('authToken');
+    const [isFavorited, setIsFavorited] = useState(false);
+    const [favoriteId, setFavoriteId] = useState<number | null>(null);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -90,6 +94,29 @@ const ArtDetail = () => {
             .then(res => setComments(res.data))
             .catch(() => setComments([]));
     }, [id]);
+
+    useEffect(() => {
+        const checkFavoriteStatus = async () => {
+            if (!isAuthenticated || !user?.id || !product) return;
+            try {
+                const response = await axios.get(`/api/favorites/user/${user.id}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...getAuthHeader(),
+                    },
+                });
+                const favorites = response.data;
+                const favorite = favorites.find(
+                    (fav: any) => fav.productId === product.productId
+                );
+                setIsFavorited(!!favorite);
+                setFavoriteId(favorite ? favorite.favoriteId : null);
+            } catch (error) {
+                console.error('Error checking favorite status:', error);
+            }
+        };
+        checkFavoriteStatus();
+    }, [isAuthenticated, user, product]);
 
     const handleCommentSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -136,9 +163,86 @@ const ArtDetail = () => {
         }
     };
 
-    const handleAction = (permission: boolean | undefined, fallback: () => void) => {
-        if (!permission) return navigate('/login');
-        fallback();
+    const getAuthHeader = () => {
+        const token = localStorage.getItem("authToken");
+        return token ? { Authorization: `Bearer ${token}` } : {};
+    };
+
+    const handleFavoriteToggle = async (action: 'like' | 'dislike') => {
+        if (!isAuthenticated) {
+            navigate('/login');
+            return;
+        }
+        if (!user?.id || !product) {
+            toast.error('Invalid user or product data.');
+            return;
+        }
+
+        try {
+            if (action === 'like') {
+                const favoriteDto = {
+                    userId: user.id,
+                    productId: product.productId,
+                };
+                const response = await axios.post('/api/favorites', favoriteDto, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...getAuthHeader(),
+                    },
+                });
+                setIsFavorited(true);
+                setFavoriteId(response.data.id); // Giả sử API trả về ID của favorite mới
+                setProduct({
+                    ...product,
+                    likeCount: (product.likeCount || 0) + 1,
+                });
+                toast.success('Added to favorites');
+            } else {
+                if (!favoriteId) {
+                    toast.error('Product is not favorited.');
+                    return;
+                }
+                await axios.delete(`/api/favorites/${favoriteId}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...getAuthHeader(),
+                    },
+                });
+                setIsFavorited(false);
+                setFavoriteId(null);
+                setProduct({
+                    ...product,
+                    likeCount: (product.likeCount || 0) - 1,
+                });
+                toast.success('Removed from favorites');
+            }
+        } catch (error) {
+            console.error('Unexpected error:', error);
+            toast.error(`Failed to ${action} product: ${error.message}`);
+        }
+    };
+
+    const handleAddToCart = async () => {
+        if (!isAuthenticated) {
+            navigate('/login');
+            return;
+        }
+        if (!product) return;
+        const cartDto = {
+            ProductId: product.productId
+        };
+        try {
+            await axios.post('/api/cart/add', cartDto, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...getAuthHeader()
+                }
+            });
+            toast.success('Added to cart successfully');
+        } catch (error) {
+            console.error('Error adding to cart:', error);
+            toast.error('Failed to add to cart.');
+        }
     };
 
     const handleDeleteProduct = async () => {
@@ -178,6 +282,7 @@ const ArtDetail = () => {
     const imageUrl = `/api/product/image/${product.imageFileId}`;
     const additionalImageUrls = product.additionalImages ? JSON.parse(product.additionalImages).map((id: string) => `/api/product/image/${id}`) : [];
     const tags = product.tags ? product.tags.split(',').map(t => t.trim()) : [];
+
     return (
         <div className="max-w-7xl mx-auto px-4 py-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -206,23 +311,23 @@ const ArtDetail = () => {
                     {/* Buttons */}
                     <div className="flex gap-2">
                         <Button
-                            onClick={() => handleAction(product.permissions?.canAddToCart, () => alert('Add to cart API needed'))}
+                            onClick={handleAddToCart}
                             disabled={!product.isAvailable}
                         >
                             <ShoppingCart className="h-5 w-5 mr-2" /> Add to Cart
                         </Button>
                         <Button
                             variant="outline"
-                            onClick={() => handleAction(product.permissions?.canLike, () => alert('Like API needed'))}
+                            onClick={() => handleFavoriteToggle(isFavorited ? 'dislike' : 'like')}
                         >
-                            <Heart className="h-5 w-5" /> <span className="ml-2">{product.likeCount || 0}</span>
+                            <Heart className={`h-5 w-5 ${isFavorited ? 'text-red-500 fill-red-500' : 'text-gray-600'}`} /> <span className="ml-2">{product.likeCount || 0}</span>
                         </Button>
                         <Button
                             variant="outline"
-                            onClick={() => handleAction(product.permissions?.canComment, () => {
+                            onClick={() => {
                                 navigator.clipboard.writeText(window.location.href);
                                 alert('Link copied!');
-                            })}
+                            }}
                         >
                             <Share2 className="h-5 w-5" />
                         </Button>

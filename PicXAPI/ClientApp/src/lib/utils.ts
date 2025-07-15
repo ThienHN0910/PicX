@@ -1,4 +1,4 @@
-import { type ClassValue, clsx } from "clsx"
+﻿import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { Order } from "./types";
  
@@ -15,6 +15,17 @@ export const formatDate = (dateString: string) => {
     if (diffInMinutes < 60) return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''} ago`;
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} hour${Math.floor(diffInMinutes / 60) > 1 ? 's' : ''} ago`;
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
+export const formatRelativeTime = (date: string): string => {
+    const now = new Date();
+    const sentDate = new Date(date);
+    const diffInSeconds = Math.floor((now.getTime() - sentDate.getTime()) / 1000);
+
+    if (diffInSeconds < 60) return `${diffInSeconds} giây trước`;
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} phút trước`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} giờ trước`;
+    return sentDate.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' });
 };
 
 export const sortOrders = (
