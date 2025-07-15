@@ -12,17 +12,23 @@ interface Report {
   updatedAt: string;
   product?: { title: string };
   user?: { name: string };
-  productImage?: string; // Add image field
+  productImage?: string;
+}
+
+// Define the props for HandleReportModal
+interface HandleReportModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (status: 'approved' | 'rejected', reason: string) => void;
+  report: Report | null;
 }
 
 const AdminReportList: React.FC = () => {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [showHandleModal, setShowHandleModal] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
-  const [handleLoading, setHandleLoading] = useState(false);
 
   const fetchReports = async () => {
     setLoading(true);
@@ -33,7 +39,7 @@ const AdminReportList: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setReports(res.data);
-    } catch (err) {
+    } catch {
       setError('Failed to fetch reports');
     } finally {
       setLoading(false);
@@ -44,7 +50,7 @@ const AdminReportList: React.FC = () => {
     fetchReports();
   }, []);
 
-  const handleApprove = async (id: number) => {
+  const handleApprove = (id: number) => {
     const report = reports.find(r => r.reviewId === id) || null;
     setSelectedReport(report);
     setShowHandleModal(true);
@@ -52,7 +58,6 @@ const AdminReportList: React.FC = () => {
 
   const handleModalSubmit = async (status: 'approved' | 'rejected', reason: string) => {
     if (!selectedReport) return;
-    setHandleLoading(true);
     try {
       const token = localStorage.getItem('authToken');
       if (status === 'approved') {
@@ -69,8 +74,6 @@ const AdminReportList: React.FC = () => {
       setSelectedReport(null);
     } catch {
       setError('Failed to handle report.');
-    } finally {
-      setHandleLoading(false);
     }
   };
 
@@ -96,7 +99,13 @@ const AdminReportList: React.FC = () => {
           </div>
           <div className="mb-2">
             <label className="font-semibold">Action:</label>
-            <select className="w-full border rounded p-2" value={status} onChange={e => setStatus(e.target.value as any)}>
+            <select 
+              className="w-full border rounded p-2" 
+              value={status} 
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => 
+                setStatus(e.target.value as 'approved' | 'rejected')
+              }
+            >
               <option value="approved">Approve (Artwork violates policy)</option>
               <option value="rejected">Reject (No violation)</option>
             </select>
@@ -166,9 +175,8 @@ const AdminReportList: React.FC = () => {
                     <button
                       className="bg-green-500 text-white px-3 py-1 rounded mr-2"
                       onClick={() => handleApprove(r.reviewId)}
-                      disabled={actionLoading === r.reviewId}
                     >
-                      {actionLoading === r.reviewId ? 'Approving...' : 'Approve'}
+                      Approve
                     </button>
                  : <span className="text-yellow-600">Approved</span>}
                 </td>
