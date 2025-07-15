@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Order } from '../lib/types'
 import { useNavigate } from 'react-router-dom';
+import type { OrderItem } from '../lib/types';
 
 const OrderDetail = () => {
     const { id } = useParams();
@@ -22,9 +23,18 @@ const OrderDetail = () => {
                 const response = await axios.get(`/api/orders/${id}`, {
                     headers: getAuthHeader()
                 });
-                setOrder(response.data);
-            } catch (err) {
-                console.error("Failed to fetch order", err);
+                console.log(OrderItem);
+                // Map lại items để đảm bảo orderDetailId luôn đúng
+                const mappedItems = response.data.items.map((item: OrderItem) => {
+                    const raw = item as unknown as { orderDetailId?: number; order_detail_id?: number };
+                    return {
+                        ...item,
+                        orderDetailId: raw.orderDetailId ?? raw.order_detail_id
+                    };
+                });
+                setOrder({ ...response.data, items: mappedItems });
+            } catch {
+                console.error("Failed to fetch order");
             }
         };
         fetchOrder();
@@ -71,6 +81,34 @@ const OrderDetail = () => {
             }
         } catch (err) {
             alert('Download failed.');
+        }
+    };
+
+    // Thêm hàm download chứng chỉ
+    const handleDownloadCert = async (orderDetailId: number, productTitle: string) => {
+        try {
+            const token = localStorage.getItem('authToken');
+            const response = await fetch(`/api/certificate/download/${orderDetailId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Certificate_${productTitle.replace(/\s+/g, '_')}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+            } else {
+                const text = await response.text();
+                console.error('Download cert error:', response.status, text);
+                alert('Download certificate failed.');
+            }
+        } catch (e) {
+            console.error('Exception:', e);
+            alert('Download certificate failed.');
         }
     };
 
@@ -187,7 +225,7 @@ const OrderDetail = () => {
                     </div>
 
                     <div className="space-y-6">
-                        {order.items.map((item, index) => (
+                        {order.items.map((item) => (
                             <div key={item.productId} className="group bg-gradient-to-r from-slate-50 to-gray-50 rounded-2xl p-6 border border-slate-200 hover:shadow-lg transition-all duration-300">
                                 <div className="flex items-center gap-6">
                                     {/* Product Image */}
@@ -229,7 +267,7 @@ const OrderDetail = () => {
 
                                         {/* Download Button */}
                                         <button
-                                            className="w-full bg-main-gradient  hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] group"
+                                            className="w-full bg-main-gradient hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] group"
                                             onClick={() => handleDownload(extractFileId(item.imageUrl), item.productTitle)}
                                         >
                                             <div className="flex items-center justify-center space-x-1.5">
@@ -237,6 +275,17 @@ const OrderDetail = () => {
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                                 </svg>
                                                 <span className="text-sm font-semibold">Download</span>
+                                            </div>
+                                        </button>
+                                        <button
+                                            className="w-full mt-2 bg-green-500 hover:bg-green-600 text-white px-4 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] group"
+                                            onClick={() => handleDownloadCert(order.orderId, item.productTitle)}
+                                        >
+                                            <div className="flex items-center justify-center space-x-1.5">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                </svg>
+                                                <span className="text-sm font-semibold">Download Cert</span>
                                             </div>
                                         </button>
                                     </div>
