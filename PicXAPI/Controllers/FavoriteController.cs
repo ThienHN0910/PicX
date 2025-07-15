@@ -157,6 +157,7 @@ namespace PicXAPI.Controllers
                 message = "Favorite created successfully",
                 favorite = new
                 {
+                    favorite.FavoriteId,
                     favorite.UserId,
                     favorite.ProductId,
                     CreatedAt = favorite.CreatedAt

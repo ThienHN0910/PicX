@@ -6,27 +6,31 @@ import {
 } from 'lucide-react';
 import { useStore } from '../lib/store';
 import { CategoryFilter } from './CategoryFilter';
+import Chat from '../pages/Chat'; // Import component Chat
 
 export default function Navbar() {
     const location = useLocation();
     const { user, categories } = useStore();
     const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
     const [showCategory, setShowCategory] = useState(false);
+    const [showChatPopup, setShowChatPopup] = useState(false);
     const categoryRef = useRef<HTMLDivElement>(null);
+    const chatPopupRef = useRef<HTMLDivElement>(null);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Đóng dropdown khi click ra ngoài
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (categoryRef.current && !categoryRef.current.contains(event.target as Node)) {
                 setShowCategory(false);
+            }
+            if (chatPopupRef.current && !chatPopupRef.current.contains(event.target as Node)) {
+                setShowChatPopup(false);
             }
         }
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Khi chọn category, filter sản phẩm theo category
     const handleCategorySelect = (categoryId?: number) => {
         setSelectedCategory(categoryId);
         window.dispatchEvent(new CustomEvent('select-category', { detail: categoryId }));
@@ -35,16 +39,19 @@ export default function Navbar() {
 
     const handleMouseEnter = () => {
         if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current); // Hủy timeout nếu chuột quay lại
+            clearTimeout(timeoutRef.current);
         }
         setShowCategory(true);
     };
 
     const handleMouseLeave = () => {
-        // Trì hoãn việc đóng dropdown 300ms
         timeoutRef.current = setTimeout(() => {
             setShowCategory(false);
         }, 100);
+    };
+
+    const toggleChatPopup = () => {
+        setShowChatPopup((prev) => !prev);
     };
 
     return (
@@ -76,7 +83,6 @@ export default function Navbar() {
                     <Bell className="w-6 h-6" />
                     <span className="absolute top-2 right-2 bg-red-500 text-xs text-white rounded-full px-1.5">99+</span>
                 </Link>
-                {/* Category button with dropdown */}
                 <div
                     className="relative"
                     ref={categoryRef}
@@ -91,7 +97,7 @@ export default function Navbar() {
                     </button>
                     {showCategory && (
                         <div
-                            className="fixed left-20 top-1/2 -translate-y-1/2 z-50 bg-white shadow-lg rounded-lg py-2 w-48 border max-h-[80vh] overflow-y-auto"
+                            className="fixed left-20 top-1/2 -translate-y-1/2 z-50 bg-white shadow-lg rounded-lg py-2 w-44 border max-h-[80vh] overflow-y-auto"
                             style={{ minWidth: 180 }}
                         >
                             <CategoryFilter
@@ -103,14 +109,13 @@ export default function Navbar() {
                         </div>
                     )}
                 </div>
-                <Link
-                    to="/chat"
+                <button
                     title="Chat"
                     className="p-3 rounded-lg hover:bg-gray-100"
+                    onClick={toggleChatPopup}
                 >
                     <MessageCircle className="w-6 h-6" />
-                </Link>
-                {/* --- User functions by role --- */}
+                </button>
                 {user && user.role !== 'guest' && (
                     <>
                         <div className="w-full border-t my-2" />
@@ -123,19 +128,19 @@ export default function Navbar() {
                         </Link>
                         {user.role === 'buyer' && (
                             <>
-                            <Link
-                                to="/orders"
-                                title="Your Orders"
-                                className={`p-3 rounded-lg hover:bg-gray-100 ${location.pathname === '/orders' ? 'bg-gray-200' : ''}`}
-                            >
-                                <ClipboardList className="w-6 h-6" />
-                            </Link>
-                            <Link
-                                to="/wallet"
-                                title="Wallet"
-                                className={`p-3 rounded-lg hover:bg-gray-100 ${location.pathname === '/wallet' ? 'bg-gray-200' : ''}`}
-                            >
-                                <Wallet className="w-6 h-6" />
+                                <Link
+                                    to="/orders"
+                                    title="Your Orders"
+                                    className={`p-3 rounded-lg hover:bg-gray-100 ${location.pathname === '/orders' ? 'bg-gray-200' : ''}`}
+                                >
+                                    <ClipboardList className="w-6 h-6" />
+                                </Link>
+                                <Link
+                                    to="/wallet"
+                                    title="Wallet"
+                                    className={`p-3 rounded-lg hover:bg-gray-100 ${location.pathname === '/wallet' ? 'bg-gray-200' : ''}`}
+                                >
+                                    <Wallet className="w-6 h-6" />
                                 </Link>
                             </>
                         )}
@@ -155,7 +160,6 @@ export default function Navbar() {
                                 >
                                     <BarChart2 className="w-6 h-6" />
                                 </Link>
-
                                 <Link
                                     to="/artist/orders"
                                     title="Order List"
@@ -164,11 +168,11 @@ export default function Navbar() {
                                     <List className="w-6 h-6" />
                                 </Link>
                                 <Link
-                                to="/wallet"
-                                title="Wallet"
-                                className={`p-3 rounded-lg hover:bg-gray-100 ${location.pathname === '/wallet' ? 'bg-gray-200' : ''}`}
-                            >
-                                <Wallet className="w-6 h-6" />
+                                    to="/wallet"
+                                    title="Wallet"
+                                    className={`p-3 rounded-lg hover:bg-gray-100 ${location.pathname === '/wallet' ? 'bg-gray-200' : ''}`}
+                                >
+                                    <Wallet className="w-6 h-6" />
                                 </Link>
                             </>
                         )}
@@ -210,7 +214,7 @@ export default function Navbar() {
                                     <ClipboardList className="w-6 h-6" />
                                 </Link>
                                 <Link
-                                    to="admin/withdrawals"
+                                    to="/admin/withdrawals"
                                     title="Manage withdrawal Request"
                                     className={`p-3 rounded-lg hover:bg-gray-100 ${location.pathname === '/admin/withdrawals' ? 'bg-gray-200' : ''}`}
                                 >
@@ -229,6 +233,13 @@ export default function Navbar() {
                     <Settings className="w-6 h-6" />
                 </Link>
             </div>
+
+            {/* Popup Chat */}
+            {showChatPopup && (
+                <div ref={chatPopupRef}>
+                    <Chat onClose={() => setShowChatPopup(false)} />
+                </div>
+            )}
         </nav>
     );
 }
