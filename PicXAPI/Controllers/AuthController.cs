@@ -73,6 +73,9 @@ namespace PicXAPI.Controllers
             if (user == null)
                 return Unauthorized(new { message = "Email or password is incorrect" });
 
+            if (user.IsActive.HasValue && !user.IsActive.Value)
+                return Unauthorized(new { message = "This account has been banned" });
+
             var result = _passwordHasher.VerifyHashedPassword(user, user.Password, dto.Password);
             if (result == PasswordVerificationResult.Failed)
                 return Unauthorized(new { message = "Email or password is incorrect" });
@@ -100,7 +103,6 @@ namespace PicXAPI.Controllers
         [HttpGet("me")]
         public async Task<IActionResult> GetCurrentUser()
         {
-            // Get token from the Authorization header (standard)
             string? authHeader = Request.Headers["Authorization"];
             if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer "))
                 return Unauthorized(new { message = "Token not provided" });
@@ -122,6 +124,12 @@ namespace PicXAPI.Controllers
                 if (user == null)
                 {
                     return Unauthorized(new { message = "User not found" });
+                }
+
+                // Add check for banned accounts
+                if (user.IsActive.HasValue && !user.IsActive.Value)
+                {
+                    return Unauthorized(new { message = "This account has been banned" });
                 }
 
                 var userInfo = new
