@@ -15,6 +15,7 @@ namespace PicXAPI.DTOs
 
     public class GetOrderDetailDto
     {
+        public int OrderDetailId { get; set; }
         public int ProductId { get; set; }
 
         public string ProductTitle { get; set; } = string.Empty;

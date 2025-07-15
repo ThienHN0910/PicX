@@ -103,6 +103,7 @@ namespace PicXAPI.Controllers
                 BuyerName = order.Buyer?.Name ?? "Unknown",
                 Items = order.OrderDetails.Select(od => new GetOrderDetailDto
                 {
+                    OrderDetailId = od.OrderDetailId,
                     ProductId = od.ProductId,
                     ProductTitle = od.Product.Title,
                     TotalPrice = od.TotalPrice,

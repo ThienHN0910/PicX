@@ -10,78 +10,299 @@ namespace PicXAPI.Services
     {
         public async Task<byte[]> GenerateCertificateAsync(Products product, User artist, ArtistProfile? artistProfile, User buyer, Order order)
         {
-            // Tạo HTML chứng chỉ với tông màu gradient đẹp
+            // Tạo HTML chứng chỉ với thiết kế chuyên nghiệp giống thực tế
             var html = $@"
             <html>
             <head>
                 <meta charset='utf-8'>
                 <style>
-                    body {{
-                        font-family: 'Segoe UI', Arial, sans-serif;
-                        background: linear-gradient(180deg, rgb(66,230,149) 0%, rgb(59,178,184) 100%);
-                        color: #222;
-                        padding: 0;
+                    @page {{
+                        size: A4;
                         margin: 0;
                     }}
-                    .container {{
-                        background: #fff;
-                        border-radius: 24px;
-                        max-width: 600px;
-                        margin: 40px auto;
-                        box-shadow: 0 8px 32px rgba(59,178,184,0.15);
-                        padding: 48px 32px;
-                        border: 4px solid rgb(66,230,149);
+                    body {{
+                        font-family: 'Times New Roman', serif;
+                        background: #ffffff;
+                        color: #2c3e50;
+                        margin: 0;
+                        padding: 20px;
+                        line-height: 1.2;
+                        height: 100%;
                     }}
-                    .title {{
+                    .certificate-border {{
+                        border: 8px solid #1a5490;
+                        padding: 20px;
+                        position: relative;
+                        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+                        box-sizing: border-box;
+                        height: 100%;
+                        page-break-inside: avoid;
+                    }}
+                    .certificate-border::before {{
+                        content: '';
+                        position: absolute;
+                        top: 15px;
+                        left: 15px;
+                        right: 15px;
+                        bottom: 15px;
+                        border: 2px solid #c0392b;
+                        border-radius: 0;
+                    }}
+                    .header {{
+                        text-align: center;
+                        margin-bottom: 20px;
+                        position: relative;
+                    }}
+                    .logo {{
+                        font-size: 2rem;
+                        font-weight: bold;
+                        color: #1a5490;
+                        margin-bottom: 5px;
+                        letter-spacing: 2px;
+                    }}
+                    .certificate-title {{
                         font-size: 2.2rem;
                         font-weight: bold;
-                        background: linear-gradient(90deg, rgb(66,230,149), rgb(59,178,184));
-                        -webkit-background-clip: text;
-                        -webkit-text-fill-color: transparent;
-                        margin-bottom: 24px;
+                        color: #c0392b;
+                        margin: 15px 0 10px 0;
+                        text-transform: uppercase;
+                        letter-spacing: 2px;
+                        text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+                    }}
+                    .subtitle {{
+                        font-size: 1.2rem;
+                        color: #34495e;
+                        font-style: italic;
+                        margin-bottom: 15px;
+                    }}
+                    .decorative-line {{
+                        width: 150px;
+                        height: 2px;
+                        background: linear-gradient(90deg, #1a5490, #c0392b);
+                        margin: 10px auto;
+                    }}
+                    .main-content {{
+                        text-align: center;
+                        margin: 20px 0;
+                    }}
+                    .certifies-text {{
+                        font-size: 1rem;
+                        margin-bottom: 15px;
+                        color: #2c3e50;
+                    }}
+                    .artwork-info, .artist-section, .buyer-section {{
+                        background: #f8f9fa;
+                        border: 2px solid #e9ecef;
+                        border-radius: 8px;
+                        padding: 15px;
+                        margin: 15px 0;
+                        text-align: left;
+                        word-wrap: break-word; /* Ensure text wraps properly */
+                    }}
+                    .artwork-title {{
+                        font-size: 1.5rem;
+                        font-weight: bold;
+                        color: #1a5490;
+                        margin-bottom: 10px;
+                        text-align: center;
+                        text-decoration: underline;
+                    }}
+                    .info-row {{
+                        margin-bottom: 8px;
+                        display: flex;
+                        align-items: flex-start;
+                        gap: 10px; /* Thêm */
+                    }}
+                    .info-label {{
+                        font-weight: bold;
+                        color: #2c3e50;
+                        min-width: 130px; /* Tăng từ 100px */
+                        margin-right: 5px;
+                        white-space: nowrap;
+                    }}
+                    .info-value {{
+                        font-weight: bold;
+                        color: #2c3e50;
+                        min-width: 130px; /* Tăng từ 100px */
+                        margin-right: 5px;
+                        white-space: nowrap;
+                    }}
+                    .artist-section {{
+                        border-left: 4px solid #1a5490;
+                    }}
+                    .buyer-section {{
+                        border-left: 4px solid #c0392b;
+                    }}
+                    .section-title {{
+                        font-size: 1.1rem;
+                        font-weight: bold;
+                        color: #2c3e50;
+                        margin-bottom: 10px;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                    }}
+                    .signatures {{
+                        display: flex;
+                        justify-content: space-between;
+                        margin-top: 30px;
                         text-align: center;
                     }}
-                    .section {{
-                        margin-bottom: 18px;
+                    .signature-box {{
+                        width: 150px;
                     }}
-                    .label {{
-                        font-weight: 600;
-                        color: #3bb2b8;
+                    .signature-line {{
+                        border-bottom: 2px solid #2c3e50;
+                        height: 30px;
+                        margin-bottom: 5px;
+                    }}
+                    .signature-label {{
+                        font-size: 0.8rem;
+                        color: #7f8c8d;
+                        font-weight: bold;
+                    }}
+                    .certificate-number {{
+                        position: absolute;
+                        top: 10px;
+                        right: 10px;
+                        font-size: 0.8rem;
+                        color: #7f8c8d;
+                    }}
+                    .date-issued {{
+                        text-align: center;
+                        margin-top: 15px;
+                        font-size: 1rem;
+                        color: #2c3e50;
                     }}
                     .footer {{
-                        margin-top: 32px;
-                        text-align: right;
-                        color: #888;
-                        font-size: 0.95rem;
+                        text-align: center;
+                        margin-top: 20px;
+                        font-size: 0.8rem;
+                        color: #7f8c8d;
+                        border-top: 1px solid #e9ecef;
+                        padding-top: 10px;
+                    }}
+                    .seal {{
+                        position: absolute;
+                        bottom: 40px;
+                        right: 40px;
+                        width: 60px;
+                        height: 60px;
+                        border: 2px solid #c0392b;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        background: rgba(192, 57, 43, 0.1);
+                        font-size: 0.7rem;
+                        font-weight: bold;
+                        color: #c0392b;
+                        text-align: center;
+                        line-height: 1.1;
                     }}
                 </style>
             </head>
             <body>
-                <div class='container'>
-                    <div class='title'>Certificate of Authenticity</div>
-                    <div class='section'>
-                        This document certifies the authenticity and copyright of the following artwork purchased on <b>{order.OrderDate?.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) ?? "N/A"}</b>.
+                <div class='certificate-border'>
+                    <div class='certificate-number'>
+                        Certificate No: PXC-{order.OrderId:D6}
                     </div>
-                    <div class='section'>
-                        <span class='label'>Artwork:</span> <b>{product.Title}</b><br/>
-                        <span class='label'>Description:</span> {product.Description ?? "-"}<br/>
-                        <span class='label'>Dimensions:</span> {product.Dimensions ?? "-"}<br/>
-                        <span class='label'>Tags:</span> {product.Tags ?? "-"}<br/>
-                        <span class='label'>Price:</span> ${product.Price:F2}
+                    
+                    <div class='header'>
+                        <div class='logo'>PicX</div>
+                        <div class='certificate-title'>Certificate of Authenticity</div>
+                        <div class='subtitle'>Digital Art Authentication</div>
+                        <div class='decorative-line'></div>
                     </div>
-                    <div class='section'>
-                        <span class='label'>Artist:</span> <b>{artist.Name}</b><br/>
-                        <span class='label'>Bio:</span> {artistProfile?.Bio ?? "-"}<br/>
-                        <span class='label'>Specialization:</span> {artistProfile?.Specialization ?? "-"}<br/>
-                        <span class='label'>Experience:</span> {artistProfile?.ExperienceYears?.ToString() ?? "-"} years<br/>
-                        <span class='label'>Contact:</span> {artist.Email} {(!string.IsNullOrEmpty(artistProfile?.WebsiteUrl) ? "| Website: " + artistProfile.WebsiteUrl : "")}
+
+                    <div class='main-content'>
+                        <div class='certifies-text'>
+                            This certificate hereby authenticates and verifies the ownership and authenticity of the following digital artwork:
+                        </div>
+
+                        <div class='artwork-info'>
+                            <div class='artwork-title'>{product.Title}</div>
+                            
+                            <div class='info-row'>
+                                <div class='info-label'>Description:</div>
+                                <div class='info-value'>{product.Description ?? "Original digital artwork"}</div>
+                            </div>
+                            
+                            <div class='info-row'>
+                                <div class='info-label'>Dimensions:</div>
+                                <div class='info-value'>{product.Dimensions ?? "Digital format"}</div>
+                            </div>
+                            
+                            <div class='info-row'>
+                                <div class='info-label'>Tags:</div>
+                                <div class='info-value'>{product.Tags ?? "Digital art"}</div>
+                            </div>
+                            
+                            <div class='info-row'>
+                                <div class='info-label'>Purchase Price:</div>
+                                <div class='info-value'>${product.Price:F2} USD</div>
+                            </div>
+                        </div>
+
+                        <div class='artist-section'>
+                            <div class='section-title'>Artist Information</div>
+                            <div class='info-row'>
+                                <div class='info-label'>Artist Name:</div>
+                                <div class='info-value'>{artist.Name}</div>
+                            </div>
+                            <div class='info-row'>
+                                <div class='info-label'>Biography:</div>
+                                <div class='info-value'>{artistProfile?.Bio ?? "Professional digital artist"}</div>
+                            </div>
+                            <div class='info-row'>
+                                <div class='info-label'>Specialization:</div>
+                                <div class='info-value'>{artistProfile?.Specialization ?? "Digital Art"}</div>
+                            </div>
+                            <div class='info-row'>
+                                <div class='info-label'>Experience:</div>
+                                <div class='info-value'>{artistProfile?.ExperienceYears?.ToString() ?? "Professional"} years</div>
+                            </div>
+                            <div class='info-row'>
+                                <div class='info-label'>Contact:</div>
+                                <div class='info-value'>{artist.Email}{(!string.IsNullOrEmpty(artistProfile?.WebsiteUrl) ? " | " + artistProfile.WebsiteUrl : "")}</div>
+                            </div>
+                        </div>
+
+                        <div class='buyer-section'>
+                            <div class='section-title'>Certified Owner</div>
+                            <div class='info-row'>
+                                <div class='info-label'>Owner Name:</div>
+                                <div class='info-value'>{buyer.Name}</div>
+                            </div>
+                            <div class='info-row'>
+                                <div class='info-label'>Email:</div>
+                                <div class='info-value'>{buyer.Email}</div>
+                            </div>
+                        </div>
+
+                        <div class='date-issued'>
+                            <strong>Date of Purchase:</strong> {order.OrderDate?.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture) ?? DateTime.Now.ToString("MMMM dd, yyyy")}
+                        </div>
+
+                        <div class='signatures'>
+                            <div class='signature-box'>
+                                <div class='signature-line'></div>
+                                <div class='signature-label'>ARTIST SIGNATURE</div>
+                            </div>
+                            <div class='signature-box'>
+                                <div class='signature-line'></div>
+                                <div class='signature-label'>PLATFORM AUTHORIZED</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class='section'>
-                        <span class='label'>Buyer:</span> <b>{buyer.Name}</b><br/>
-                        <span class='label'>Email:</span> {buyer.Email}
+
+                    <div class='seal'>
+                        OFFICIAL<br/>SEAL<br/>PicX
                     </div>
+
                     <div class='footer'>
-                        &copy; {DateTime.Now.Year} PicX. All rights reserved.
+                        This certificate is issued by PicX Platform and serves as proof of authenticity and ownership.<br/>
+                        For verification, please contact support@picx.com with certificate number PXC-{order.OrderId:D6}<br/>
+                        © {DateTime.Now.Year} PicX. All rights reserved.
                     </div>
                 </div>
             </body>
@@ -89,8 +310,19 @@ namespace PicXAPI.Services
             ";
 
             var Renderer = new HtmlToPdf();
+
+            // Cấu hình để tạo PDF chất lượng cao
+            Renderer.PrintOptions.PaperSize = PdfPrintOptions.PdfPaperSize.A4;
+            Renderer.PrintOptions.MarginTop = 0;
+            Renderer.PrintOptions.MarginBottom = 0;
+            Renderer.PrintOptions.MarginLeft = 0;
+            Renderer.PrintOptions.MarginRight = 0;
+            Renderer.PrintOptions.EnableJavaScript = true;
+            Renderer.PrintOptions.RenderDelay = 500;
+            Renderer.PrintOptions.CssMediaType = PdfPrintOptions.PdfCssMediaType.Print;
+
             var pdf = Renderer.RenderHtmlAsPdf(html);
             return pdf.BinaryData;
         }
     }
-} 
+}
