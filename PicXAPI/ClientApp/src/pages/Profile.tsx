@@ -21,13 +21,15 @@ const Profile = () => {
         bankAccountNumber: '',
         momoNumber: '',
     });
-    const [passwordData, setPasswordData] = useState({
-        currentPassword: '',
-        newPassword: '',
-    });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const navigate = useNavigate();
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [message, setMessage] = useState('');
+
+
 
     const getAuthHeader = () => {
         const token = localStorage.getItem('authToken');
@@ -65,15 +67,63 @@ const Profile = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handlePasswordChange = async () => {
+    const handlePasswordChange = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+        setMessage('');
+
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            setError('All fields are required');
+            return;
+        }
+
+        if (newPassword.length < 8) {
+            setError('Password must be at least 8 characters long');
+            return;
+        }
+
+        if (currentPassword === newPassword) {
+            setError('New password must be different from current password');
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            setError('New password and confirmation do not match');
+            return;
+        }
+
+        setLoading(true);
         try {
-            await axios.put('/api/user/change-password', passwordData, {
-                headers: getAuthHeader()
+            const token = localStorage.getItem('authToken');
+            const res = await axios.post('/api/auth/change-password', {
+                currentPassword,
+                newPassword
+            }, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             });
-            alert('Password changed successfully!');
-            setPasswordData({ currentPassword: '', newPassword: '' });
-        } catch (err) {
-            setError('Failed to change password.');
+
+            setMessage(res.data.message || 'Password changed successfully');
+            setError('');
+            setCurrentPassword('');
+            setNewPassword('');
+            setConfirmPassword('');
+
+            setTimeout(() => {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('user');
+                navigate('/login');
+            }, 2000);
+        } catch (err: any) {
+            if (err.response?.data?.message) {
+                setError(err.response.data.message);
+            } else {
+                setError('Something went wrong. Please try again.');
+            }
+            setMessage('');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -104,6 +154,8 @@ const Profile = () => {
             setError('Failed to switch to artist role.');
         }
     };
+
+
 
     if (loading) return <p className="text-center text-gray-600">Loading profile...</p>;
     if (error) return <p className="text-center text-red-500">{error}</p>;
@@ -154,20 +206,52 @@ const Profile = () => {
                 <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                     <Lock className="w-5 h-5 text-gray-600" /> Change Password
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <form onSubmit={handlePasswordChange} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Current Password</label>
-                        <Input type="password" name="currentPassword" value={passwordData.currentPassword} onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })} />
+                        <Input
+                            type="password"
+                            name="currentPassword"
+                            value={currentPassword}
+                            onChange={e => setCurrentPassword(e.target.value)}
+                        />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700">New Password</label>
-                        <Input type="password" name="newPassword" value={passwordData.newPassword} onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })} />
+                        <Input
+                            type="password"
+                            name="newPassword"
+                            value={newPassword}
+                            minLength={8}
+                            required
+                            onChange={e => setNewPassword(e.target.value)}
+                        />
                     </div>
-                </div>
-                <div className="mt-4 text-right">
-                    <Button onClick={handlePasswordChange}>Change Password</Button>
-                </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">Confirm New Password</label>
+                        <Input
+                            type="password"
+                            name="confirmPassword"
+                            value={confirmPassword}
+                            minLength={8}
+                            required
+                            onChange={e => setConfirmPassword(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="col-span-2">
+                        {error && <div className="text-red-500 text-sm mb-2">{error}</div>}
+                        {message && <div className="text-green-600 text-sm mb-2">{message}</div>}
+                        <div className="text-right">
+                            <Button type="submit" disabled={loading}>
+                                {loading ? 'Changing...' : 'Change Password'}
+                            </Button>
+                        </div>
+                    </div>
+                </form>
             </div>
+
 
             {user?.role === 'buyer' && (
                 <div className="bg-blue-50 p-6 rounded-lg shadow-inner">
