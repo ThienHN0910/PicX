@@ -89,8 +89,8 @@ namespace PicXAPI
             {
                 UserId = receiverId,
                 Type = "Chat",
-                Title = "Tin nhắn mới",
-                Message = $"Bạn có tin nhắn mới từ {sender.Name}",
+                Title = "New Message",
+                Message = $"You have new message from {sender.Name}",
                 CreatedAt = DateTime.UtcNow,
                 IsRead = false
             };

@@ -17,7 +17,7 @@ export default function Home() {
     const { searchQuery, setSearchQuery, products, categories, fetchProducts, fetchCategories, hasMore, page, user, setProducts } = useStore();
     const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
 
-    // Lắng nghe sự kiện chọn category từ sidebar
+    // Listen for category selection event from sidebar
     useEffect(() => {
         const handler = (e: any) => setSelectedCategory(e.detail);
         window.addEventListener('select-category', handler);
@@ -31,7 +31,7 @@ export default function Home() {
     const [randomSeed, setRandomSeed] = useState<number>(Date.now());
     const prevProductsLength = useRef(0);
 
-    // Helper random với seed (Fisher-Yates)
+    // Helper random with seed (Fisher-Yates)
     function shuffleWithSeed<T>(array: T[], seed: number): T[] {
         const result = [...array];
         let m = result.length, t, i;
@@ -51,25 +51,25 @@ export default function Home() {
         return token ? { Authorization: `Bearer ${token}` } : {};
     };
 
-    // Khi refresh hoặc fetchProducts initial, đổi seed để random lại
+    // When refresh or initial fetchProducts, change seed to randomize again
     useEffect(() => {
         setRandomSeed(Date.now());
-    }, []); // chỉ chạy khi mount (refresh)
+    }, []); // only run when mount (refresh)
 
     useEffect(() => {
         fetchCategories();
         fetchProducts(true); // initial fetch
     }, [fetchCategories, fetchProducts]);
 
-    // Effect để fetch và chọn ngẫu nhiên một vài triển lãm
+    // Effect to fetch and randomly select some exhibitions
     useEffect(() => {
         const fetchAndSelectRandomExhibitions = async () => {
             try {
                 setExhibitionsLoading(true);
-                const response = await axios.get<Exhibition[]>('https://localhost:7162/api/exhibitions'); // Lấy TẤT CẢ triển lãm
+                const response = await axios.get<Exhibition[]>('https://localhost:7162/api/exhibitions'); // Get ALL exhibitions
                 const allExhibitions = response.data;
 
-                // Chọn ngẫu nhiên một số lượng triển lãm
+                // Randomly select a number of exhibitions
                 if (allExhibitions.length > 0) {
                     const shuffled = [...allExhibitions].sort(() => 0.5 - Math.random());
                     setRandomExhibitions(shuffled.slice(0, NUMBER_OF_RANDOM_EXHIBITIONS));
@@ -85,13 +85,13 @@ export default function Home() {
         };
 
         fetchAndSelectRandomExhibitions();
-    }, []); // Chạy một lần khi component mount
+    }, []); // Run once when component mounts
 
-    // Xử lý random khi products hoặc randomExhibitions thay đổi
+    // Handle randomization when products or randomExhibitions change
     useEffect(() => {
-        // Chỉ thực hiện khi exhibitions đã load xong
+        // Only execute when exhibitions have finished loading
         if (exhibitionsLoading) return;
-        // Lọc sản phẩm như cũ
+        // Filter products as before
         const filteredProducts = products.filter((product) => {
             const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 product.description?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -99,12 +99,12 @@ export default function Home() {
             return matchesSearch && matchesCategory;
         });
 
-        // Nếu là lần đầu (refresh hoặc initial), random toàn bộ
+        // If it's the first time (refresh or initial), randomize everything
         if (prevProductsLength.current === 0 || filteredProducts.length < prevProductsLength.current) {
-            // Xáo trộn với seed
+            // Shuffle with seed
             const shuffledProducts = shuffleWithSeed(filteredProducts, randomSeed);
 
-            // Chèn exhibition vào vị trí random (dùng seed)
+            // Insert exhibition at random position (using seed)
             let items: (Product | Exhibition)[] = [...shuffledProducts];
             if (randomExhibitions.length > 0 && items.length > 0) {
                 let s = randomSeed;
@@ -114,12 +114,12 @@ export default function Home() {
                     items.splice(insertIndex, 0, exhibition);
                 });
             } else if (randomExhibitions.length > 0 && items.length === 0) {
-                // Nếu không có sản phẩm, vẫn hiển thị exhibition
+                // If no products, still show exhibition
                 items = [...randomExhibitions];
             }
             setShuffledItems(items);
         }
-        // Nếu fetch thêm (infinity scroll), random phần mới rồi nối vào cuối
+        // If fetch more (infinity scroll), randomize new part then append to end
         else if (filteredProducts.length > prevProductsLength.current) {
             const newProducts = filteredProducts.slice(prevProductsLength.current);
             const newSeed = Date.now();
@@ -180,7 +180,7 @@ export default function Home() {
     return (
         <div className="min-h-screen bg-gray">
             <div >
-                {/* ĐÃ XÓA CategoryFilter */}
+                {/* REMOVED CategoryFilter */}
                 {(shuffledItems.length === 0 && !hasMore && randomExhibitions.length === 0 && !exhibitionsLoading) ? (
                     <p className="text-center text-gray-500 mt-8">Not found product or any exhibition.</p>
                 ) : (

@@ -16,7 +16,7 @@ const Loading: React.FC<LoadingProps> = ({ message }) => {
                     border-4 border-transparent"
                 ></div>
 
-                {/* Optional inner spinner if bạn vẫn muốn */}
+                {/* Optional inner spinner if you still want */}
                 <div className="absolute top-2 left-2 h-12 w-12 rounded-full bg-white"></div>
             </div>
 

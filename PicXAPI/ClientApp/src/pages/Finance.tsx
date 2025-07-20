@@ -22,7 +22,7 @@ const Finance = () => {
   const stats = [
     {
       title: 'Total Revenue',
-      value: '$124,563.00',
+      value: '3,113,075,000VND',
       change: 12.5,
       icon: DollarSign
     },
@@ -40,7 +40,7 @@ const Finance = () => {
     },
     {
       title: 'Average Sale',
-      value: '$284.35',
+      value: '7,108,750VND',
       change: 4.7,
       icon: TrendingUp
     }
@@ -75,28 +75,28 @@ const Finance = () => {
                 <p className="font-medium">Paintings</p>
                 <p className="text-sm text-gray-500">486 sales</p>
               </div>
-              <p className="font-medium">$52,634.00</p>
+              <p className="font-medium">1,315,850,000VND</p>
             </div>
             <div className="flex justify-between items-center">
               <div>
                 <p className="font-medium">Digital Art</p>
                 <p className="text-sm text-gray-500">324 sales</p>
               </div>
-              <p className="font-medium">$38,246.00</p>
+              <p className="font-medium">956,150,000VND</p>
             </div>
             <div className="flex justify-between items-center">
               <div>
                 <p className="font-medium">Photography</p>
                 <p className="text-sm text-gray-500">264 sales</p>
               </div>
-              <p className="font-medium">$21,425.00</p>
+              <p className="font-medium">535,625,000VND</p>
             </div>
             <div className="flex justify-between items-center">
               <div>
                 <p className="font-medium">Sculptures</p>
                 <p className="text-sm text-gray-500">160 sales</p>
               </div>
-              <p className="font-medium">$12,258.00</p>
+              <p className="font-medium">306,450,000VND</p>
             </div>
           </div>
         </div>
@@ -119,7 +119,7 @@ const Finance = () => {
                     <p className="text-sm text-gray-500">{artist.sales} sales</p>
                   </div>
                 </div>
-                <p className="font-medium">${artist.revenue.toLocaleString()}</p>
+                <p className="font-medium">{(artist.revenue).toLocaleString()}VND</p>
               </div>
             ))}
           </div>
@@ -206,7 +206,7 @@ const Finance = () => {
                     {transaction.artwork}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    ${transaction.amount.toLocaleString()}
+                    {(transaction.amount).toLocaleString()} VND
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {transaction.date}
