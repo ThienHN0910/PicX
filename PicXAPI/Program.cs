@@ -101,7 +101,9 @@ namespace PicXAPI
             {
                 options.AddPolicy("AllowReact", policy =>
                     policy
-                        .WithOrigins("https://localhost:5173", "https://localhost:5174")
+                        .WithOrigins(
+                            "https://picxapi.onrender.com" // Chỉ cho phép domain production
+                        )
                         .AllowAnyHeader()
                         .AllowAnyMethod()
                         .AllowCredentials());
@@ -126,11 +128,23 @@ namespace PicXAPI
             app.UseCors("AllowReact");
             app.UseAuthentication();
             app.UseAuthorization();
+
+            // Serve static files FE build
+            app.UseDefaultFiles();
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+                    Path.Combine(Directory.GetCurrentDirectory(), "ClientApp", "dist")
+                ),
+                RequestPath = ""
+            });
+
             app.MapControllers();
             app.MapHub<PrivateChatHub>("/chatHub");
             app.MapHub<NotificationHub>("/notificationHub");
 
-            app.Run();
+            // Listen trên 0.0.0.0:7162
+            app.Run("http://0.0.0.0:7162");
         }
     }
 }

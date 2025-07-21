@@ -3,8 +3,6 @@ services:
     name: PicXAPI
     env: docker
     plan: free
-    branch: oregon  # main
-    repo: https://github.com/Meoleodeo/PicX
-    buildCommand: ""
-    startCommand: ""
+    branch: Production
+    repo: https://github.com/ThienHN0910/PicX
     autoDeploy: true
