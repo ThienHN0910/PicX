@@ -10,7 +10,7 @@ export default function GoogleAuthSuccess() {
     useEffect(() => {
         const code = new URLSearchParams(window.location.search).get("code");
         if (code) {
-            fetch("https://localhost:7162/api/auth/oauth/google", {
+            fetch("/api/auth/oauth/google", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

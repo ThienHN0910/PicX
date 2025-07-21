@@ -37,7 +37,7 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
         const token = localStorage.getItem('authToken');
 
         const newConnection = new HubConnectionBuilder()
-            .withUrl('https://localhost:7162/chatHub', {
+            .withUrl('/chatHub', {
                 accessTokenFactory: () => token || ""
             })
             .withAutomaticReconnect()
@@ -49,7 +49,7 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
         newConnection
             .start()
             .then(() => {
-                console.log('SignalR connected to: https://localhost:7162/chatHub');
+                console.log('SignalR connected to: /chatHub');
                 newConnection.on('ReceiveCurrentUserId', (userId: number) => {
                     console.log('Current UserId:', userId);
                     setCurrentUserId(userId);
