@@ -131,13 +131,13 @@ namespace PicXAPI
 
             // Serve static files FE build
             app.UseDefaultFiles();
-            app.UseStaticFiles(new StaticFileOptions
-            {
-                FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
-                    Path.Combine(Directory.GetCurrentDirectory(), "ClientApp", "dist")
-                ),
-                RequestPath = ""
-            });
+            // app.UseStaticFiles(new StaticFileOptions
+            // {
+            //     FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+            //         Path.Combine(Directory.GetCurrentDirectory(), "ClientApp", "dist")
+            //     ),
+            //     RequestPath = ""
+            // });
 
             app.MapControllers();
             app.MapHub<PrivateChatHub>("/chatHub");
