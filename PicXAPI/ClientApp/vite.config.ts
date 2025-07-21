@@ -6,5 +6,5 @@ export default defineConfig({
     optimizeDeps: {
         exclude: ['lucide-react'],
     },
-    base: '/',
+    base: 'https://picxapi.onrender.com/api/',
 });
