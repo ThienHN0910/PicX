@@ -66,7 +66,7 @@ export default function Home() {
         const fetchAndSelectRandomExhibitions = async () => {
             try {
                 setExhibitionsLoading(true);
-                const response = await axios.get<Exhibition[]>('https://localhost:7162/api/exhibitions'); // Lấy TẤT CẢ triển lãm
+                const response = await axios.get<Exhibition[]>('/api/exhibitions'); // Lấy TẤT CẢ triển lãm
                 const allExhibitions = response.data;
 
                 // Chọn ngẫu nhiên một số lượng triển lãm
