@@ -12,7 +12,7 @@ import { ExhibitionCard } from '../components/ExhibitionCard';
 
 // Số lượng triển lãm ngẫu nhiên bạn muốn hiển thị
 const NUMBER_OF_RANDOM_EXHIBITIONS = 3; // Ví dụ: hiển thị 3 triển lãm ngẫu nhiên
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export default function Home() {
     const { searchQuery, setSearchQuery, products, categories, fetchProducts, fetchCategories, hasMore, page, user, setProducts } = useStore();
     const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
@@ -66,7 +66,7 @@ export default function Home() {
         const fetchAndSelectRandomExhibitions = async () => {
             try {
                 setExhibitionsLoading(true);
-                const response = await axios.get<Exhibition[]>('/api/exhibitions'); // Lấy TẤT CẢ triển lãm
+                const response = await axios.get<Exhibition[]>(`${API_BASE_URL}/api/exhibitions`); // Lấy TẤT CẢ triển lãm
                 const allExhibitions = response.data;
 
                 // Chọn ngẫu nhiên một số lượng triển lãm
