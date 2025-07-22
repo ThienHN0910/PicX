@@ -296,7 +296,7 @@ const ArtDetail = () => {
                 <div className="space-y-6">
                     <div>
                         <h1 className="text-3xl font-bold">{product.title}</h1>
-                        <p className="text-lg text-gray-800 mt-1">${product.price?.toLocaleString()}</p>
+                        <p className="text-lg text-gray-800 mt-1">{product.price?.toLocaleString()} VND</p>
                     </div>
                     <p className="text-gray-600">{product.description}</p>
 

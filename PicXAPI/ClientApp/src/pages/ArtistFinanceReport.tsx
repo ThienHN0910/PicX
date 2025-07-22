@@ -128,7 +128,7 @@ const ArtistFinanceReport: React.FC = () => {
                             <strong>Period:</strong> {label}
                         </div>
                         <div>
-                            <strong>Earnings:</strong> ${payload[0].value?.toLocaleString()}
+                            <strong>Earnings:</strong> {payload[0].value?.toLocaleString()} VND
                         </div>
                     </div>
                 </div>
@@ -147,7 +147,7 @@ const ArtistFinanceReport: React.FC = () => {
                             <strong>Period:</strong> {data.name}
                         </div>
                         <div>
-                            <strong>Earnings:</strong> ${data.value?.toLocaleString()}
+                            <strong>Earnings:</strong> {data.value?.toLocaleString()} VND
                         </div>
                         <div>
                             <strong>Percentage:</strong>{' '}
@@ -173,21 +173,21 @@ const ArtistFinanceReport: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
                     <StatCard
                         title="Total Earnings"
-                        value={`$${totalEarnings.toLocaleString()}`}
+                        value={`${totalEarnings.toLocaleString()} VND`}
                         icon={DollarSign}
                         gradient="from-blue-500 to-blue-600"
                         description="All-time total revenue"
                     />
                     <StatCard
                         title="Latest Month"
-                        value={latest ? `$${latest.income.toLocaleString()}` : 'N/A'}
+                        value={latest ? `${latest.income.toLocaleString()} VND` : 'N/A'}
                         icon={BarChart2}
                         gradient="from-blue-600 to-blue-700"
                         description={latest ? `Earnings for ${latest.month}.` : 'N/A'}
                     />
                     <StatCard
                         title="Best Month"
-                        value={best ? `$${best.income.toLocaleString()}` : 'N/A'}
+                        value={best ? `${best.income.toLocaleString()} VND` : 'N/A'}
                         icon={Star}
                         gradient="from-amber-500 to-amber-600"
                         description={best ? `Highest-earning month: ${best.month}` : 'N/A'}
