@@ -17,6 +17,5 @@ namespace PicXAPI.DTOs
         public string Tags { get; set; }
         [Required]
         public IFormFile Image { get; set; }
-        public List<IFormFile> AdditionalImages { get; set; }
     }
 }

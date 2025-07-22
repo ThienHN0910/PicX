@@ -349,7 +349,6 @@ public partial class AppDbContext : DbContext
             entity.HasKey(e => e.ProductId).HasName("PK__Products__47027DF59C2B42B3");
 
             entity.Property(e => e.ProductId).HasColumnName("product_id");
-            entity.Property(e => e.AdditionalImages).HasColumnName("additional_images");
             entity.Property(e => e.ArtistId).HasColumnName("artist_id");
             entity.Property(e => e.CategoryId).HasColumnName("category_id");
             entity.Property(e => e.CreatedAt)
