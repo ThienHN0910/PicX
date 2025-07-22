@@ -4,7 +4,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Modal } from "../components/ui/Modal";
 import { getGoogleOAuthURL } from "../utils/googleOAuth";
-import Loading from "../components/Loading";
 
 type Errors = {
     email?: string;
@@ -73,10 +72,6 @@ const Register: React.FC = () => {
     const [touched, setTouched] = useState<Touched>({});
     const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-    if (isSubmitting) {
-        return <Loading message="Registering account..." />;
-    }
-
     const validateField = (
         field: keyof Errors,
         value: string
@@ -86,44 +81,44 @@ const Register: React.FC = () => {
         switch (field) {
             case "email":
                 if (!value) {
-                    fieldErrors.email = "Email is required";
+                    fieldErrors.email = "Email là bắt buộc";
                 } else if (!validateEmail(value)) {
-                    fieldErrors.email = "Invalid email";
+                    fieldErrors.email = "Email không hợp lệ";
                 }
                 break;
 
             case "name":
                 if (!value) {
-                    fieldErrors.name = "Name is required";
+                    fieldErrors.name = "Tên là bắt buộc";
                 } else if (value.length < 4) {
-                    fieldErrors.name = "Name must be at least 4 characters";
+                    fieldErrors.name = "Tên phải có ít nhất 4 ký tự";
                 }
                 break;
 
             case "password":
                 if (!value) {
-                    fieldErrors.password = "Password is required";
+                    fieldErrors.password = "Mật khẩu là bắt buộc";
                 } else {
                     const validation = validatePassword(value);
                     if (!validation.minLength) {
-                        fieldErrors.password = "Password must be at least 8 characters";
+                        fieldErrors.password = "Mật khẩu phải có ít nhất 8 ký tự";
                     } else if (!validation.hasUpperCase) {
-                        fieldErrors.password = "Password must contain at least 1 uppercase letter";
+                        fieldErrors.password = "Mật khẩu phải chứa ít nhất 1 chữ hoa";
                     } else if (!validation.hasLowerCase) {
-                        fieldErrors.password = "Password must contain at least 1 lowercase letter";
+                        fieldErrors.password = "Mật khẩu phải chứa ít nhất 1 chữ thường";
                     } else if (!validation.hasNumbers) {
-                        fieldErrors.password = "Password must contain at least 1 number";
+                        fieldErrors.password = "Mật khẩu phải chứa ít nhất 1 số";
                     } else if (!validation.hasSpecialChar) {
-                        fieldErrors.password = "Password must contain at least 1 special character";
+                        fieldErrors.password = "Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt";
                     }
                 }
                 break;
 
             case "confirmPassword":
                 if (!value) {
-                    fieldErrors.confirmPassword = "Confirm password is required";
+                    fieldErrors.confirmPassword = "Xác nhận mật khẩu là bắt buộc";
                 } else if (value !== password) {
-                    fieldErrors.confirmPassword = "Passwords do not match";
+                    fieldErrors.confirmPassword = "Mật khẩu xác nhận không khớp";
                 }
                 break;
 
@@ -190,24 +185,24 @@ const Register: React.FC = () => {
 
         // Synchronously validate all fields
         const newErrors: Errors = {};
-        if (!email) newErrors.email = "Email is required";
-        else if (!validateEmail(email)) newErrors.email = "Invalid email";
+        if (!email) newErrors.email = "Email là bắt buộc";
+        else if (!validateEmail(email)) newErrors.email = "Email không hợp lệ";
 
-        if (!name) newErrors.name = "Name is required";
-        else if (name.length < 4) newErrors.name = "Name must be at least 4 characters";
+        if (!name) newErrors.name = "Tên là bắt buộc";
+        else if (name.length < 4) newErrors.name = "Tên phải có ít nhất 4 ký tự";
 
-        if (!password) newErrors.password = "Password is required";
+        if (!password) newErrors.password = "Mật khẩu là bắt buộc";
         else {
             const validation = validatePassword(password);
-            if (!validation.minLength) newErrors.password = "Password must be at least 8 characters";
-            else if (!validation.hasUpperCase) newErrors.password = "Password must contain at least 1 uppercase letter";
-            else if (!validation.hasLowerCase) newErrors.password = "Password must contain at least 1 lowercase letter";
-            else if (!validation.hasNumbers) newErrors.password = "Password must contain at least 1 number";
-            else if (!validation.hasSpecialChar) newErrors.password = "Password must contain at least 1 special character";
+            if (!validation.minLength) newErrors.password = "Mật khẩu phải có ít nhất 8 ký tự";
+            else if (!validation.hasUpperCase) newErrors.password = "Mật khẩu phải chứa ít nhất 1 chữ hoa";
+            else if (!validation.hasLowerCase) newErrors.password = "Mật khẩu phải chứa ít nhất 1 chữ thường";
+            else if (!validation.hasNumbers) newErrors.password = "Mật khẩu phải chứa ít nhất 1 số";
+            else if (!validation.hasSpecialChar) newErrors.password = "Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt";
         }
 
-        if (!confirmPassword) newErrors.confirmPassword = "Confirm password is required";
-        else if (confirmPassword !== password) newErrors.confirmPassword = "Passwords do not match";
+        if (!confirmPassword) newErrors.confirmPassword = "Xác nhận mật khẩu là bắt buộc";
+        else if (confirmPassword !== password) newErrors.confirmPassword = "Mật khẩu xác nhận không khớp";
 
         setErrors(newErrors);
         setTouched({
@@ -218,13 +213,13 @@ const Register: React.FC = () => {
         });
 
         if (Object.keys(newErrors).length > 0) {
-            toast.error("Please fix the errors before continuing");
+            toast.error("Vui lòng sửa các lỗi trước khi tiếp tục");
             setIsSubmitting(false);
             return;
         }
 
         if (!acceptTerms) {
-            toast.error("You need to agree to the terms and conditions!");
+            toast.error("Bạn cần đồng ý với điều khoản và điều kiện!");
             setIsSubmitting(false);
             return;
         }
@@ -261,29 +256,29 @@ const Register: React.FC = () => {
             console.log("Response ok:", response.ok);
             console.log("Data:", data);
             if (response.ok) {
-                toast.success(data?.message || "Registration successful");
+                toast.success(data?.message || "Đăng ký thành công");
                 localStorage.setItem("unverifiedEmail", email);
                 navigate("/verify-email");
             } else {
                 switch (response.status) {
                     case 409:
-                        toast.error("Email already exists in the system");
+                        toast.error("Email đã tồn tại trong hệ thống");
                         break;
                     case 400:
-                        toast.error(data?.message || "Invalid registration information");
+                        toast.error(data?.message || "Thông tin đăng ký không hợp lệ");
                         break;
                     case 500:
-                        toast.error("Server error, please try again later");
+                        toast.error("Lỗi máy chủ, vui lòng thử lại sau");
                         break;
                     default:
-                        toast.error(data?.message || "Registration failed");
+                        toast.error(data?.message || "Đăng ký thất bại");
                 }
             }
 
 
             
         } catch (networkError) {
-            toast.error("Cannot connect to server, please check your network connection");
+            toast.error("Không thể kết nối đến máy chủ, vui lòng kiểm tra kết nối mạng");
             console.error("Network error:", networkError);
         } finally {
             setIsSubmitting(false);
@@ -301,14 +296,14 @@ const Register: React.FC = () => {
 
         return (
             <div className="mt-3 p-3 bg-gray-50 rounded-md border">
-                <p className="text-sm font-medium text-gray-700 mb-2">Password requirements:</p>
+                <p className="text-sm font-medium text-gray-700 mb-2">Yêu cầu mật khẩu:</p>
                 <div className="space-y-1">
                     {[
-                        { key: "minLength", text: "At least 8 characters", met: requirements.minLength },
-                        { key: "hasUpperCase", text: "At least 1 uppercase letter (A-Z)", met: requirements.hasUpperCase },
-                        { key: "hasLowerCase", text: "At least 1 lowercase letter (a-z)", met: requirements.hasLowerCase },
-                        { key: "hasNumbers", text: "At least 1 number (0-9)", met: requirements.hasNumbers },
-                        { key: "hasSpecialChar", text: "At least 1 special character (!@#$%^&*)", met: requirements.hasSpecialChar },
+                        { key: "minLength", text: "Ít nhất 8 ký tự", met: requirements.minLength },
+                        { key: "hasUpperCase", text: "Ít nhất 1 chữ hoa (A-Z)", met: requirements.hasUpperCase },
+                        { key: "hasLowerCase", text: "Ít nhất 1 chữ thường (a-z)", met: requirements.hasLowerCase },
+                        { key: "hasNumbers", text: "Ít nhất 1 số (0-9)", met: requirements.hasNumbers },
+                        { key: "hasSpecialChar", text: "Ít nhất 1 ký tự đặc biệt (!@#$%^&*)", met: requirements.hasSpecialChar },
                     ].map((req) => (
                         <div key={req.key} className="flex items-center gap-2">
                             {req.met ? (
@@ -525,7 +520,7 @@ const Register: React.FC = () => {
                     {confirmPassword && password && confirmPassword === password && (
                         <p className="mt-1 text-sm text-green-600 flex items-center gap-1">
                             <Check className="w-4 h-4" />
-                            Passwords match
+                            Mật khẩu khớp
                         </p>
                     )}
                 </div>
@@ -542,13 +537,13 @@ const Register: React.FC = () => {
                         />
                     </div>
                     <div className="ml-3 text-sm text-gray-600">
-                        I agree to the{' '}
+                        Tôi đồng ý với{' '}
                         <button
                             type="button"
                             onClick={() => setShowTerms(true)}
                             className="text-[#10d194] hover:text-[#1a9f8e] underline"
                         >
-                            terms and conditions
+                            điều khoản và điều kiện
                         </button>
                     </div>
                 </div>
@@ -577,28 +572,28 @@ const Register: React.FC = () => {
             <Modal
                 isOpen={showTerms}
                 onClose={() => setShowTerms(false)}
-                title="Terms and Conditions for PicX Service Usage"
+                title="Điều Khoản và Quy Định Sử Dụng Dịch Vụ PicX"
             >
                 <div className="prose prose-sm max-w-none">
-                    <p className="font-medium">By creating an account, you agree to the following terms:</p>
+                    <p className="font-medium">Bằng việc tạo tài khoản, bạn đồng ý với các điều khoản sau:</p>
 
-                    <h3 className="text-lg font-semibold mt-4">Information Commitment</h3>
-                    <p>You confirm that the personal information provided is accurate and complete. Providing false information may result in account suspension or service denial.</p>
+                    <h3 className="text-lg font-semibold mt-4">Cam kết thông tin</h3>
+                    <p>Bạn xác nhận các thông tin cá nhân cung cấp là chính xác và đầy đủ. Việc cung cấp thông tin sai có thể dẫn đến việc khóa tài khoản hoặc từ chối dịch vụ.</p>
 
-                    <h3 className="text-lg font-semibold mt-4">Content Ownership</h3>
-                    <p>All images and data you upload to PicX must be legally owned by you. PicX is not responsible for content uploaded by users.</p>
+                    <h3 className="text-lg font-semibold mt-4">Sở hữu nội dung</h3>
+                    <p>Mọi hình ảnh, dữ liệu bạn tải lên PicX phải thuộc quyền sở hữu hợp pháp của bạn. PicX không chịu trách nhiệm với nội dung do người dùng đăng tải.</p>
 
-                    <h3 className="text-lg font-semibold mt-4">Legal Usage</h3>
-                    <p>You agree not to use PicX services for illegal activities, including but not limited to distributing pornographic, harmful, racist content or infringing on others' privacy rights.</p>
+                    <h3 className="text-lg font-semibold mt-4">Sử dụng hợp pháp</h3>
+                    <p>Bạn đồng ý không sử dụng dịch vụ của PicX cho các hoạt động vi phạm pháp luật, bao gồm nhưng không giới hạn ở việc phát tán nội dung khiêu dâm, độc hại, phân biệt chủng tộc hoặc xâm phạm quyền riêng tư của người khác.</p>
 
-                    <h3 className="text-lg font-semibold mt-4">Account Security</h3>
-                    <p>You are responsible for securing your account and are liable for all activities conducted through that account.</p>
+                    <h3 className="text-lg font-semibold mt-4">Bảo mật tài khoản</h3>
+                    <p>Bạn có trách nhiệm bảo mật tài khoản của mình và chịu trách nhiệm cho mọi hoạt động diễn ra thông qua tài khoản đó.</p>
 
-                    <h3 className="text-lg font-semibold mt-4">Personal Data Processing</h3>
-                    <p>Your personal information is collected and processed according to PicX's Privacy Policy. We commit not to share your information with third parties without permission.</p>
+                    <h3 className="text-lg font-semibold mt-4">Xử lý dữ liệu cá nhân</h3>
+                    <p>Thông tin cá nhân của bạn được thu thập và xử lý theo Chính sách Bảo mật của PicX. Chúng tôi cam kết không chia sẻ thông tin của bạn cho bên thứ ba nếu không có sự cho phép.</p>
 
-                    <h3 className="text-lg font-semibold mt-4">Service Termination</h3>
-                    <p>PicX reserves the right to suspend or terminate user accounts if they violate terms of use or negatively impact the community.</p>
+                    <h3 className="text-lg font-semibold mt-4">Chấm dứt dịch vụ</h3>
+                    <p>PicX có quyền tạm ngưng hoặc chấm dứt tài khoản của người dùng nếu vi phạm các điều khoản sử dụng hoặc gây ảnh hưởng tiêu cực đến cộng đồng.</p>
                 </div>
             </Modal>
         </div>

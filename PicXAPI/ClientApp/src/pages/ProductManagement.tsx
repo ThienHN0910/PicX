@@ -120,26 +120,12 @@ export default function ProductManagement() {
                                 Tags
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Additional Images
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Status
                             </th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                         {filteredProducts.map((product) => {
-                            let additionalImageIds: string[] = [];
-                            try {
-                                additionalImageIds = JSON.parse(product.additionalImages || '[]');
-                            } catch (e) {
-                                console.error('Error parsing additionalImages:', e);
-                            }
-
-                            const additionalImageUrls = additionalImageIds.map(
-                                (id: string) => `/api/product/image/${id}`
-                            );
-
                             return (
                                 <tr key={product.productId}>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -208,27 +194,6 @@ export default function ProductManagement() {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm text-gray-500">
                                             {product.tags || 'N/A'}
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex flex-wrap gap-2">
-                                            {additionalImageUrls.length > 0 ? (
-                                                additionalImageUrls.map((url, index) => (
-                                                    <img
-                                                        key={index}
-                                                        className="h-8 w-8 rounded object-cover"
-                                                        src={url}
-                                                        alt={`Additional ${index}`}
-                                                        loading="lazy"
-                                                        onError={(e) => {
-                                                            console.error(`Failed to load additional image: ${url}`);
-                                                            e.currentTarget.src = 'https://via.placeholder.com/150';
-                                                        }}
-                                                    />
-                                                ))
-                                            ) : (
-                                                <span className="text-sm text-gray-500">None</span>
-                                            )}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">

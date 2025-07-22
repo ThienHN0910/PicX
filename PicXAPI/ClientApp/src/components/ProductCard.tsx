@@ -14,7 +14,7 @@ interface ProductCardProps {
 
 export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
     const navigate = useNavigate();
-    const { isAuthenticated, user } = useAuth(); // 👈 check login
+    const { isAuthenticated, user } = useAuth(); 
     const [isFavorited, setIsFavorited] = useState(false);
     const [favoriteId, setFavoriteId] = useState<number | null>(null);
 
@@ -75,7 +75,7 @@ export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
                     },
                 });
                 setIsFavorited(true);
-                setFavoriteId(response.data.id); // Assume API returns ID of new favorite
+                setFavoriteId(response.data.id); // Giả sử API trả về ID của favorite mới
                 toast.success('Added to favorites');
             } else {
                 if (!favoriteId) {

@@ -1,8 +1,4 @@
-﻿﻿using Google.Apis.Auth.OAuth2;
-using Google.Apis.Drive.v3;
-using Google.Apis.Drive.v3.Data;
-using Google.Apis.Services;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PicXAPI.Models;
@@ -11,7 +7,6 @@ using PicXAPI.Services;
 using System.Security.Claims;
 using System.Text.Json;
 using System.IdentityModel.Tokens.Jwt;
-using Google.Apis.Auth.OAuth2.Responses;
 using Microsoft.AspNetCore.SignalR;
 
 namespace PicXAPI.Controllers
@@ -23,42 +18,15 @@ namespace PicXAPI.Controllers
         private readonly AppDbContext _context;
         private readonly ILogger<ProductController> _logger;
         private readonly string _folderId;
-        private readonly DriveService _driveService;
+        private readonly S3Service _s3Service;
         private readonly IWatermarkService _watermarkService;
 
-        public ProductController(AppDbContext context, ILogger<ProductController> logger, IWatermarkService watermarkService)
+        public ProductController(AppDbContext context, ILogger<ProductController> logger, IWatermarkService watermarkService, S3Service s3Service)
         {
             _context = context;
             _logger = logger;
-            _folderId = "1N__Y0n7rDuBwNLUsoRKHkezhAWOn0k24"; // Replace with your Google Drive folder ID
             _watermarkService = watermarkService;
-            try
-            {
-                var credentialPath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS");
-                if (string.IsNullOrEmpty(credentialPath))
-                {
-                    _logger.LogError("GOOGLE_APPLICATION_CREDENTIALS environment variable is not set.");
-                    throw new InvalidOperationException("GOOGLE_APPLICATION_CREDENTIALS is not set.");
-                }
-                if (!System.IO.File.Exists(credentialPath))
-                {
-                    _logger.LogError($"Credentials file not found at: {credentialPath}");
-                    throw new InvalidOperationException($"Credentials file not found at: {credentialPath}");
-                }
-
-                var credential = GoogleCredential.GetApplicationDefault()
-                    .CreateScoped(DriveService.Scope.Drive);
-                _driveService = new DriveService(new BaseClientService.Initializer
-                {
-                    HttpClientInitializer = credential
-                });
-                _logger.LogInformation("Google Drive Service initialized successfully.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to initialize Google Drive Service.");
-                throw;
-            }
+            _s3Service = s3Service;
         }
 
         // Helper: Lấy userId từ JWT trong Authorization header
@@ -94,40 +62,16 @@ namespace PicXAPI.Controllers
             return user != null && (user.Role == "artist" || user.Role == "admin");
         }
 
-        private async Task<string> UploadFileToDrive(IFormFile file, string fileName)
+        private async Task<string> UploadFileToS3(IFormFile file)
         {
-            var fileMetadata = new Google.Apis.Drive.v3.Data.File
-            {
-                Name = fileName,
-                Parents = new[] { _folderId }
-            };
-
-            string fileId;
-            using (var stream = file.OpenReadStream())
-            {
-                var request = _driveService.Files.Create(fileMetadata, stream, file.ContentType);
-                request.Fields = "id";
-                var uploadedFile = await request.UploadAsync();
-                fileId = request.ResponseBody.Id;
-            }
-
-            // Set file permission to public
-            var permission = new Permission { Type = "anyone", Role = "reader" };
-            await _driveService.Permissions.Create(permission, fileId).ExecuteAsync();
-
-            return fileId;
+            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+            using var stream = file.OpenReadStream();
+            return await _s3Service.UploadFileAsync(stream, fileName, file.ContentType);
         }
 
-        private async Task DeleteFileFromDrive(string fileId)
+        private async Task DeleteFileFromS3(string fileKey)
         {
-            try
-            {
-                await _driveService.Files.Delete(fileId).ExecuteAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Failed to delete file with ID: {fileId}");
-            }
+            await _s3Service.DeleteFileAsync(fileKey);
         }
 
         [HttpGet("categories")]
@@ -168,7 +112,6 @@ namespace PicXAPI.Controllers
                         IsAvailable = p.IsAvailable,
                         Tags = p.Tags,
                         ImageFileId = p.ImageDriveId,
-                        AdditionalImages = p.AdditionalImages,
                         Artist = new
                         {
                             Id = p.Artist.UserId,
@@ -225,7 +168,6 @@ namespace PicXAPI.Controllers
                         IsAvailable = p.IsAvailable,
                         Tags = p.Tags,
                         ImageFileId = p.ImageDriveId,
-                        AdditionalImages = p.AdditionalImages
                     })
                     .ToListAsync();
 
@@ -267,7 +209,6 @@ namespace PicXAPI.Controllers
                         IsAvailable = p.IsAvailable,
                         Tags = p.Tags,
                         ImageFileId = p.ImageDriveId,
-                        AdditionalImages = p.AdditionalImages,
                         Artist = new
                         {
                             Id = p.Artist.UserId,
@@ -315,7 +256,6 @@ namespace PicXAPI.Controllers
                         IsAvailable = p.IsAvailable,
                         Tags = p.Tags,
                         ImageFileId = p.ImageDriveId,
-                        AdditionalImages = p.AdditionalImages,
                         Artist = new
                         {
                             Id = p.Artist.UserId,
@@ -408,53 +348,11 @@ namespace PicXAPI.Controllers
                     // Delete old image
                     if (!string.IsNullOrEmpty(product.ImageDriveId))
                     {
-                        await DeleteFileFromDrive(product.ImageDriveId);
+                        await DeleteFileFromS3(product.ImageDriveId);
                     }
 
                     var mainImageFileName = $"{Guid.NewGuid()}{extension}";
-                    product.ImageDriveId = await UploadFileToDrive(dto.Image, mainImageFileName);
-                }
-
-                // Update additional images if provided and not placeholders
-                if (dto.AdditionalImages != null && dto.AdditionalImages.Any(file => file.ContentType != "text/plain"))
-                {
-                    var additionalImageIds = new List<string>();
-                    foreach (var additionalImage in dto.AdditionalImages)
-                    {
-                        if (additionalImage.ContentType == "text/plain")
-                        {
-                            using (var reader = new StreamReader(additionalImage.OpenReadStream()))
-                            {
-                                var fileId = await reader.ReadToEndAsync();
-                                additionalImageIds.Add(fileId);
-                            }
-                        }
-                        else
-                        {
-                            var extension = Path.GetExtension(additionalImage.FileName).ToLowerInvariant();
-                            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
-                            if (!allowedExtensions.Contains(extension))
-                            {
-                                return BadRequest(new { error = "Invalid additional image format. Only JPG, PNG, and GIF are allowed." });
-                            }
-
-                            var additionalImageFileName = $"{Guid.NewGuid()}{extension}";
-                            var additionalImageFileId = await UploadFileToDrive(additionalImage, additionalImageFileName);
-                            additionalImageIds.Add(additionalImageFileId);
-                        }
-                    }
-
-                    // Delete old additional images
-                    if (!string.IsNullOrEmpty(product.AdditionalImages))
-                    {
-                        var oldImageIds = JsonSerializer.Deserialize<List<string>>(product.AdditionalImages) ?? new List<string>();
-                        foreach (var oldImageId in oldImageIds)
-                        {
-                            await DeleteFileFromDrive(oldImageId);
-                        }
-                    }
-
-                    product.AdditionalImages = additionalImageIds.Any() ? JsonSerializer.Serialize(additionalImageIds) : null;
+                    product.ImageDriveId = await UploadFileToS3(dto.Image);
                 }
 
                 await _context.SaveChangesAsync();
@@ -467,70 +365,30 @@ namespace PicXAPI.Controllers
             }
         }
 
-        [HttpGet("image/{fileId}")]
-        public async Task<IActionResult> GetImage(string fileId)
+        [HttpGet("image/{fileKey}")]
+        public async Task<IActionResult> GetImage(string fileKey)
         {
-            // Chỉ trả ảnh cho product còn available
-            var product = await _context.Products.FirstOrDefaultAsync(p => p.ImageDriveId == fileId);
-            if (product == null)
-            {
-                return NotFound("Image not found.");
-            }
             try
             {
-                var request = _driveService.Files.Get(fileId);
-                request.Fields = "mimeType";
-                var file = await request.ExecuteAsync();
-
-                if (file == null)
+                var product = await _context.Products.FirstOrDefaultAsync(p => p.ImageDriveId == fileKey);
+                if (product == null)
                 {
-                    _logger.LogWarning($"File with ID {fileId} not found on Google Drive.");
-                    return NotFound("File not found.");
+                    return NotFound("Image not found.");
                 }
 
-                var imageStream = new MemoryStream();
-                await _driveService.Files.Get(fileId).DownloadAsync(imageStream);
-                imageStream.Position = 0;
+                var stream = await _s3Service.GetFileAsync(fileKey);
+                stream.Position = 0;
 
-                // Only apply watermark to image files with valid MIME type
-                if (!string.IsNullOrEmpty(file.MimeType) && file.MimeType.StartsWith("image/"))
-                {
-                    try
-                    {
-                        string watermarkText = "PicX";
-                        var watermarkedBytes = await _watermarkService.ApplyTextWatermarkAsync(imageStream, watermarkText, file.MimeType);
-                        Response.Headers["Cache-Control"] = "public,max-age=86400";
-                        return File(watermarkedBytes, file.MimeType);
-                    }
-                    catch (SixLabors.ImageSharp.UnknownImageFormatException)
-                    {
-                        // Fallback: return original file if not a valid image
-                        Response.Headers["Cache-Control"] = "public,max-age=86400";
-                        return File(imageStream, file.MimeType ?? "application/octet-stream");
-                    }
-                    catch (System.Exception ex)
-                    {
-                        _logger.LogError(ex, $"Watermarking failed for file ID: {fileId}, returning original file.");
-                        Response.Headers["Cache-Control"] = "public,max-age=86400";
-                        return File(imageStream, file.MimeType ?? "application/octet-stream");
-                    }
-                }
-                else
-                {
-                    // Return non-image files as-is
-                    Response.Headers["Cache-Control"] = "public,max-age=86400";
-                    return File(imageStream, file.MimeType ?? "application/octet-stream");
-                }
-            }
-            catch (TokenResponseException ex)
-            {
-                _logger.LogError(ex, $"Authentication error for file ID: {fileId}");
-                return StatusCode(401, new { error = "Authentication failed for Google Drive" });
+                var mimeType = "image/jpeg"; // hoặc dùng extension để xác định
+
+                var watermarked = await _watermarkService.ApplyTextWatermarkAsync(stream, "PicX", mimeType);
+                Response.Headers["Cache-Control"] = "public,max-age=86400";
+                return File(watermarked, mimeType);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Failed to retrieve or watermark image with ID: {fileId}");
-                return StatusCode(500, new { error = $"Failed to retrieve or watermark image: {ex.Message}" });
+                _logger.LogError(ex, "Failed to get image.");
+                return StatusCode(500, "Internal server error");
             }
         }
 
@@ -576,25 +434,7 @@ namespace PicXAPI.Controllers
                 }
 
                 var mainImageFileName = $"{Guid.NewGuid()}{extension}";
-                var mainImageFileId = await UploadFileToDrive(dto.Image, mainImageFileName);
-
-                var additionalImageIds = new List<string>();
-                if (dto.AdditionalImages != null && dto.AdditionalImages.Any())
-                {
-                    foreach (var additionalImage in dto.AdditionalImages)
-                    {
-                        extension = Path.GetExtension(additionalImage.FileName).ToLowerInvariant();
-                        if (!allowedExtensions.Contains(extension))
-                        {
-                            await DeleteFileFromDrive(mainImageFileId);
-                            return BadRequest(new { error = "Invalid additional image format. Only JPG, PNG, and GIF are allowed." });
-                        }
-
-                        var additionalImageFileName = $"{Guid.NewGuid()}{extension}";
-                        var additionalImageFileId = await UploadFileToDrive(additionalImage, additionalImageFileName);
-                        additionalImageIds.Add(additionalImageFileId);
-                    }
-                }
+                var mainImageFileId = await UploadFileToS3(dto.Image);
 
                 var product = new Products
                 {
@@ -604,7 +444,6 @@ namespace PicXAPI.Controllers
                     Description = dto.Description,
                     Price = dto.Price,
                     ImageDriveId = mainImageFileId,
-                    AdditionalImages = additionalImageIds.Any() ? JsonSerializer.Serialize(additionalImageIds) : null,
                     Dimensions = dto.Dimensions,
                     IsAvailable = dto.IsAvailable,
                     Tags = dto.Tags,
@@ -630,7 +469,6 @@ namespace PicXAPI.Controllers
                         product.IsAvailable,
                         product.Tags,
                         ImageFileId = product.ImageDriveId,
-                        AdditionalImages = product.AdditionalImages,
                         product.LikeCount,
                         product.ArtistId,
                         product.CreatedAt,
@@ -675,20 +513,7 @@ namespace PicXAPI.Controllers
                 // Delete main image from Google Drive
                 if (!string.IsNullOrEmpty(product.ImageDriveId))
                 {
-                    await DeleteFileFromDrive(product.ImageDriveId);
-                }
-
-                // Delete additional images from Google Drive
-                if (!string.IsNullOrEmpty(product.AdditionalImages))
-                {
-                    var additionalImageIds = JsonSerializer.Deserialize<List<string>>(product.AdditionalImages);
-                    if (additionalImageIds != null)
-                    {
-                        foreach (var fileId in additionalImageIds)
-                        {
-                            await DeleteFileFromDrive(fileId);
-                        }
-                    }
+                    await DeleteFileFromS3(product.ImageDriveId);
                 }
 
                 _context.Products.Remove(product);

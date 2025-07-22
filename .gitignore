@@ -76,6 +76,7 @@ obj/
 # Tệp cấu hình nhạy cảm
 appsettings.json
 appsettings.*.json
+/PicXAPI/credentials.json
 web.config
 *.config
 

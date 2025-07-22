@@ -114,14 +114,14 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
                 });
 
                 newConnection.invoke('GetCurrentUserId').catch((err) => {
-                    setError('Cannot get user information.');
+                    setError('Không thể lấy thông tin người dùng.');
                     console.error('GetCurrentUserId error:', err);
                 });
 
                 setError(null);
             })
             .catch((err) => {
-                setError('Cannot connect to chat. Please check login or try again.');
+                setError('Không thể kết nối chat. Vui lòng kiểm tra đăng nhập hoặc thử lại.');
                 console.error('SignalR connection error:', err);
             });
 
@@ -172,7 +172,7 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
             });
             setNewMessage('');
         } catch (err) {
-            setError('Cannot send message. Please try again.');
+            setError('Không thể gửi tin nhắn. Vui lòng thử lại.');
             console.error('Send message error:', err);
         }
     };
@@ -236,7 +236,7 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
                     {!selectedUserId && (
                         <div className="w-full p-3 overflow-y-auto scrollbar-hide">
                             {users.length === 0 ? (
-                                <p className="text-gray-500 text-sm">No users available</p>
+                                <p className="text-gray-500 text-sm">Không có người dùng nào khả dụng</p>
                             ) : (
                                 <div className="space-y-2">
                                     {users.map((user) => {
@@ -256,7 +256,7 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
                                                     </p>
                                                     <div className="flex justify-between">
                                                         <p className="text-xs text-gray-500">
-                                                            {message ? `${message}` : 'No new messages'}
+                                                            {message ? `${message}` : 'Chưa có tin nhắn mới'}
                                                         </p>
                                                         <span className="text-xs">{sentAt}</span>
                                                     </div>
@@ -305,7 +305,7 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
                                         type="text"
                                         value={newMessage}
                                         onChange={(e) => setNewMessage(e.target.value)}
-                                        placeholder="Type a message..."
+                                        placeholder="Nhập tin nhắn..."
                                         className="flex-1 px-3 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                                     />
                                     <button

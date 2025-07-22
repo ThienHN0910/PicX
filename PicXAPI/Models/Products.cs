@@ -17,8 +17,6 @@ public partial class Products
 
     public string? ImageDriveId { get; set; }
 
-    public string? AdditionalImages { get; set; }
-
     public string? Dimensions { get; set; }
 
     public bool? IsAvailable { get; set; }

@@ -199,17 +199,6 @@ namespace PicXAPI.Services
                         text-align: center;
                         line-height: 1.1;
                     }}
-                    .attribution-notice {{
-                        margin-top: 20px;
-                        font-size: 0.9rem;
-                        color: #2c3e50;
-                        background: #f8f9fa;
-                        border: 1px solid #e9ecef;
-                        border-radius: 8px;
-                        padding: 15px;
-                        text-align: left;
-                        line-height: 1.5;
-                    }}
                 </style>
             </head>
             <body>
@@ -229,9 +218,7 @@ namespace PicXAPI.Services
                         <div class='certifies-text'>
                             This certificate hereby authenticates and verifies the ownership and authenticity of the following digital artwork:
                         </div>
-                        <div class='artwork-info'>
-                            <img src='{product.ImageDriveId}' alt='Artwork Image' style='max-width: 100%; height: auto; border-radius: 8px; margin-bottom: 15px;'/>
-                        </div>
+
                         <div class='artwork-info'>
                             <div class='artwork-title'>{product.Title}</div>
                             
@@ -252,7 +239,7 @@ namespace PicXAPI.Services
                             
                             <div class='info-row'>
                                 <div class='info-label'>Purchase Price:</div>
-                                <div class='info-value'>{product.Price},000 VND</div>
+                                <div class='info-value'>${product.Price:F2} USD</div>
                             </div>
                         </div>
 
@@ -316,34 +303,6 @@ namespace PicXAPI.Services
                         This certificate is issued by PicX Platform and serves as proof of authenticity and ownership.<br/>
                         For verification, please contact support@picx.com with certificate number PXC-{order.OrderId:D6}<br/>
                         © {DateTime.Now.Year} PicX. All rights reserved.
-                    </div>
-                    <div class='attribution-notice'>
-                        <strong>PicX Certificate of Authenticity – Usage and Attribution Notice</strong><br/>
-                        This certificate verifies the authenticity and ownership of the digital artwork listed above. The artwork is protected by copyright and is not classified as free or public domain art.<br/>
-                        <br/>
-                        <strong>How to attribute PicX certificates:</strong>
-                        <br/>
-                        For web usage: Please include the following notice on your website or digital platform to acknowledge the certificate and its issuer:
-                        <br/>
-                        For non-web usage: If possible, the text 'Certificate issued by PicX' must be displayed next to the certificate. If this is not possible, the attribution should be included in the credits or acknowledgements section.
-                        <strong>Where you can use this certificate:</strong><br/>
-                        Websites and digital platforms<br/>
-                        Software, applications, and mobile apps<br/>
-                        Printed and digital media (magazines, newspapers, books, cards, labels, CD, DVD, films, television, video, email)<br/>
-                        Advertising and promotional materials<br/>
-                        Product presentations and public events<br/>
-                        Multimedia and presentations<br/>
-                        Decorative purposes (private or public)<br/>
-                        <br/>
-                        <strong>What you CAN DO:</strong><br/>
-                        You have the non-exclusive, non-transferable, non-sublicensable right to use this certificate as proof of ownership and authenticity for the associated artwork, in any and all media for commercial or personal purposes as listed above.<br/>
-                        You may display, print, and share this certificate as evidence of your rights to the artwork.<br/>
-                        You may use this certificate worldwide for the duration of your ownership.<br/>
-                        <br/>
-                        <strong>What you CANNOT DO:</strong><br/>
-                        You may not sublicense, sell, or rent this certificate or the associated artwork.<br/>
-                        You may not distribute the certificate or artwork except as proof of ownership or as expressly authorized by PicX.<br/>
-                        You may not offer the certificate or artwork for download or as a free asset.<br/>
                     </div>
                 </div>
             </body>
