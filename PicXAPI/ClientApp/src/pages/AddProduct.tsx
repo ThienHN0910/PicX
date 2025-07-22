@@ -15,21 +15,17 @@ interface ProductForm {
     dimensions: string;
     tags: string;
     image: FileList;
-    additionalImages: FileList;
 }
 
 export default function AddProduct() {
     const navigate = useNavigate();
     const { register, handleSubmit, formState: { errors }, setValue } = useForm<ProductForm>();
     const [preview, setPreview] = useState<string | null>(null);
-    const [additionalPreviews, setAdditionalPreviews] = useState<string[]>([]);
     const mainImageInputRef = useRef<HTMLInputElement>(null);
-    const additionalImagesInputRef = useRef<HTMLInputElement>(null);
     const [categories, setCategories] = useState<string[]>([]);
     const [isLoadingCategories, setIsLoadingCategories] = useState(true);
     const [categoryError, setCategoryError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false); 
-    const token = localStorage.getItem("authToken");
     useEffect(() => {
         const token = localStorage.getItem("authToken");
         if (!token) {
@@ -97,10 +93,6 @@ export default function AddProduct() {
         mainImageInputRef.current?.click();
     };
 
-    const openAdditionalImagesPicker = () => {
-        additionalImagesInputRef.current?.click();
-    };
-
     // Handle main image change
     const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
@@ -110,37 +102,6 @@ export default function AddProduct() {
             // Get and set dimensions
             const dimensions = await getImageDimensions(files[0]);
             setValue('dimensions', `${dimensions.width} x ${dimensions.height} pixels`);
-        }
-    };
-
-    // Handle additional images drag and drop
-    const handleAdditionalImagesDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        e.stopPropagation();
-    };
-
-    const handleAdditionalImagesDrop = (e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            const validFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
-            if (validFiles.length !== files.length) {
-                alert('Some dropped files are not images and were ignored.');
-            }
-            if (validFiles.length > 0) {
-                setValue('additionalImages', files);
-                setAdditionalPreviews(validFiles.map(file => URL.createObjectURL(file)));
-            }
-        }
-    };
-
-    // Handle additional images change
-    const handleAdditionalImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files;
-        if (files && files.length > 0) {
-            setValue('additionalImages', files);
-            setAdditionalPreviews(Array.from(files).map(file => URL.createObjectURL(file)));
         }
     };
 
@@ -162,12 +123,6 @@ export default function AddProduct() {
 
         if (data.image?.[0]) {
             formData.append('image', data.image[0]);
-        }
-
-        if (data.additionalImages?.length > 0) {
-            Array.from(data.additionalImages).forEach((file) =>
-                formData.append('additionalImages', file)
-            );
         }
 
         try {
@@ -227,37 +182,6 @@ export default function AddProduct() {
                             )}
                         </div>
                     </div>
-
-                    {/* Additional Images Upload */}
-                    <div
-                        className="border-2 border-dashed border-gray-300 rounded-lg p-8 cursor-pointer"
-                        onDragOver={handleAdditionalImagesDragOver}
-                        onDrop={handleAdditionalImagesDrop}
-                        onClick={openAdditionalImagesPicker}
-                    >
-                        <div className="flex flex-col items-center">
-                            <Upload className="h-12 w-12 text-gray-400" />
-                            <p className="mt-2 text-sm font-medium text-gray-900">Drag and drop additional images</p>
-                            <p className="mt-1 text-sm text-gray-500">or click to browse</p>
-                            <input
-                                type="file"
-                                accept="image/*"
-                                multiple
-                                {...register('additionalImages')}
-                                onChange={handleAdditionalImagesChange}
-                                ref={additionalImagesInputRef}
-                                className="hidden"
-                            />
-                            {additionalPreviews.length > 0 && (
-                                <div className="mt-4 grid grid-cols-3 gap-4">
-                                    {additionalPreviews.map((preview, index) => (
-                                        <img key={index} src={preview} alt={`Additional Preview ${index}`} className="max-w-xs rounded-md" />
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
                     {/* Basic Information */}
                     <div className="space-y-4">
                         <div>

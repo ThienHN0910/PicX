@@ -80,7 +80,6 @@ namespace PicXAPI.Controllers
                     Description = f.Product.Description,
                     Price = f.Product.Price,
                     ImageUrl = f.Product.ImageDriveId,
-                    AdditionalImages = f.Product.AdditionalImages,
                     Dimensions = f.Product.Dimensions,
                     Tags = f.Product.Tags != null
                         ? f.Product.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries)
@@ -212,7 +211,6 @@ namespace PicXAPI.Controllers
                         Description = f.Product.Description,
                         Price = f.Product.Price,
                         ImageDriveId = f.Product.ImageDriveId,
-                        AdditionalImages = f.Product.AdditionalImages,
                         Dimensions = f.Product.Dimensions,
                         Tags = f.Product.Tags,
                         IsAvailable = f.Product.IsAvailable,

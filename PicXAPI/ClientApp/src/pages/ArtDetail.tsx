@@ -8,7 +8,6 @@ import ArtistProducts from '../components/ArtistProducts';
 import { useAuth } from '../components/AuthProvider';
 import { Modal } from '../components/ui/Modal';
 import { toast } from 'react-toastify';
-import { Favorite } from '../lib/types';
 
 interface Comment {
     id: number;
@@ -34,7 +33,6 @@ interface Product {
     isAvailable: boolean;
     tags: string;
     imageFileId: string;
-    additionalImages: string;
     artist: Artist;
     likeCount?: number;
     permissions?: {
@@ -280,7 +278,6 @@ const ArtDetail = () => {
     if (!product) return <div className="text-center text-red-500 py-12">Artwork not found</div>;
 
     const imageUrl = `/api/product/image/${product.imageFileId}`;
-    const additionalImageUrls = product.additionalImages ? JSON.parse(product.additionalImages).map((id: string) => `/api/product/image/${id}`) : [];
     const tags = product.tags ? product.tags.split(',').map(t => t.trim()) : [];
 
     return (
@@ -289,11 +286,6 @@ const ArtDetail = () => {
                 {/* Images */}
                 <div className="space-y-4">
                     <img src={imageUrl} onError={(e) => e.currentTarget.src = '/placeholder-image.jpg'} alt={product.title} className="rounded-lg w-full h-auto object-cover" />
-                    <div className="grid grid-cols-4 gap-2">
-                        {additionalImageUrls.map((src: string, i: number) => (
-                            <img key={i} src={src} onError={(e) => e.currentTarget.src = '/placeholder-image.jpg'} alt="" className="rounded-lg object-cover" />
-                        ))}
-                    </div>
                     <div className="grid grid-cols-1 ">
                         <h2 className="text-lg font-semibold">More from {product.artist.name}</h2>
                         <ArtistProducts artistId={product.artist.id} />

@@ -1,7 +1,4 @@
 ﻿using DotNetEnv;
-using Google.Apis.Auth.OAuth2;
-using Google.Apis.Drive.v3;
-using Google.Apis.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
@@ -40,18 +37,7 @@ namespace PicXAPI
             builder.Services.AddScoped<IWatermarkService, WatermarkService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddScoped<CertificateService>();
-            // Register Google DriveService for DI
-            builder.Services.AddSingleton(provider =>
-            {
-                var credentialPath = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS");
-                if (string.IsNullOrEmpty(credentialPath) || !System.IO.File.Exists(credentialPath))
-                    throw new InvalidOperationException("Google credentials not found.");
-                var credential = GoogleCredential.FromFile(credentialPath).CreateScoped(DriveService.Scope.Drive);
-                return new DriveService(new BaseClientService.Initializer
-                {
-                    HttpClientInitializer = credential
-                });
-            });
+            builder.Services.AddSingleton<S3Service>();
             builder.Services.AddDbContext<AppDbContext>(option =>
                 option.UseSqlServer(builder.Configuration.GetConnectionString("PicX")));
 

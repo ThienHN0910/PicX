@@ -6,6 +6,10 @@ import { formatRelativeTime } from '../lib/utils';
 interface User {
     userId: number;
     name: string;
+    latestMessage?: {
+        message: string;
+        sentAt: string;
+    } | null;
 }
 
 interface ChatMessage {
@@ -181,19 +185,6 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
         setSelectedUserId(null);
     };
 
-    const getLatestMessage = (userId: number) => {
-        const messages = messagesMap[userId] || [];
-        if (messages.length === 0) return { message: '', sentAt: '' };
-        const latestMsg = messages.reduce((latest, current) =>
-            new Date(latest.sentAt) > new Date(current.sentAt) ? latest : current
-        );
-        return {
-            message: latestMsg.message,
-            sentAt: formatRelativeTime(latestMsg.sentAt)
-        };
-    };
-
-
     return (
         <div className="fixed top-3 h-[calc(100vh-32px)] w-96 left-24 z-50">
             <div className="bg-white rounded-xl shadow-2xl border border-gray-200 w-full h-full transition-all duration-300">
@@ -240,7 +231,14 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
                             ) : (
                                 <div className="space-y-2">
                                     {users.map((user) => {
-                                        const { message, sentAt } = getLatestMessage(user.userId);
+                                        let message = '';
+                                        let sentAt = '';
+                                        if (user.latestMessage) {
+                                            message = user.latestMessage.message;
+                                            sentAt = user.latestMessage.sentAt
+                                                ? formatRelativeTime(user.latestMessage.sentAt)
+                                                : '';
+                                        }
                                         return (
                                             <div
                                                 key={user.userId}

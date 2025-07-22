@@ -14,7 +14,7 @@ interface ProductCardProps {
 
 export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
     const navigate = useNavigate();
-    const { isAuthenticated, user } = useAuth(); // 👈 check login
+    const { isAuthenticated, user } = useAuth(); 
     const [isFavorited, setIsFavorited] = useState(false);
     const [favoriteId, setFavoriteId] = useState<number | null>(null);
 

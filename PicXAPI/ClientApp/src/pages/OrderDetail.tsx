@@ -45,16 +45,14 @@ const OrderDetail = () => {
 
     // Helper to extract fileId from imageUrl (assuming /api/product/image/{fileId} or Google Drive link)
     const extractFileId = (imageUrl: string) => {
-        if (!imageUrl) return '';
-        // If imageUrl is like /api/product/image/{fileId}
-        const match = imageUrl.match(/(?:image\/)([\w-]+)/);
-        if (match && match[1]) return match[1];
-        // If imageUrl is a Google Drive link (e.g., .../d/{fileId}/...)
-        const driveMatch = imageUrl.match(/\/d\/([\w-]+)/);
-        if (driveMatch && driveMatch[1]) return driveMatch[1];
-        // Otherwise, return the whole string (maybe it's already the fileId)
-        return imageUrl;
-    };
+    if (!imageUrl) return '';
+    // Ví dụ: "/api/product/image/abc123.jpg" => lấy "abc123.jpg"
+    const match = imageUrl.match(/image\/([^\/\s]+)/);
+    if (match && match[1]) return match[1];
+
+    return imageUrl;
+};
+
 
     // Robust download handler for any file
     const handleDownload = async (fileId: string, fileName: string) => {
@@ -289,7 +287,7 @@ const OrderDetail = () => {
                                         </button>
                                     </div>
                                 </div>
-                                
+
                             </div>
                         ))}
                     </div>

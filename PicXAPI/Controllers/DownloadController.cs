@@ -1,12 +1,13 @@
-using Google.Apis.Drive.v3;
-using Google.Apis.Services;
+using Amazon.S3;
+using Amazon.S3.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.Processing;
 using System.IO;
 using System.Threading.Tasks;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.Formats.Png;
+using PicXAPI.Services;
 
 namespace PicXAPI.Controllers
 {
@@ -14,93 +15,62 @@ namespace PicXAPI.Controllers
     [Route("api/download")]
     public class DownloadController : ControllerBase
     {
-        private readonly DriveService _driveService;
+        private readonly S3Service _s3Service;
         private readonly ILogger<DownloadController> _logger;
 
-        public DownloadController(DriveService driveService, ILogger<DownloadController> logger)
+        public DownloadController(S3Service s3Service, ILogger<DownloadController> logger)
         {
-            _driveService = driveService;
+            _s3Service = s3Service;
             _logger = logger;
         }
 
-        [HttpGet("image/{fileId}")]
-        public async Task<IActionResult> DownloadImage(string fileId)
+        [HttpGet("image/{fileKey}")]
+        public async Task<IActionResult> DownloadImage(string fileKey)
         {
             try
             {
-                var request = _driveService.Files.Get(fileId);
-                request.Fields = "name,mimeType";
-                var file = await request.ExecuteAsync();
-
-                if (file == null)
-                {
-                    _logger.LogWarning($"File with ID {fileId} not found on Google Drive.");
-                    return NotFound(new { error = "File not found on Google Drive.", fileId });
-                }
-
-                var imageStream = new MemoryStream();
-                await _driveService.Files.Get(fileId).DownloadAsync(imageStream);
-                imageStream.Position = 0;
-
-                if (file.MimeType == null || !file.MimeType.StartsWith("image/"))
-                {
-                    _logger.LogWarning($"File with ID {fileId} is not an image. MIME type: {file.MimeType}");
-                    return BadRequest(new { error = "File is not an image.", fileId, mimeType = file.MimeType });
-                }
+                var stream = await _s3Service.GetFileAsync(fileKey);
+                stream.Position = 0;
 
                 try
                 {
-                    using (var image = await Image.LoadAsync(imageStream))
-                    {
-                        var pngStream = new MemoryStream();
-                        await image.SaveAsPngAsync(pngStream);
-                        pngStream.Position = 0;
-                        var fileName = (file.Name != null ? System.IO.Path.GetFileNameWithoutExtension(file.Name) : "downloaded_image") + ".png";
-                        Response.Headers["Cache-Control"] = "public,max-age=86400";
-                        return File(pngStream, "image/png", fileName);
-                    }
+                    using var image = await Image.LoadAsync(stream);
+                    var pngStream = new MemoryStream();
+                    await image.SaveAsPngAsync(pngStream);
+                    pngStream.Position = 0;
+                    var fileName = Path.GetFileNameWithoutExtension(fileKey) + ".png";
+                    Response.Headers["Cache-Control"] = "public,max-age=86400";
+                    return File(pngStream, "image/png", fileName);
                 }
                 catch (SixLabors.ImageSharp.UnknownImageFormatException ex)
                 {
-                    _logger.LogError(ex, $"File with ID {fileId} is not a valid image or format not supported.");
-                    return BadRequest(new { error = "File is not a valid image or format not supported.", fileId, fileName = file.Name });
+                    _logger.LogError(ex, $"File with key {fileKey} is not a valid image or format not supported.");
+                    return BadRequest(new { error = "File is not a valid image or format not supported.", fileKey });
                 }
             }
             catch (System.Exception ex)
             {
-                _logger.LogError(ex, $"Failed to download image with ID: {fileId}");
-                return StatusCode(500, new { error = $"Failed to download image: {ex.Message}", fileId });
+                _logger.LogError(ex, $"Failed to download image with key: {fileKey}");
+                return StatusCode(500, new { error = $"Failed to download image: {ex.Message}", fileKey });
             }
         }
 
-        [HttpGet("file/{fileId}")]
-        public async Task<IActionResult> DownloadAnyFile(string fileId)
+        [HttpGet("file/{fileKey}")]
+        public async Task<IActionResult> DownloadAnyFile(string fileKey)
         {
             try
             {
-                var request = _driveService.Files.Get(fileId);
-                request.Fields = "name,mimeType";
-                var file = await request.ExecuteAsync();
-
-                if (file == null)
-                {
-                    _logger.LogWarning($"File with ID {fileId} not found on Google Drive.");
-                    return NotFound(new { error = "File not found on Google Drive.", fileId });
-                }
-
-                var fileStream = new MemoryStream();
-                await _driveService.Files.Get(fileId).DownloadAsync(fileStream);
-                fileStream.Position = 0;
-
-                var fileName = file.Name ?? "downloaded_file";
-                var contentType = file.MimeType ?? "application/octet-stream";
+                var stream = await _s3Service.GetFileAsync(fileKey);
+                stream.Position = 0;
+                var contentType = "application/octet-stream";
+                var fileName = Path.GetFileName(fileKey);
                 Response.Headers["Cache-Control"] = "public,max-age=86400";
-                return File(fileStream, contentType, fileName);
+                return File(stream, contentType, fileName);
             }
             catch (System.Exception ex)
             {
-                _logger.LogError(ex, $"Failed to download file with ID: {fileId}");
-                return StatusCode(500, new { error = $"Failed to download file: {ex.Message}", fileId });
+                _logger.LogError(ex, $"Failed to download file with key: {fileKey}");
+                return StatusCode(500, new { error = $"Failed to download file: {ex.Message}", fileKey });
             }
         }
     }
