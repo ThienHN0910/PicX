@@ -154,6 +154,8 @@ namespace PicXAPI.Controllers
         {
             var clientId = _config["Google:ClientId"];
             var clientSecret = _config["Google:ClientSecret"];
+            Console.WriteLine($"Client ID: {clientId}");
+            Console.WriteLine($"Client Secret: {clientSecret}");
             var redirectUri = "https://localhost:5173/google-auth-success";
 
             var client = new HttpClient();
