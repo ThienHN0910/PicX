@@ -94,9 +94,6 @@ export const useStore = create<AppState>((set, get) => ({
                 tags: item.tags ? (typeof item.tags === 'string' ? item.tags.split(',').map((tag: string) => tag.trim()) : item.tags) : [],
                 image_file_id: item.imageFileId,
                 image_url: item.imageFileId ? `/api/product/image/${item.imageFileId}` : undefined,
-                additional_images: item.additionalImages
-                    ? JSON.parse(item.additionalImages).map((fileKey: string) => `/api/product/image/${fileKey}`)
-                    : [],
                 artist: {
                     id: item.artist.id,
                     name: item.artist.name,
@@ -150,9 +147,6 @@ export const useStore = create<AppState>((set, get) => ({
                 is_available: item.isAvailable,
                 tags: item.tags || [],
                 image_url: item.imageUrl ? `/api/product/image/${item.imageUrl}` : undefined,
-                additional_images: item.additionalImages
-                    ? JSON.parse(item.additionalImages).map((fileKey: string) => `/api/product/image/${fileKey}`)
-                    : [],
                 artist: {
                     id: item.artist.id,
                     name: item.artist.name,
