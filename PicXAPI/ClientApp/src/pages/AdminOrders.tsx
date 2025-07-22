@@ -223,7 +223,7 @@ export default function AdminOrders() {
                                             {/* Total Amount */}
                                             <div className="flex items-center ">
                                                 <span className="text-sm text-gray-600 font-bold">
-                                                    {order.items.reduce((total, item) => total + item.totalPrice, 0) || 'Art Project'} $
+                                                    {order.items.reduce((total, item) => total + item.totalPrice, 0) || 'Art Project'} VND
                                                 </span>
                                             </div>
 

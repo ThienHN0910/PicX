@@ -14,7 +14,7 @@ export default function Favorites() {
     const [isLoading, setIsLoading] = useState(true);
     const { favorites, categories, fetchCategories, fetchFavorites, user, setFavorites } = useStore();
 
-    // Lắng nghe sự kiện chọn category từ sidebar
+    // Listen for category selection event from sidebar
     useEffect(() => {
         const handler = (e: any) => setSelectedCategory(e.detail);
         window.addEventListener('select-category', handler);
@@ -35,7 +35,7 @@ export default function Favorites() {
         }
     }, [fetchCategories, fetchFavorites, user]);
 
-    // Filter favorites theo search và category (nếu có category_id)
+    // Filter favorites by search and category (if category_id exists)
     const filteredFavorites = favorites.filter((product) => {
         const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
             product.description?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -107,7 +107,7 @@ export default function Favorites() {
             <div>
                 <h1 className="text-2xl font-bold mb-6 ml-2">Your Favorite Products</h1>
 
-                {/* Đã xóa CategoryFilter */}
+                {/* Removed CategoryFilter */}
 
                 {isLoading ? (
                     <Loading />

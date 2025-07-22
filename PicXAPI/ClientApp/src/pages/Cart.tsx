@@ -42,7 +42,7 @@ const Cart: React.FC = () => {
             setCart(response.data.cartItems);
             setError(null);
         } catch (err: any) {
-            setError('Lỗi khi tải giỏ hàng.');
+            setError('Error loading cart.');
             setCart([]);
         } finally {
             setLoading(false);
@@ -58,7 +58,7 @@ const Cart: React.FC = () => {
             });
             setCart(prevCart => prevCart.filter(item => item.cartId !== cartId));
         } catch (err) {
-            alert('Xóa sản phẩm thất bại.');
+            alert('Failed to remove product.');
         }
     };
 
@@ -76,7 +76,7 @@ const Cart: React.FC = () => {
         );
 
         if (selectedItems.length === 0) {
-            alert("Vui lòng chọn ít nhất một sản phẩm để thanh toán.");
+            alert("Please select at least one product to checkout.");
             return;
         }
 
@@ -94,23 +94,23 @@ const Cart: React.FC = () => {
                 }
             });
 
-            // Lưu selectedItems vào Zustand store
+            // Save selectedItems to Zustand store
             setSelectedItems(selectedItems);
             
 
-            // Điều hướng sang trang thanh toán
+            // Navigate to payment page
             const orderId = res.data.orderId;
             navigate(`/payment/${orderId}`);
         } catch (err) {
             console.error(err);
-            alert("Thanh toán thất bại.");
+            alert("Payment failed.");
         }
     };
 
     if (loading) {
         return (
             <div className="max-w-4xl mx-auto py-12 text-center">
-                <Loading message="Đang tải giỏ hàng..." />
+                <Loading message="Loading cart..." />
             </div>
         );
     }
@@ -120,7 +120,7 @@ const Cart: React.FC = () => {
             <div className="max-w-4xl mx-auto py-12 text-center">
                 <p className="text-red-500">{error}</p>
                 <Link to="/">
-                    <Button>Quay lại trang chủ</Button>
+                    <Button>Back to Home</Button>
                 </Link>
             </div>
         );
@@ -130,9 +130,9 @@ const Cart: React.FC = () => {
         return (
             <div className="max-w-4xl mx-auto py-12 text-center">
                 <ShoppingCart className="h-10 w-10 mx-auto text-gray-400 mb-4" />
-                <h2 className="text-xl font-semibold">Giỏ hàng của bạn trống</h2>
+                <h2 className="text-xl font-semibold">Your cart is empty</h2>
                 <Link to="/">
-                    <Button className="mt-4">Mua sắm ngay</Button>
+                    <Button className="mt-4">Start Shopping</Button>
                 </Link>
             </div>
         );
@@ -140,7 +140,7 @@ const Cart: React.FC = () => {
 
     return (
         <div className="max-w-4xl mx-auto py-8 px-4">
-            <h1 className="text-2xl font-bold mb-6">Giỏ hàng</h1>
+            <h1 className="text-2xl font-bold mb-6">Shopping Cart</h1>
             <div className="bg-white shadow rounded-lg">
                 <div className="divide-y divide-gray-200">
                     {cart.map((item) => (
@@ -159,7 +159,7 @@ const Cart: React.FC = () => {
                             <div className="ml-6 flex-1">
                                 <h3 className="text-lg font-medium">{item.product.title}</h3>
                                 <p className="text-sm text-gray-500">by {item.product.artist?.name || 'Unknown'}</p>
-                                <p className="text-sm font-semibold mt-1">${item.product.price.toLocaleString()}</p>
+                                <p className="text-sm font-semibold mt-1">{(item.product.price).toLocaleString()} VND</p>
                             </div>
                             <button
                                 onClick={() => removeFromCart(item.cartId)}
@@ -173,11 +173,11 @@ const Cart: React.FC = () => {
 
                 <div className="p-6 bg-gray-50">
                     <div className="flex justify-between items-center">
-                        <p className="text-lg font-medium">Tổng</p>
-                        <p className="text-xl font-bold">${total.toFixed(2)}</p>
+                        <p className="text-lg font-medium">Total</p>
+                        <p className="text-xl font-bold">{(total).toFixed(0)} VND</p>
                     </div>
                     <Button className="mt-4 w-full" onClick={handleCheckout}>
-                        Tiến hành thanh toán
+                        Proceed to Checkout
                     </Button>
                 </div>
             </div>

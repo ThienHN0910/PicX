@@ -80,7 +80,7 @@ function App() {
         if (!token) return;
         const connection = createNotificationConnection(token);
         connection.on('ReceiveNotification', (notification) => {
-            toast.info(notification.Message || notification.message || 'Bạn có thông báo mới!');
+            toast.info(notification.Message || notification.message || 'You have a new notification!');
         });
         connection.start().catch(() => {});
         return () => {

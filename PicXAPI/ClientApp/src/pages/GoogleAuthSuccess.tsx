@@ -36,5 +36,5 @@ export default function GoogleAuthSuccess() {
         // eslint-disable-next-line
     }, []);
 
-    return <div>Đang xác minh từ Google...</div>;
+    return <div>Verifying from Google...</div>;
 }

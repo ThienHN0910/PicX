@@ -45,7 +45,7 @@ const AdminWithdrawals = () => {
             });
             await fetchRequests();
         } catch (err) {
-            alert('Xử lý thất bại.');
+            alert('Processing failed.');
         } finally {
             setLoading(false);
         }
@@ -57,18 +57,18 @@ const AdminWithdrawals = () => {
 
     return (
         <div className="max-w-6xl mx-auto py-10 px-4">
-            <h1 className="text-2xl font-bold mb-6">Yêu cầu rút tiền đang chờ xử lý</h1>
+            <h1 className="text-2xl font-bold mb-6">Pending Withdrawal Requests</h1>
             <div className="overflow-x-auto">
                 <table className="min-w-full border">
                     <thead className="bg-gray-100">
                         <tr>
                             <th className="text-left p-3">User</th>
-                            <th className="text-left p-3">Vai trò</th>
-                            <th className="text-left p-3">Số tiền</th>
-                            <th className="text-left p-3">Thời gian</th>
-                            <th className="text-left p-3">Thông tin thanh toán</th>
-                            <th className="text-left p-3">Trạng thái</th>
-                            <th className="text-left p-3">Hành động</th>
+                            <th className="text-left p-3">Role</th>
+                            <th className="text-left p-3">Amount</th>
+                            <th className="text-left p-3">Time</th>
+                            <th className="text-left p-3">Payment Info</th>
+                            <th className="text-left p-3">Status</th>
+                            <th className="text-left p-3">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -76,7 +76,7 @@ const AdminWithdrawals = () => {
                             <tr key={req.requestId} className="border-b">
                                 <td className="p-3">{req.userName}</td>
                                 <td className="p-3 capitalize">{req.userRole}</td>
-                                <td className="p-3 text-red-600 font-medium">${req.amountRequested.toFixed(2)}</td>
+                                <td className="p-3 text-red-600 font-medium">{req.amountRequested.toFixed(0)}VND</td>
                                 <td className="p-3 text-sm text-gray-600">{new Date(req.requestedAt).toLocaleString()}</td>
                                 <td className="p-3 text-sm text-gray-700">
                                     <div><strong>Bank:</strong> {req.bankName} - {req.bankAccountNumber}</div>
@@ -89,14 +89,14 @@ const AdminWithdrawals = () => {
                                         onClick={() => handleAction(req.requestId, 'approve')}
                                         className="bg-green-600 hover:bg-green-700 text-white"
                                     >
-                                        <CheckCircle className="w-4 h-4 mr-1 inline" /> Duyệt
+                                        <CheckCircle className="w-4 h-4 mr-1 inline" /> Approve
                                     </Button>
                                     <Button
                                         disabled={loading || req.status !== 'pending'}
                                         onClick={() => handleAction(req.requestId, 'reject')}
                                         className="bg-red-600 hover:bg-red-700 text-white"
                                     >
-                                        <XCircle className="w-4 h-4 mr-1 inline" /> Từ chối
+                                        <XCircle className="w-4 h-4 mr-1 inline" /> Reject
                                     </Button>
                                 </td>
                             </tr>
@@ -104,7 +104,7 @@ const AdminWithdrawals = () => {
                         {requests.length === 0 && (
                             <tr>
                                 <td colSpan={7} className="p-4 text-center text-gray-500">
-                                    Không có yêu cầu nào đang chờ.
+                                    No pending requests.
                                 </td>
                             </tr>
                         )}

@@ -75,7 +75,7 @@ export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
                     },
                 });
                 setIsFavorited(true);
-                setFavoriteId(response.data.id); // Giả sử API trả về ID của favorite mới
+                setFavoriteId(response.data.id); // Assume API returns ID of new favorite
                 toast.success('Added to favorites');
             } else {
                 if (!favoriteId) {
