@@ -6,6 +6,10 @@ import { formatRelativeTime } from '../lib/utils';
 interface User {
     userId: number;
     name: string;
+    latestMessage?: {
+        message: string;
+        sentAt: string;
+    } | null;
 }
 
 interface ChatMessage {
@@ -114,14 +118,14 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
                 });
 
                 newConnection.invoke('GetCurrentUserId').catch((err) => {
-                    setError('Cannot get user information.');
+                    setError('Không thể lấy thông tin người dùng.');
                     console.error('GetCurrentUserId error:', err);
                 });
 
                 setError(null);
             })
             .catch((err) => {
-                setError('Cannot connect to chat. Please check login or try again.');
+                setError('Không thể kết nối chat. Vui lòng kiểm tra đăng nhập hoặc thử lại.');
                 console.error('SignalR connection error:', err);
             });
 
@@ -172,7 +176,7 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
             });
             setNewMessage('');
         } catch (err) {
-            setError('Cannot send message. Please try again.');
+            setError('Không thể gửi tin nhắn. Vui lòng thử lại.');
             console.error('Send message error:', err);
         }
     };
@@ -180,19 +184,6 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
     const handleBackToUserList = () => {
         setSelectedUserId(null);
     };
-
-    const getLatestMessage = (userId: number) => {
-        const messages = messagesMap[userId] || [];
-        if (messages.length === 0) return { message: '', sentAt: '' };
-        const latestMsg = messages.reduce((latest, current) =>
-            new Date(latest.sentAt) > new Date(current.sentAt) ? latest : current
-        );
-        return {
-            message: latestMsg.message,
-            sentAt: formatRelativeTime(latestMsg.sentAt)
-        };
-    };
-
 
     return (
         <div className="fixed top-3 h-[calc(100vh-32px)] w-96 left-24 z-50">
@@ -240,7 +231,14 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
                             ) : (
                                 <div className="space-y-2">
                                     {users.map((user) => {
-                                        const { message, sentAt } = getLatestMessage(user.userId);
+                                        let message = '';
+                                        let sentAt = '';
+                                        if (user.latestMessage) {
+                                            message = user.latestMessage.message;
+                                            sentAt = user.latestMessage.sentAt
+                                                ? formatRelativeTime(user.latestMessage.sentAt)
+                                                : '';
+                                        }
                                         return (
                                             <div
                                                 key={user.userId}
@@ -305,7 +303,7 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
                                         type="text"
                                         value={newMessage}
                                         onChange={(e) => setNewMessage(e.target.value)}
-                                        placeholder="Type a message..."
+                                        placeholder="Nhập tin nhắn..."
                                         className="flex-1 px-3 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                                     />
                                     <button
