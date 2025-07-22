@@ -22,7 +22,7 @@ const Wallet = () => {
             });
             setBalance(res.data.balance);
         } catch (err) {
-            toast.error('Không thể tải thông tin ví.');
+            toast.error('Cannot load wallet information.');
         }
     };
 
@@ -35,12 +35,12 @@ const Wallet = () => {
             });
             setRequests(res.data);
         } catch (err) {
-            toast.error('Không thể tải yêu cầu rút tiền.');
+            toast.error('Cannot load withdrawal requests.');
         }
     };
 
     const handleWithdraw = async () => {
-        if (amount <= 0) return toast.warning('Vui lòng nhập số tiền hợp lệ.');
+        if (amount <= 0) return toast.warning('Please enter a valid amount.');
         setLoading(true);
         try {
             await axios.post('/api/withdraw-request', { amount }, {
@@ -48,12 +48,12 @@ const Wallet = () => {
                     Authorization: `Bearer ${token}`,
                 }
             });
-            toast.success('Yêu cầu rút tiền đã được gửi.');
+            toast.success('Withdrawal request sent successfully.');
             setAmount(0);
             await fetchWallet();
             await fetchRequests();
         } catch (err: any) {
-            toast.error(err.response?.data?.message || 'Gửi yêu cầu thất bại.');
+            toast.error(err.response?.data?.message || 'Failed to send withdrawal request.');
         } finally {
             setLoading(false);
         }
@@ -67,43 +67,43 @@ const Wallet = () => {
     return (
         <div className="max-w-3xl mx-auto py-10 px-4">
             <div className="flex items-center justify-between mb-6">
-                <h1 className="text-2xl font-bold">Ví của bạn</h1>
+                <h1 className="text-2xl font-bold">Your Wallet</h1>
                 <Button onClick={() => navigate('/deposit')} variant="primary">
-                    Nạp tiền vào ví
+                    Deposit to Wallet
                 </Button>
             </div>
 
-            <p className="text-lg mb-4">Số dư hiện tại: <span className="font-semibold text-green-600">${balance.toFixed(2)}</span></p>
+            <p className="text-lg mb-4">Current Balance: <span className="font-semibold text-green-600">{balance.toLocaleString()} VND</span></p>
 
             <div className="bg-white p-4 rounded-lg shadow mb-6">
-                <h2 className="text-lg font-semibold mb-2">Yêu cầu rút tiền</h2>
+                <h2 className="text-lg font-semibold mb-2">Withdrawal Request</h2>
                 <div className="flex space-x-4">
                     <Input
                         type="number"
-                        placeholder="Nhập số tiền muốn rút"
+                        placeholder="Enter amount to withdraw"
                         value={amount}
                         onChange={(e) => setAmount(parseFloat(e.target.value))}
                     />
                     <Button onClick={handleWithdraw} disabled={loading}>
-                        {loading ? 'Đang gửi...' : 'Gửi yêu cầu'}
+                        {loading ? 'Sending...' : 'Send Request'}
                     </Button>
                 </div>
             </div>
 
             <div className="bg-white p-4 rounded-lg shadow">
-                <h2 className="text-lg font-semibold mb-4">Lịch sử yêu cầu rút tiền</h2>
+                <h2 className="text-lg font-semibold mb-4">Withdrawal Request History</h2>
                 {requests.length === 0 ? (
-                    <p className="text-gray-500">Chưa có yêu cầu nào.</p>
+                    <p className="text-gray-500">No requests yet.</p>
                 ) : (
                     <ul className="space-y-3">
                         {requests.map((req) => (
                             <li key={req.requestId} className="border p-3 rounded-lg">
                                 <div className="flex justify-between">
-                                    <span>Số tiền: ${req.amountRequested}</span>
+                                    <span>Amount: {req.amountRequested.toLocaleString()} VND</span>
                                     <span className="capitalize">{req.status}</span>
                                 </div>
                                 <div className="text-sm text-gray-500">
-                                    Gửi lúc: {new Date(req.requestedAt).toLocaleString()}
+                                    Sent at: {new Date(req.requestedAt).toLocaleString()}
                                 </div>
                             </li>
                         ))}

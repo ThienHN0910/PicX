@@ -65,7 +65,7 @@ interface CustomTooltipProps {
 
 /* ---------- Constants ---------- */
 const currencyFormat = (value: number): string =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+    new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
 
 const formatMonth = (monthString: string): string => {
     if (monthString === 'Unknown' || monthString === '-') return 'Unknown';

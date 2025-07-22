@@ -62,7 +62,10 @@ const Deposit: React.FC = () => {
             required
           />
         </div>
-          <p className="text-lg font-semibold mt-2">,000VND</p>
+        <div className="flex items-center space-x-1 text-lg font-semibold">
+          <span className="text-gray-600">.000</span>
+          <span className="text-gray-600">VND</span>
+        </div>
         <div className="w-full flex justify-end">
           <Button type="submit" className="w-[200px]" disabled={loading}>
             {loading ? "Processing..." : "Create Deposit"}

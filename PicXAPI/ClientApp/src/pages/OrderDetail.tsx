@@ -259,7 +259,7 @@ const OrderDetail = () => {
                                     <div className="text-right space-y-2">
                                         {/* Price Display */}
                                         <div className="px-4 py-2">
-                                            <p className="text-xl font-bold text-gray-800">${item.totalPrice.toFixed(2)}</p>
+                                            <p className="text-xl font-bold text-gray-800">{item.totalPrice.toLocaleString()} VND</p>
                                         </div>
 
                                         {/* Download Button */}
@@ -306,7 +306,7 @@ const OrderDetail = () => {
                             </div>
                         </div>
                         <div className="text-right">
-                            <p className="text-4xl font-bold">${order.totalAmount.toFixed(2)}</p>
+                            <p className="text-4xl font-bold">{order.totalAmount.toLocaleString()} VND</p>
                         </div>
                     </div>
                 </div>
