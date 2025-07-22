@@ -227,7 +227,7 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
                     {!selectedUserId && (
                         <div className="w-full p-3 overflow-y-auto scrollbar-hide">
                             {users.length === 0 ? (
-                                <p className="text-gray-500 text-sm">No users available</p>
+                                <p className="text-gray-500 text-sm">Không có người dùng nào khả dụng</p>
                             ) : (
                                 <div className="space-y-2">
                                     {users.map((user) => {
@@ -254,7 +254,7 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
                                                     </p>
                                                     <div className="flex justify-between">
                                                         <p className="text-xs text-gray-500">
-                                                            {message ? `${message}` : 'No new messages'}
+                                                            {message ? `${message}` : 'Chưa có tin nhắn mới'}
                                                         </p>
                                                         <span className="text-xs">{sentAt}</span>
                                                     </div>

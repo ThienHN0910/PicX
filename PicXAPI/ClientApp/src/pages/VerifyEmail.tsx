@@ -12,12 +12,12 @@ const VerifyEmail = () => {
     const email = localStorage.getItem('unverifiedEmail');
 
     const handleChange = (index: number, value: string) => {
-        if (!/^\d?$/.test(value)) return; // only numbers
+        if (!/^\d?$/.test(value)) return; // chỉ cho số
         const newOtp = [...otp];
         newOtp[index] = value;
         setOtp(newOtp);
 
-        // automatically move to next input
+        // tự động chuyển sang ô tiếp theo
         if (value && index < 5) {
             inputsRef.current[index + 1]?.focus();
         }
@@ -33,7 +33,7 @@ const VerifyEmail = () => {
         e.preventDefault();
         const fullOtp = otp.join('');
         if (fullOtp.length !== 6) {
-            setMessage('Please enter all 6 digits.');
+            setMessage('Vui lòng nhập đầy đủ 6 chữ số.');
             return;
         }
 
@@ -46,11 +46,11 @@ const VerifyEmail = () => {
                 otp: fullOtp
             });
 
-            setMessage('Verification successful!');
+            setMessage('Xác thực thành công!');
             localStorage.removeItem('unverifiedEmail');
             setTimeout(() => navigate('/login'), 1500);
         } catch {
-            setMessage('OTP is incorrect or has expired.');
+            setMessage('OTP không đúng hoặc đã hết hạn.');
         } finally {
             setIsSubmitting(false);
         }
@@ -61,16 +61,16 @@ const VerifyEmail = () => {
             await axios.post('/api/email/send-otp', email, {
                 headers: { 'Content-Type': 'text/plain' }
             });
-            setMessage('New OTP code has been sent to your email.');
+            setMessage('Mã OTP mới đã được gửi đến email.');
         } catch {
-            setMessage('Failed to resend OTP.');
+            setMessage('Gửi lại OTP thất bại.');
         }
     };
     return (
         <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-8 mt-10">
-            <h2 className="text-2xl font-bold text-center mb-4">Email Verification</h2>
+            <h2 className="text-2xl font-bold text-center mb-4">Xác thực Email</h2>
             <p className="text-center text-sm text-gray-600 mb-6">
-                Enter the OTP code sent to: <strong>{email}</strong>
+                Nhập mã OTP được gửi đến: <strong>{email}</strong>
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -95,7 +95,7 @@ const VerifyEmail = () => {
                     disabled={isSubmitting}
                     className="w-full py-2 text-white bg-[#10d194] hover:bg-[#0bb78d] rounded-md"
                 >
-                    {isSubmitting ? 'Verifying...' : 'Verify'}
+                    {isSubmitting ? 'Đang xác thực...' : 'Xác thực'}
                 </button>
             </form>
 
@@ -104,7 +104,7 @@ const VerifyEmail = () => {
                 className="mt-4 w-full text-sm text-[#10d194] hover:underline"
                 disabled={isSubmitting}
             >
-                Resend OTP Code
+                Gửi lại mã OTP
             </button>
 
             {message && <p className="mt-4 text-center text-sm text-red-500">{message}</p>}
