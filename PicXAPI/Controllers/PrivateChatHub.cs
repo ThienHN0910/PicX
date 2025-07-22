@@ -29,7 +29,16 @@ namespace PicXAPI
 
             var users = await _context.Users
                 .Where(u => u.UserId != userId.Value && u.IsActive == true)
-                .Select(u => new { u.UserId, Name = u.Name ?? $"User #{u.UserId}" })
+                .Select(u => new {
+                    u.UserId,
+                    Name = u.Name ?? $"User #{u.UserId}",
+                    LatestMessage = _context.Chats
+                        .Where(c => (c.SenderId == userId.Value && c.ReceiverId == u.UserId) ||
+                                    (c.SenderId == u.UserId && c.ReceiverId == userId.Value))
+                        .OrderByDescending(c => c.SentAt)
+                        .Select(c => new { c.Message, c.SentAt })
+                        .FirstOrDefault()
+                })
                 .ToListAsync();
             await Clients.Caller.SendAsync("ReceiveUserList", users);
 
@@ -61,7 +70,7 @@ namespace PicXAPI
                 ReceiverId = receiverId,
                 Message = message,
                 IsRead = false,
-                SentAt = DateTime.UtcNow
+                SentAt = DateTime.Now
             };
             _context.Chats.Add(chatMessage);
             await _context.SaveChangesAsync();
@@ -89,9 +98,9 @@ namespace PicXAPI
             {
                 UserId = receiverId,
                 Type = "Chat",
-                Title = "Tin nhắn mới",
-                Message = $"Bạn có tin nhắn mới từ {sender.Name}",
-                CreatedAt = DateTime.UtcNow,
+                Title = "New Message",
+                Message = $"You have new message from {sender.Name}",
+                CreatedAt = DateTime.Now,
                 IsRead = false
             };
             _context.Notifications.Add(notification);
