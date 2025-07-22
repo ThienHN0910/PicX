@@ -75,6 +75,7 @@ obj/
 
 # Tệp cấu hình nhạy cảm
 appsettings.json
+credentials.json
 appsettings.*.json
 web.config
 *.config
