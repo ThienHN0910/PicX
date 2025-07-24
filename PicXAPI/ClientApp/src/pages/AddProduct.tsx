@@ -36,7 +36,7 @@ export default function AddProduct() {
 
         const fetchCategories = async () => {
             try {
-                const response = await axios.get('/api/product/categories', {
+                const response = await axios.get(`${API_BASE_URL}/api/product/categories`, {
                     headers: { Authorization: `Bearer ${token}` },
                     withCredentials: true
                 });
@@ -50,7 +50,7 @@ export default function AddProduct() {
         };
         fetchCategories();
     }, []);
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
     // Function to get image dimensions
     const getImageDimensions = (file: File): Promise<{ width: number; height: number }> => {
@@ -126,7 +126,7 @@ export default function AddProduct() {
         }
 
         try {
-            const response = await axios.post('/api/product/add', formData, {
+            const response = await axios.post(`${API_BASE_URL}/api/product/add`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     'Authorization': `Bearer ${token}`,

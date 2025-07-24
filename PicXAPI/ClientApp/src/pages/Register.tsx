@@ -41,7 +41,7 @@ const validateEmail = (email: string): boolean => {
 
     return true;
 };
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const validatePassword = (password: string) => {
     const minLength = 8;
     const hasUpperCase = /[A-Z]/.test(password);
@@ -225,7 +225,7 @@ const Register: React.FC = () => {
         }
 
         try {
-            const response = await fetch("/api/auth/register", {
+            const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

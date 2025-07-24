@@ -31,7 +31,7 @@ type StatCardProps = {
     gradient: string;
     description?: string;
 };
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const COLORS = ['#3b82f6', '#1d4ed8', '#60a5fa', '#93c5fd', '#dbeafe', '#f59e0b', '#d97706', '#92400e'];
 
 const StatCard: React.FC<StatCardProps> = ({ title, value, icon: Icon, gradient, description }) => (
@@ -89,7 +89,7 @@ const ArtistFinanceReport: React.FC = () => {
     useEffect(() => {
         setLoading(true);
         axios
-            .get('/api/finance/artist-statistics', {
+            .get(`${API_BASE_URL}/api/finance/artist-statistics`, {
                 headers: { Authorization: `Bearer ${token}` },
             })
             .then((res) => setStats(res.data))

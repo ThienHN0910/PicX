@@ -5,7 +5,7 @@ import { useStore } from '../lib/store';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import axios from 'axios';
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const Payments = () => {
     const { orderId } = useParams<{ orderId: string }>();
     const navigate = useNavigate();
@@ -24,7 +24,7 @@ const Payments = () => {
         if (!orderId) return;
         try {
             setLoading(true);
-            await axios.post(`/api/orders/${orderId}/pay-wallet`, {}, {
+            await axios.post(`${API_BASE_URL}/api/orders/${orderId}/pay-wallet`, {}, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 }
@@ -32,7 +32,7 @@ const Payments = () => {
             const productIds = selectedItems.map(item => item.product.product_id);
             console.log("selectedItems:", selectedItems);
             console.log("productIds:", selectedItems.map(item => item.product?.product_id));
-            await axios.post('/api/cart/remove-multiple', productIds , {
+            await axios.post(`${API_BASE_URL}/api/cart/remove-multiple`, productIds , {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }

@@ -7,7 +7,7 @@ import Masonry from 'react-masonry-css';
 import { Product, Favorite } from '../lib/types';
 import axios from 'axios';
 import Loading from '../components/Loading';
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export default function Favorites() {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<number | undefined>();
@@ -54,7 +54,7 @@ export default function Favorites() {
             ProductId: product.product_id
         };
         try {
-            const res = await axios.post('/api/cart/add', cartDto, {
+            const res = await axios.post(`${API_BASE_URL}/api/cart/add`, cartDto, {
                 headers: {
                     'Content-Type': 'application/json',
                     ...getAuthHeader()
@@ -73,7 +73,7 @@ export default function Favorites() {
         }
 
         try {
-            await axios.delete(`/api/favorites/${favorite.favorite_id}`, {
+            await axios.delete(`${API_BASE_URL}/api/favorites/${favorite.favorite_id}`, {
                 data: { userId: user.id, favoriteId: favorite.product_id },
                 headers: {
                     'Content-Type': 'application/json',

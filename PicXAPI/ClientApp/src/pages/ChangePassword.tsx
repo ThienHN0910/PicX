@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const ChangePassword = () => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -34,7 +34,7 @@ const ChangePassword = () => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem('authToken');
-      const response = await axios.post('/api/auth/change-password', {
+      const response = await axios.post(`${API_BASE_URL}/api/auth/change-password`, {
         currentPassword,
         newPassword
       }, {

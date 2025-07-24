@@ -5,7 +5,7 @@ import axios from 'axios';
 import { Order } from '../lib/types'
 import { useNavigate } from 'react-router-dom';
 import type { OrderItem } from '../lib/types';
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const OrderDetail = () => {
     const { id } = useParams();
     const [order, setOrder] = useState<Order | null>(null);
@@ -20,7 +20,7 @@ const OrderDetail = () => {
     useEffect(() => {
         const fetchOrder = async () => {
             try {
-                const response = await axios.get(`/api/orders/${id}`, {
+                const response = await axios.get(`${API_BASE_URL}/api/orders/${id}`, {
                     headers: getAuthHeader()
                 });
                 // Map lại items để đảm bảo orderDetailId luôn đúng
@@ -57,7 +57,7 @@ const OrderDetail = () => {
     // Robust download handler for any file
     const handleDownload = async (fileId: string, fileName: string) => {
         try {
-            const response = await fetch(`/api/download/file/${fileId}`);
+            const response = await fetch(`${API_BASE_URL}/api/download/file/${fileId}`);
             const contentDisposition = response.headers.get('Content-Disposition');
             const contentType = response.headers.get('Content-Type');
             if (response.ok && contentDisposition && contentType) {
@@ -85,7 +85,7 @@ const OrderDetail = () => {
     const handleDownloadCert = async (orderDetailId: number, productTitle: string) => {
         try {
             const token = localStorage.getItem('authToken');
-            const response = await fetch(`/api/certificate/download/${orderDetailId}`, {
+            const response = await fetch(`${API_BASE_URL}/api/certificate/download/${orderDetailId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (response.ok) {

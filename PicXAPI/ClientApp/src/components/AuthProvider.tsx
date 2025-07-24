@@ -24,7 +24,7 @@ interface AuthContextType {
 interface AuthProviderProps {
     children: ReactNode;
 }
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = (): AuthContextType => {
@@ -53,7 +53,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             }
 
             try {
-                const response = await fetch('/api/auth/me', {
+                const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
                     method: 'GET',
                     headers: {
                         "Authorization": `Bearer ${token}`
@@ -80,7 +80,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const login = async (email: string, password: string): Promise<LoginResponse> => {
         try {
-            const response = await fetch('/api/auth/login', {
+            const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

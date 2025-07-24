@@ -13,7 +13,7 @@ interface CartItem {
     addedAt: string;
     product: Product;
 }
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const Cart: React.FC = () => {
     const [cart, setCart] = useState<CartItem[]>([]);
     const [loading, setLoading] = useState(true);
@@ -34,7 +34,7 @@ const Cart: React.FC = () => {
     const fetchCart = async () => {
         try {
             setLoading(true);
-            const response = await axios.get('/api/cart', {
+            const response = await axios.get(`${API_BASE_URL}/api/cart`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
@@ -51,7 +51,7 @@ const Cart: React.FC = () => {
 
     const removeFromCart = async (cartId: number) => {
         try {
-            await axios.delete(`/api/cart/${cartId}`, {
+            await axios.delete(`${API_BASE_URL}/api/cart/${cartId}`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
@@ -88,7 +88,7 @@ const Cart: React.FC = () => {
         };
 
         try {
-            const res = await axios.post('/api/orders', orderDto, {
+            const res = await axios.post(`${API_BASE_URL}/api/orders`, orderDto, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }

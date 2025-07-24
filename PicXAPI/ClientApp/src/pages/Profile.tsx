@@ -6,7 +6,7 @@ import { Button } from '../components/ui/Button';
 import { useStore } from '../lib/store';
 import { useNavigate } from 'react-router-dom';
 import { User as UserType } from '../types';
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const Profile = () => {
     const { user, setUser } = useStore();
     const [isEditing, setIsEditing] = useState(false);
@@ -40,7 +40,7 @@ const Profile = () => {
         const fetchProfile = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get('/api/user/profile', {
+                const response = await axios.get(`${API_BASE_URL}/api/user/profile`, {
                     headers: getAuthHeader()
                 });
                 setFormData({
@@ -95,7 +95,7 @@ const Profile = () => {
         setLoading(true);
         try {
             const token = localStorage.getItem('authToken');
-            const res = await axios.post('/api/auth/change-password', {
+            const res = await axios.post(`${API_BASE_URL}/api/auth/change-password`, {
                 currentPassword,
                 newPassword
             }, {
@@ -130,7 +130,7 @@ const Profile = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await axios.put('/api/user/profile', formData, {
+            await axios.put(`${API_BASE_URL}/api/user/profile`, formData, {
                 headers: getAuthHeader()
             });
             setIsEditing(false);
@@ -144,7 +144,7 @@ const Profile = () => {
         try {
             const newRole = 'artist';
             const updatedData = { ...formData, role: newRole as UserType['role'] };
-            await axios.put('/api/user/profile', updatedData, {
+            await axios.put(`${API_BASE_URL}/api/user/profile`, updatedData, {
                 headers: getAuthHeader()
             });
             setFormData(updatedData);

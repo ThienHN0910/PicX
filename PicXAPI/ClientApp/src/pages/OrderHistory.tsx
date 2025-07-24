@@ -6,7 +6,7 @@ import axios from 'axios';
 import { formatDate, sortOrders } from '../lib/utils'
 import { useNavigate } from 'react-router-dom';
 import { Order} from '../lib/types'
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const OrderHistory = () => {
     const [orders, setOrders] = useState<Order[]>([]);
     const [sortConfig, setSortConfig] = useState<{
@@ -25,7 +25,7 @@ const OrderHistory = () => {
     useEffect(() => {
         const fetchOrders = async () => {
             try {
-                const res = await axios.get('/api/orders', {
+                const res = await axios.get(`${API_BASE_URL}/api/orders`, {
                     headers: getAuthHeader()
                 });
                 setOrders(res.data.orders);

@@ -16,7 +16,7 @@ interface WithdrawalRequest {
     bankAccountNumber: string;
     momoNumber: string;
 }
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const AdminWithdrawals = () => {
     const [requests, setRequests] = useState<WithdrawalRequest[]>([]);
     const [loading, setLoading] = useState(false);
@@ -24,7 +24,7 @@ const AdminWithdrawals = () => {
 
     const fetchRequests = async () => {
         try {
-            const res = await axios.get('/api/admin/withdrawal-requests', {
+            const res = await axios.get(`${API_BASE_URL}/api/admin/withdrawal-requests`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 }
@@ -38,7 +38,7 @@ const AdminWithdrawals = () => {
     const handleAction = async (id: number, action: 'approve' | 'reject') => {
         setLoading(true);
         try {
-            await axios.post(`/api/admin/withdrawal-requests/${id}/${action}`, {}, {
+            await axios.post(`${API_BASE_URL}/api/admin/withdrawal-requests/${id}/${action}`, {}, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 }

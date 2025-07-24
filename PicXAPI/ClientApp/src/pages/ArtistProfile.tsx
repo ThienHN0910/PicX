@@ -13,7 +13,7 @@ interface ArtistProfileFormProps {
     onSave: (data: ArtistProfileData) => void;
     onCancel: () => void;
 }
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const ArtistProfileForm: React.FC<ArtistProfileFormProps> = ({ initialData, onSave, onCancel }) => {
     const [formData, setFormData] = useState<ArtistProfileData>(initialData);
 
@@ -149,7 +149,7 @@ const ArtistProfile: React.FC = () => {
         const fetchProfile = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get(`/api/profile/artist/${id}`, {
+                const response = await axios.get(`${API_BASE_URL}/api/profile/artist/${id}`, {
                     headers: getAuthHeader()
                 });
                 setProfileData(response.data);
@@ -169,7 +169,7 @@ const ArtistProfile: React.FC = () => {
 
     const handleSave = async (updatedData: ArtistProfileData) => {
         try {
-            await axios.put('/api/profile/artist', updatedData, {
+            await axios.put(`${API_BASE_URL}/api/profile/artist`, updatedData, {
                 headers: getAuthHeader()
             });
             setProfileData(updatedData);

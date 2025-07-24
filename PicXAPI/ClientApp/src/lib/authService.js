@@ -3,6 +3,7 @@
     getToken() {
         return localStorage.getItem("authToken");
     },
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
     // Kiểm tra xem user có đang đăng nhập không
     async checkAuth() {
@@ -10,7 +11,7 @@
         if (!token) return null;
 
         try {
-            const response = await fetch('/api/auth/me', {
+            const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,

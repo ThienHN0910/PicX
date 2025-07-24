@@ -134,7 +134,7 @@ export default function Home() {
             ProductId: product.product_id
         };
         try {
-            const res = await axios.post('/api/cart/add', cartDto, {
+            const res = await axios.post(`${API_BASE_URL}/api/cart/add`, cartDto, {
                 headers: {
                     'Content-Type': 'application/json',
                     ...getAuthHeader()
@@ -159,7 +159,7 @@ export default function Home() {
         };
 
         try {
-            const res = await axios.post('/api/favorites', favoriteDto, {
+            const res = await axios.post(`${API_BASE_URL}/api/favorites`, favoriteDto, {
                 headers: {
                     'Content-Type': 'application/json',
                     ...getAuthHeader()

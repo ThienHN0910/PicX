@@ -22,7 +22,7 @@ interface ProductForm {
 interface Category {
     name: string;
 }
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export default function EditProduct() {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -47,13 +47,13 @@ export default function EditProduct() {
         const fetchData = async () => {
             try {
                 // Fetch categories
-                const categoriesResponse = await axios.get('/api/product/categories', {
+                const categoriesResponse = await axios.get(`${API_BASE_URL}/api/product/categories`, {
                     headers: token ? { Authorization: `Bearer ${token}` } : undefined
                 });
                 setCategories(categoriesResponse.data);
 
                 // Fetch product
-                const productResponse = await axios.get(`/api/product/${id}`, {
+                const productResponse = await axios.get(`${API_BASE_URL}/api/product/${id}`, {
                     headers: token ? { Authorization: `Bearer ${token}` } : undefined
                 });
                 const product = productResponse.data;
@@ -74,7 +74,7 @@ export default function EditProduct() {
                 setExistingImageId(product.imageFileId);
                 const additionalImageIds = product.additionalImages ? JSON.parse(product.additionalImages) : [];
                 setCurrentAdditionalImages(
-                    additionalImageIds.map((id: string) => `/api/product/image/${id}`)
+                    additionalImageIds.map((id: string) => `${API_BASE_URL}/api/product/image/${id}`)
                 );
                 setExistingAdditionalImageIds(additionalImageIds);
 
@@ -127,7 +127,7 @@ export default function EditProduct() {
                 });
             }
 
-            await axios.put(`/api/product/edit/${id}`, formData, {
+            await axios.put(`${API_BASE_URL}/api/product/edit/${id}`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     ...(token ? { Authorization: `Bearer ${token}` } : {})

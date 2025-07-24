@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 interface ArtistProductsProps {
     artistId: number;
 }
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export const ArtistProducts: React.FC<ArtistProductsProps> = ({ artistId }) => {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -18,10 +18,10 @@ export const ArtistProducts: React.FC<ArtistProductsProps> = ({ artistId }) => {
         const fetchArtistProducts = async () => {
             setLoading(true);
             try {
-                const response = await axios.get(`/api/product/artist/${artistId}`);
+                const response = await axios.get(`${API_BASE_URL}/api/product/artist/${artistId}`);
                 const allProducts = response.data.products.map((p: any) => ({
                     ...p,
-                    image_url: p.imageFileId ? `/api/product/image/${p.imageFileId}` : undefined
+                    image_url: p.imageFileId ? `${API_BASE_URL}/api/product/image/${p.imageFileId}` : undefined
                 }));
 
                 const shuffled = allProducts.sort(() => 0.5 - Math.random());

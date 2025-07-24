@@ -11,7 +11,7 @@ interface ProductCardProps {
     onLike?: () => void;
     onAddToCart?: () => void;
 }
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
     const navigate = useNavigate();
     const { isAuthenticated, user } = useAuth(); 
@@ -29,7 +29,7 @@ export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
         const checkFavoriteStatus = async () => {
             if (!isAuthenticated || !user?.id || !product) return;
             try {
-                const response = await axios.get(`/api/favorites/user/${user.id}`, {
+                const response = await axios.get(`${API_BASE_URL}/api/favorites/user/${user.id}`, {
                     headers: {
                         'Content-Type': 'application/json',
                         ...getAuthHeader(),
@@ -68,7 +68,7 @@ export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
                     userId: user.id,
                     productId: product.product_id,
                 };
-                const response = await axios.post('/api/favorites', favoriteDto, {
+                const response = await axios.post(`${API_BASE_URL}/api/favorites`, favoriteDto, {
                     headers: {
                         'Content-Type': 'application/json',
                         ...getAuthHeader(),
@@ -82,7 +82,7 @@ export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
                     toast.error('Product is not favorited.');
                     return;
                 }
-                await axios.delete(`/api/favorites/${favoriteId}`, {
+                await axios.delete(`${API_BASE_URL}/api/favorites/${favoriteId}`, {
                     headers: {
                         'Content-Type': 'application/json',
                         ...getAuthHeader(),

@@ -43,7 +43,7 @@ interface Product {
         canEdit: boolean;
     };
 }
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const ArtDetail = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
@@ -70,7 +70,7 @@ const ArtDetail = () => {
     useEffect(() => {
         const fetchProduct = async () => {
             try {
-                const res = await axios.get(`/api/product/${id}`, {
+                const res = await axios.get(`${API_BASE_URL}/api/product/${id}`, {
                     headers: { Authorization: `Bearer ${token}` },
                     withCredentials: true,
                 });
@@ -88,7 +88,7 @@ const ArtDetail = () => {
 
     useEffect(() => {
         if (!id) return;
-        axios.get(`/api/comments/product/${id}`, { withCredentials: true })
+        axios.get(`${API_BASE_URL}/api/comments/product/${id}`, { withCredentials: true })
             .then(res => setComments(res.data))
             .catch(() => setComments([]));
     }, [id]);
@@ -97,7 +97,7 @@ const ArtDetail = () => {
         const checkFavoriteStatus = async () => {
             if (!isAuthenticated || !user?.id || !product) return;
             try {
-                const response = await axios.get(`/api/favorites/user/${user.id}`, {
+                const response = await axios.get(`${API_BASE_URL}/api/favorites/user/${user.id}`, {
                     headers: {
                         'Content-Type': 'application/json',
                         ...getAuthHeader(),
@@ -121,7 +121,7 @@ const ArtDetail = () => {
         if (!commentInput.trim()) return;
         setCommentLoading(true);
         try {
-            await axios.post(`/api/comments/product/${id}`, commentInput, {
+            await axios.post(`${API_BASE_URL}/api/comments/product/${id}`, commentInput, {
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
@@ -129,7 +129,7 @@ const ArtDetail = () => {
                 withCredentials: true,
             });
             setCommentInput('');
-            const updated = await axios.get(`/api/comments/product/${id}`, { withCredentials: true });
+            const updated = await axios.get(`${API_BASE_URL}/api/comments/product/${id}`, { withCredentials: true });
             setComments(updated.data);
         } catch (err) {
             setCommentError('Failed to add comment.');
@@ -145,7 +145,7 @@ const ArtDetail = () => {
         setReportSuccess('');
         setReportLoading(true);
         try {
-            await axios.post('/api/report', {
+            await axios.post(`${API_BASE_URL}/api/report`, {
                 productId: product?.productId,
                 content: reportContent,
             }, {
@@ -182,7 +182,7 @@ const ArtDetail = () => {
                     userId: user.id,
                     productId: product.productId,
                 };
-                const response = await axios.post('/api/favorites', favoriteDto, {
+                const response = await axios.post(`${API_BASE_URL}/api/favorites`, favoriteDto, {
                     headers: {
                         'Content-Type': 'application/json',
                         ...getAuthHeader(),
@@ -200,7 +200,7 @@ const ArtDetail = () => {
                     toast.error('Product is not favorited.');
                     return;
                 }
-                await axios.delete(`/api/favorites/${favoriteId}`, {
+                await axios.delete(`${API_BASE_URL}/api/favorites/${favoriteId}`, {
                     headers: {
                         'Content-Type': 'application/json',
                         ...getAuthHeader(),
@@ -230,7 +230,7 @@ const ArtDetail = () => {
             ProductId: product.productId
         };
         try {
-            await axios.post('/api/cart/add', cartDto, {
+            await axios.post(`${API_BASE_URL}/api/cart/add`, cartDto, {
                 headers: {
                     'Content-Type': 'application/json',
                     ...getAuthHeader()
@@ -253,7 +253,7 @@ const ArtDetail = () => {
         setDeleteError('');
         try {
             // Gọi API lock sản phẩm (set isAvailable = 0)
-            await axios.put(`/api/product/set-unavailable/${id}`, {}, {
+            await axios.put(`${API_BASE_URL}/api/product/set-unavailable/${id}`, {}, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             alert('Product locked successfully!');
@@ -277,7 +277,7 @@ const ArtDetail = () => {
     if (isLoading) return <div className="flex justify-center py-12"><Loading /></div>;
     if (!product) return <div className="text-center text-red-500 py-12">Artwork not found</div>;
 
-    const imageUrl = `/api/product/image/${product.imageFileId}`;
+    const imageUrl = `${API_BASE_URL}/api/product/image/${product.imageFileId}`;
     const tags = product.tags ? product.tags.split(',').map(t => t.trim()) : [];
 
     return (

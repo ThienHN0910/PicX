@@ -11,7 +11,7 @@ export default function Topbar() {
     const dropdownRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
     const location = useLocation();
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 
     // Đóng dropdown khi click ra ngoài
@@ -29,7 +29,7 @@ export default function Topbar() {
     const handleLogout = async () => {
         try {
             const token = localStorage.getItem('authToken');
-            await fetch('/api/auth/logout', {
+            await fetch(`${API_BASE_URL}/api/auth/logout`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,

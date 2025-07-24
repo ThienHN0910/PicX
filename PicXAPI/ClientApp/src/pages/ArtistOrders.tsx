@@ -16,12 +16,12 @@ export default function ArtistOrders() {
     }>({ key: null, direction: 'asc' });
     const [searchQuery, setSearchQuery] = useState<string>('');
     const navigate = useNavigate();
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
     useEffect(() => {
         const fetchOrders = async () => {
             try {
-                const response = await axios.get('/api/orders/artist', {
-                    headers: getAuthHeader(), 
+                const response = await axios.get(`${API_BASE_URL}/api/orders/artist`, {
+                    headers: getAuthHeader(),
                 });
                 setOrders(response.data.orders || []);
             } catch (err) {
