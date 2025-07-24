@@ -70,7 +70,7 @@ export const ArtistProducts: React.FC<ArtistProductsProps> = ({ artistId }) => {
                                 alt={product.title || 'Product image'}
                                 className="w-full h-auto object-cover rounded-lg shadow-md transition-opacity duration-300 group-hover:opacity-80"
                                 onError={(e) => {
-                                    e.currentTarget.src = '../resource/img/placeholder-image.png';
+                                    e.currentTarget.src = '/img/placeholder-image.png';
                                 }}
                             />
                         ) : (

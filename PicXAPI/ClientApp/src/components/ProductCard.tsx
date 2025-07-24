@@ -120,7 +120,7 @@ export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
                     className="w-full h-auto object-cover rounded-lg shadow-md transition-opacity duration-300 group-hover:opacity-80"
                     onClick={handleImageClick}
                     onError={(e) => {
-                        e.currentTarget.src = '../resource/img/placeholder-image.png';
+                        e.currentTarget.src = '/img/placeholder-image.png';
                     }}
                 />
             ) : (

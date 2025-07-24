@@ -152,7 +152,7 @@ const AdminReportList: React.FC = () => {
                                             style={{ aspectRatio: '1 / 1' }}
                                             onClick={() => handleProductClick(r.productId)}
                                             onError={e => {
-                                                (e.currentTarget as HTMLImageElement).src = '/resource/img/placeholder-image.png';
+                                                (e.currentTarget as HTMLImageElement).src = '/img/placeholder-image.png';
                                             }}
                                         />
                                     ) : (
