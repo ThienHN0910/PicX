@@ -233,7 +233,7 @@ const OrderDetail = () => {
                                                 alt={item.productTitle}
                                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 cursor-pointer"
                                                 onClick={() => handleProductClick(item.productId)}
-                                                onError={(e) => e.currentTarget.src = '/placeholder-image.jpg'}
+                                                onError={(e) => e.currentTarget.src = '/img/placeholder-image.jpg'}
                                             />
                                         </div>
                                     </div>

@@ -285,7 +285,7 @@ const ArtDetail = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Images */}
                 <div className="space-y-4">
-                    <img src={imageUrl} onError={(e) => e.currentTarget.src = '/placeholder-image.jpg'} alt={product.title} className="rounded-lg w-full h-auto object-cover" />
+                    <img src={imageUrl} onError={(e) => e.currentTarget.src = '/img/placeholder-image.png'} alt={product.title} className="rounded-lg w-full h-auto object-cover" />
                     <div className="grid grid-cols-1 ">
                         <h2 className="text-lg font-semibold">More from {product.artist.name}</h2>
                         <ArtistProducts artistId={product.artist.id} />
