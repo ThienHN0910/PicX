@@ -21,10 +21,10 @@ namespace PicXAPI.Services
             using (var image = await Image.LoadAsync(imageStream))
             {
                 FontFamily fontFamily;
-                if (!SystemFonts.TryGet("Arial", out fontFamily))
-                {
-                    fontFamily = SystemFonts.Families.First(); 
-                }
+                string baseDirectory = AppContext.BaseDirectory;
+
+                // Đường dẫn đầy đủ đến file font của bạn
+                string fontPath = System.IO.Path.Combine(baseDirectory, "Fonts", "04B_19.TTF");
 
                 var fontSize = Math.Max(image.Width, image.Height) / 15f;
                 var font = fontFamily.CreateFont(fontSize, FontStyle.Regular);

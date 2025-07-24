@@ -34,5 +34,9 @@
   <ItemGroup>
     <Folder Include="ClientApp\src\utils\" />
   </ItemGroup>
-
+  <ItemGroup>
+    <None Update="Fonts\04B_19.TTF">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+</ItemGroup>
 </Project>
