@@ -1,4 +1,5 @@
-﻿import { useEffect, useState } from 'react';
+﻿import React from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import {
     ResponsiveContainer,
@@ -7,17 +8,29 @@ import {
     XAxis,
     YAxis,
     Tooltip,
-    BarChart,
-    Bar,
-    PieChart,
-    Pie,
-    Cell,
-    CartesianGrid,
-    Legend,
     TooltipProps,
 } from 'recharts';
 import { DollarSign, TrendingUp, Star, BarChart2 } from 'lucide-react';
 import Loading from '../components/Loading';
+
+// Add currencyFormat function
+const currencyFormat = (value: number): string =>
+    new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+
+// Add this function for MM/YYYY
+const formatMonthDMY = (monthString: string): string => {
+    const [year, month] = monthString.split("-");
+    if (!year || !month) return monthString;
+    return `${month.padStart(2, '0')}/${year}`;
+};
+
+// Add this function for Month YYYY
+const formatMonthText = (monthString: string): string => {
+    const [year, month] = monthString.split("-");
+    if (!year || !month) return monthString;
+    const date = new Date(Number(year), Number(month) - 1);
+    return date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+};
 
 type FinanceData = {
     month: string;
@@ -32,8 +45,6 @@ type StatCardProps = {
     description?: string;
 };
 
-const COLORS = ['#3b82f6', '#1d4ed8', '#60a5fa', '#93c5fd', '#dbeafe', '#f59e0b', '#d97706', '#92400e'];
-
 const StatCard: React.FC<StatCardProps> = ({ title, value, icon: Icon, gradient, description }) => (
     <div className={`relative overflow-hidden bg-gradient-to-br ${gradient} rounded-xl p-6 text-white shadow-lg transition-transform hover:scale-105`}>
         <div className="relative z-10 flex flex-col gap-2">
@@ -47,39 +58,6 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon: Icon, gradient,
         <div className="absolute top-0 right-0 w-32 h-32 bg-white bg-opacity-10 rounded-full -translate-y-12 translate-x-12"></div>
     </div>
 );
-
-type PieLabelRenderProps = {
-    cx: number;
-    cy: number;
-    midAngle: number;
-    innerRadius: number;
-    outerRadius: number;
-    percent: number;
-    index: number;
-};
-
-const renderPieLabel = (props: PieLabelRenderProps) => {
-    const { cx, cy, midAngle, innerRadius, outerRadius, percent } = props;
-
-    const RADIAN = Math.PI / 180;
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-    return (
-        <text
-            x={x}
-            y={y}
-            fill="white"
-            textAnchor="middle"
-            dominantBaseline="central"
-            fontSize={14}
-            fontWeight={600}
-        >
-            {`${(percent * 100).toFixed(1)}%`}
-        </text>
-    );
-};
 
 const ArtistFinanceReport: React.FC = () => {
     const [stats, setStats] = useState<FinanceData[]>([]);
@@ -113,53 +91,6 @@ const ArtistFinanceReport: React.FC = () => {
     const best = stats.length > 0 ? stats.reduce((max, s) => (s.income > max.income ? s : max), stats[0]) : null;
     const trend = prev && latest && prev.income !== 0 ? +(((latest.income - prev.income) / prev.income) * 100).toFixed(1) : null;
 
-    const pieData = stats.map((s) => ({
-        name: s.month,
-        value: s.income,
-        totalValue: totalEarnings,
-    }));
-
-    const renderCustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
-        if (active && payload && payload.length) {
-            return (
-                <div className="bg-white p-3 rounded-lg shadow-lg border text-gray-800 text-sm">
-                    <div className="space-y-1">
-                        <div>
-                            <strong>Period:</strong> {label}
-                        </div>
-                        <div>
-                            <strong>Earnings:</strong> {payload[0].value?.toLocaleString()} VND
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-        return null;
-    };
-
-    const renderCustomPieTooltip = ({ active, payload }: TooltipProps<number, string>) => {
-        if (active && payload && payload.length) {
-            const data = payload[0];
-            return (
-                <div className="bg-white p-3 rounded-lg shadow-lg border text-gray-800 text-sm">
-                    <div className="space-y-1">
-                        <div>
-                            <strong>Period:</strong> {data.name}
-                        </div>
-                        <div>
-                            <strong>Earnings:</strong> {data.value?.toLocaleString()} VND
-                        </div>
-                        <div>
-                            <strong>Percentage:</strong>{' '}
-                            {((data.value && data.payload?.totalValue) ? ((data.value / data.payload.totalValue) * 100).toFixed(1) : '0')}%
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-        return null;
-    };
-
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
             <div className="max-w-7xl mx-auto space-y-8">
@@ -173,135 +104,117 @@ const ArtistFinanceReport: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
                     <StatCard
                         title="Total Earnings"
-                        value={`${totalEarnings.toLocaleString()} VND`}
+                        value={currencyFormat(totalEarnings)}
                         icon={DollarSign}
-                        gradient="from-blue-500 to-blue-600"
+                        gradient="from-[rgb(66,230,149)] to-[rgb(59,178,184)]"
                         description="All-time total revenue"
                     />
                     <StatCard
                         title="Latest Month"
-                        value={latest ? `${latest.income.toLocaleString()} VND` : 'N/A'}
+                        value={latest ? currencyFormat(latest.income) : 'N/A'}
                         icon={BarChart2}
-                        gradient="from-blue-600 to-blue-700"
-                        description={latest ? `Earnings for ${latest.month}.` : 'N/A'}
+                        gradient="from-[rgb(66,230,149)] to-[rgb(59,178,184)]"
+                        description={latest ? `Earnings for ${formatMonthText(latest.month)}.` : 'N/A'}
                     />
                     <StatCard
                         title="Best Month"
-                        value={best ? `${best.income.toLocaleString()} VND` : 'N/A'}
+                        value={best ? currencyFormat(best.income) : 'N/A'}
                         icon={Star}
-                        gradient="from-amber-500 to-amber-600"
-                        description={best ? `Highest-earning month: ${best.month}` : 'N/A'}
+                        gradient="from-[rgb(66,230,149)] to-[rgb(59,178,184)]"
+                        description={best ? `Highest-earning month: ${formatMonthText(best.month)}` : 'N/A'}
                     />
                     <StatCard
                         title="Trend"
                         value={trend === null ? 'N/A' : `${trend > 0 ? '+' : ''}${trend}%`}
                         icon={TrendingUp}
-                        gradient="from-emerald-500 to-emerald-600"
+                        gradient="from-[rgb(66,230,149)] to-[rgb(59,178,184)]"
                         description="Month-over-month change."
                     />
                 </div>
 
                 {/* Charts Section */}
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                    <div className="xl:col-span-2 bg-white rounded-xl shadow-lg p-6">
-                        <div className="flex items-center mb-4">
-                            <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-                                <TrendingUp className="h-5 w-5 text-blue-600" />
+                <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                    {/* Earnings Trend (Area Chart) - 3/4 width */}
+                    <div className="bg-white rounded-xl shadow-lg p-6 xl:col-span-3 flex flex-col justify-center">
+                        <div className="mb-4 flex justify-center">
+                            <h2 className="text-xl font-semibold text-gray-800 text-center">
                                 Earnings Trend
                             </h2>
                         </div>
-                        <div className="h-80">
+                        <div className="h-72 flex items-center">
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart
                                     data={stats}
-                                    margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                                    margin={{ top: 20, right: 20, left: 20, bottom: 20 }}
                                 >
                                     <defs>
                                         <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
-                                            <stop offset="95%" stopColor="#dbeafe" stopOpacity={0.1} />
+                                            <stop offset="5%" stopColor="#42e695" stopOpacity={0.8} />
+                                            <stop offset="95%" stopColor="#3bb2b8" stopOpacity={0.1} />
                                         </linearGradient>
                                     </defs>
-                                    <XAxis dataKey="month" />
-                                    <YAxis />
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                                    <Tooltip content={renderCustomTooltip} />
+                                    <XAxis
+                                        dataKey="month"
+                                        tickFormatter={formatMonthDMY}
+                                        interval={0}
+                                        tick={{ dy: 12 }}
+                                    />
+                                    <YAxis tickFormatter={currencyFormat} />
+                                    <Tooltip content={({ active, payload, label }: TooltipProps<number, string>) => {
+                                        if (active && payload && payload.length) {
+                                            return (
+                                                <div className="bg-white p-3 rounded-lg shadow-lg border text-gray-800 text-sm">
+                                                    <div className="space-y-1">
+                                                        <div>
+                                                            <strong>Period:</strong> {formatMonthDMY(label)}
+                                                        </div>
+                                                        <div>
+                                                            <strong>Earnings:</strong> {currencyFormat(payload[0].value as number)}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        }
+                                        return null;
+                                    }} />
                                     <Area
                                         type="monotone"
                                         dataKey="income"
-                                        stroke="#3b82f6"
+                                        stroke="#42e695"
                                         fill="url(#colorIncome)"
                                         strokeWidth={3}
-                                        dot={{ r: 4, fill: "#3b82f6" }}
+                                        dot={{ r: 4, fill: "#3bb2b8" }}
                                     />
                                 </AreaChart>
                             </ResponsiveContainer>
                         </div>
                     </div>
 
-                    {/* Pie Chart */}
-                    <div className="bg-white rounded-xl shadow-lg p-6">
-                        <div className="text-center mb-4">
-                            <h2 className="text-xl font-semibold text-gray-800">
-                                Monthly Distribution
+                    {/* Monthly Earnings Table - 1/4 width */}
+                    <div className="bg-white rounded-xl shadow-lg p-6 xl:col-span-1 flex flex-col justify-center">
+                        <div className="mb-4 flex justify-center">
+                            <h2 className="text-xl font-semibold text-gray-800 text-center">
+                                Monthly Earnings
                             </h2>
                         </div>
-                        <div className="h-80">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie
-                                        data={pieData}
-                                        dataKey="value"
-                                        nameKey="name"
-                                        cx="50%"
-                                        cy="45%"
-                                        outerRadius={100}
-                                        innerRadius={60}
-                                        label={renderPieLabel}
-                                        labelLine={false}
-                                    >
-                                        {pieData.map((_, index) => (
-                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip content={renderCustomPieTooltip} />
-                                    <Legend
-                                        layout="horizontal"
-                                        verticalAlign="bottom"
-                                        align="center"
-                                        iconType="circle"
-                                        wrapperStyle={{ paddingTop: '20px' }}
-                                    />
-                                </PieChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Bar Chart */}
-                <div className="bg-white rounded-xl shadow-lg p-6">
-                    <div className="text-center mb-4">
-                        <h2 className="text-xl font-semibold text-gray-800">
-                            Monthly Distribution
-                        </h2>
-                    </div>
-                    <div className="h-64">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart
-                                data={stats}
-                                margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-                            >
-                                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                                <XAxis dataKey="month" />
-                                <YAxis />
-                                <Tooltip content={renderCustomTooltip} />
-                                <Bar dataKey="income" radius={[6, 6, 0, 0]}>
-                                    {stats.map((_, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full text-center">
+                                <thead>
+                                    <tr>
+                                        <th className="px-4 py-2">Month</th>
+                                        <th className="px-4 py-2">Earnings</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {stats.map((s, idx) => (
+                                        <tr key={idx}>
+                                            <td className="px-4 py-2">{formatMonthDMY(s.month)}</td>
+                                            <td className="px-4 py-2">{currencyFormat(s.income)}</td>
+                                        </tr>
                                     ))}
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
