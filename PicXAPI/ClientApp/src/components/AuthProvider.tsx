@@ -1,12 +1,6 @@
 ﻿import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useStore } from '../lib/store';
-
-interface User {
-    id: string;
-    email: string;
-    name: string;
-    role: string;
-}
+import { User } from '../lib/types'; // Assuming you have a User type defined in your types folder
 
 interface LoginResponse {
     success: boolean;

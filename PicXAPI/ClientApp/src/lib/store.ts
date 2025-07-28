@@ -51,11 +51,11 @@ export const useStore = create<AppState>((set, get) => ({
     setCategories: (categories) => set({ categories }),
     addToCart: (product) =>
         set((state) => {
-            const existingItem = state.cart.find((item) => item.product.product_id === product.product_id);
+            const existingItem = state.cart.find((item) => item.product.productId === product.productId);
             if (existingItem) {
                 return {
                     cart: state.cart.map((item) =>
-                        item.product.product_id === product.product_id
+                        item.product.productId === product.productId
                             ? { ...item }
                             : item
                     ),
@@ -65,7 +65,7 @@ export const useStore = create<AppState>((set, get) => ({
         }),
     removeFromCart: (productId) =>
         set((state) => ({
-            cart: state.cart.filter((item) => item.product.product_id !== productId),
+            cart: state.cart.filter((item) => item.product.productId !== productId),
         })),
     clearCart: () => set({ cart: [] }),
     fetchProducts: async (initial = false) => {
