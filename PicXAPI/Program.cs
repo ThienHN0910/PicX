@@ -84,16 +84,13 @@ namespace PicXAPI
                 });
 
             builder.Services.AddCors(options =>
-            {
-                options.AddPolicy("AllowReact", policy =>
-                    policy
-                        .WithOrigins(
-                            "https://picx-client.onrender.com"
-                        )
-                        .AllowAnyHeader()
-                        .AllowAnyMethod()
-                        .AllowCredentials());
-            });
+ {
+     options.AddPolicy("AllowReact", policy =>
+         policy
+             .AllowAnyOrigin() // Cho phép tất cả các origin
+             .AllowAnyHeader() // Cho phép tất cả header
+             .AllowAnyMethod()); // Cho phép tất cả method
+ });
 
             builder.Services.AddControllers().AddNewtonsoftJson();
 
