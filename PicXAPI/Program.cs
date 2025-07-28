@@ -88,7 +88,7 @@ namespace PicXAPI
                 options.AddPolicy("AllowReact", policy =>
                     policy
                         .WithOrigins(
-                            "https://picx-client.onrender.com", "https://pay.payos.vn"
+                            "https://picx-client.onrender.com"
                         )
                         .AllowAnyHeader()
                         .AllowAnyMethod()

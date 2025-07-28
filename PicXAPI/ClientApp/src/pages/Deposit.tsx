@@ -77,12 +77,17 @@ const Deposit: React.FC = () => {
       </form>
 
       {paymentUrl && (
-          <iframe
-            src={paymentUrl}
-            title="PayOS Payment"
-            className="w-full h-[700px] mx-auto rounded-lg border"
-            allow="payment"
-          />
+         <div className="mt-8 text-center">
+          <p className="mb-2">Scan QR code or click link to pay</p>
+          <a
+            href={paymentUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 hover:underline"
+          >
+            Click here to pay
+          </a>
+          </div>
       )}
     </>
   );

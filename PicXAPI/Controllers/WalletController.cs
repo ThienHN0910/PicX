@@ -59,8 +59,8 @@ namespace PicXAPI.Controllers
                 amount: (int)(dto.Amount * 1000),
                 description: $"Nạp tiền ví #{userId}",
                 items: items,
-                cancelUrl: "https://picxapi.onrender.com/api/wallet/deposit-callback",
-                returnUrl: "https://picxapi.onrender.com/api/wallet/deposit-callback"
+                cancelUrl: "https://picx-client.onrender.com/deposit?status=cancel",
+                returnUrl: "https://picx-client.onrender.com/deposit?status=paid"
             );
 
 
@@ -93,21 +93,6 @@ namespace PicXAPI.Controllers
                 transactionId = transaction.TransactionId
             });
         }
-
-        [HttpGet("deposit-callback")]
-        [AllowAnonymous]
-        public IActionResult DepositReturn([FromQuery] string status, [FromQuery] long orderCode)
-        {
-            if (status == "PAID")
-            {
-                return Redirect("https://picx-client.onrender.com");
-            }
-            else
-            {
-                return Redirect("https://picx-client.onrender.com?error=payment_failed");
-            }
-        }
-
 
         [HttpPost("deposit-callback")]
         [AllowAnonymous]
