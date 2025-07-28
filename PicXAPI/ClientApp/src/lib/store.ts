@@ -146,7 +146,7 @@ export const useStore = create<AppState>((set, get) => ({
                 dimensions: item.dimensions,
                 is_available: item.isAvailable,
                 tags: item.tags || [],
-                image_url: item.imageUrl ? `${API_BASE_URL}/api/product/image/${item.imageUrl}` : undefined,
+                image_url: item.imageUrl ? item.imageUrl : undefined,
                 artist: {
                     id: item.artist.id,
                     name: item.artist.name,
