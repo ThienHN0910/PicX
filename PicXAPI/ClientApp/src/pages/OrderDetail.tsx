@@ -229,7 +229,7 @@ const OrderDetail = () => {
                                     <div className="relative">
                                         <div className="w-24 h-24 rounded-2xl overflow-hidden shadow-lg ring-4 ring-white">
                                             <img
-                                                src={`${item.imageUrl}`}
+                                                src={`${API_BASE_URL}/api/product/image/${item.imageUrl}`}
                                                 alt={item.productTitle}
                                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 cursor-pointer"
                                                 onClick={() => handleProductClick(item.productId)}

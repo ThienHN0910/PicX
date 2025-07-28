@@ -14,6 +14,7 @@ interface CartItem {
     product: Product;
 }
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+console.log('API_BASE_URL:', API_BASE_URL);
 const Cart: React.FC = () => {
     const [cart, setCart] = useState<CartItem[]>([]);
     const [loading, setLoading] = useState(true);
@@ -152,7 +153,7 @@ const Cart: React.FC = () => {
                                 onChange={() => toggleProduct(item.productId)}
                             />
                             <img
-                                src={`${item.product.image_url}`}
+                                src={`${API_BASE_URL}/api/product/image/${item.product.image_file_id}`}
                                 alt={item.product.title}
                                 className="h-24 w-24 rounded object-cover"
                             />

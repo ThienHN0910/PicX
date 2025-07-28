@@ -48,6 +48,7 @@ export interface Product {
   title: string;
   description?: string;
   price: number;
+  image_file_id?: string;
   image_url?: string;
   additional_images?: string[];
   dimensions?: string;
