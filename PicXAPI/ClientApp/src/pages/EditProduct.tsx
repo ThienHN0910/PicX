@@ -31,15 +31,12 @@ export default function EditProduct() {
     const [error, setError] = useState<string | null>(null);
     const [categories, setCategories] = useState<Category[]>([]);
     const [currentImage, setCurrentImage] = useState<string | null>(null);
-    const [currentAdditionalImages, setCurrentAdditionalImages] = useState<string[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [existingImageId, setExistingImageId] = useState<string | null>(null);
-    const [existingAdditionalImageIds, setExistingAdditionalImageIds] = useState<string[]>([]);
 
-    const { register, handleSubmit, reset, setValue, getValues, formState: { errors } } = useForm<ProductForm>({
+    const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<ProductForm>({
         defaultValues: {
             image: null,
-            additionalImages: null
         }
     });
 
@@ -66,18 +63,11 @@ export default function EditProduct() {
                     dimensions: product.dimensions || '',
                     isAvailable: product.isAvailable,
                     tags: product.tags || '',
-                    image: null,
-                    additionalImages: null
+                    image: null
                 });
 
                 setCurrentImage(`/api/product/image/${product.imageFileId}`);
                 setExistingImageId(product.imageFileId);
-                const additionalImageIds = product.additionalImages ? JSON.parse(product.additionalImages) : [];
-                setCurrentAdditionalImages(
-                    additionalImageIds.map((id: string) => `${API_BASE_URL}/api/product/image/${id}`)
-                );
-                setExistingAdditionalImageIds(additionalImageIds);
-
                 setIsLoading(false);
             } catch (err) {
                 console.error('Error fetching data:', err);
@@ -113,18 +103,6 @@ export default function EditProduct() {
                 formData.append('image', new File([], existingImageId, { type: 'text/plain' }));
             } else {
                 throw new Error('No main image provided or existing image available.');
-            }
-
-            // Handle additional images (optional)
-            if (data.additionalImages && data.additionalImages.length > 0) {
-                Array.from(data.additionalImages).forEach((file) => {
-                    formData.append('additionalImages', file);
-                });
-            } else if (existingAdditionalImageIds.length > 0) {
-                // Send existing additional image IDs if no new images
-                existingAdditionalImageIds.forEach((id) => {
-                    formData.append('additionalImages', new File([], id, { type: 'text/plain' }));
-                });
             }
 
             await axios.put(`${API_BASE_URL}/api/product/edit/${id}`, formData, {
@@ -164,31 +142,6 @@ export default function EditProduct() {
         }
     };
 
-    const handleAdditionalImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            const files = Array.from(e.target.files);
-            const maxSize = 50 * 1024 * 1024; // 5MB
-            for (const file of files) {
-                if (file.size > maxSize) {
-                    setError('Each additional image must be smaller than 5MB.');
-                    return;
-                }
-                if (!['image/jpeg', 'image/png'].includes(file.type)) {
-                    setError('Only JPEG or PNG images are allowed.');
-                    return;
-                }
-            }
-            setValue('additionalImages', files);
-            setCurrentAdditionalImages(files.map(file => URL.createObjectURL(file)));
-        }
-    };
-
-    const removeAdditionalImage = (index: number) => {
-        setCurrentAdditionalImages(prev => prev.filter((_, i) => i !== index));
-        const currentFiles = getValues('additionalImages') || [];
-        setValue('additionalImages', currentFiles.filter((_, i) => i !== index));
-        setExistingAdditionalImageIds(prev => prev.filter((_, i) => i !== index));
-    };
 
     if (isLoading) {
         return <Loading />;
@@ -250,53 +203,6 @@ export default function EditProduct() {
                             </div>
                         </div>
                     </div>
-
-                    {/* Additional Images */}
-                    <div>
-                        <label htmlFor="additional-images-upload" className="block text-sm font-medium text-gray-700">Additional Images</label>
-                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 mt-2">
-                            <div className="flex flex-col items-center">
-                                {currentAdditionalImages.length > 0 && (
-                                    <div className="flex flex-wrap gap-4 mb-4">
-                                        {currentAdditionalImages.map((url, index) => (
-                                            <div key={index} className="relative">
-                                                <img
-                                                    src={url}
-                                                    alt={`Additional image ${index + 1}`}
-                                                    className="w-20 h-20 object-cover rounded-lg"
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeAdditionalImage(index)}
-                                                    className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
-                                                >
-                                                    X
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                                <Upload className="w-16 h-16 text-gray-400" />
-                                <p className="mt-2 text-sm font-medium text-gray-700">Update additional images</p>
-                                <p className="mt-1 text-sm text-gray-500">Click to browse (JPEG, PNG)</p>
-                                <input
-                                    type="file"
-                                    id="additional-images-upload"
-                                    accept="image/jpeg,image/png"
-                                    multiple
-                                    onChange={handleAdditionalImagesChange}
-                                    className="hidden"
-                                />
-                                <label
-                                    htmlFor="additional-images-upload"
-                                    className="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 cursor-pointer"
-                                >
-                                    Select Images
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
                     {/* Basic Information */}
                     <div className="space-y-4">
                         <div>

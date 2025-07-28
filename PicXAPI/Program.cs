@@ -88,11 +88,11 @@ namespace PicXAPI
                 options.AddPolicy("AllowReact", policy =>
                     policy
                         .WithOrigins(
-                            "https://picx-client.onrender.com"
+                            "https://picx-client.onrender.com", "https://pay.payos.vn"
                         )
                         .AllowAnyHeader()
                         .AllowAnyMethod()
-                        .AllowCredentials());
+                        .AllowAnyOrigin());
             });
 
             builder.Services.AddControllers().AddNewtonsoftJson();
