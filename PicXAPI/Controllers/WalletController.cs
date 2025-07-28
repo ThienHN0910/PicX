@@ -59,8 +59,8 @@ namespace PicXAPI.Controllers
                 amount: (int)(dto.Amount * 1000),
                 description: $"Nạp tiền ví #{userId}",
                 items: items,
-                cancelUrl: "https://localhost:5173",
-                returnUrl: "https://localhost:5173/profile"
+                cancelUrl: "https://localhost:5173/cancel",
+                returnUrl: "https://localhost:5173/success"
             );
 
             CreatePaymentResult result;

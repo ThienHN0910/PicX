@@ -61,6 +61,7 @@ namespace PicXAPI.Controllers
                     OrderId = o.OrderId,
                     TotalAmount = o.TotalAmount,
                     OrderDate = o.OrderDate,
+                    Status = o.Status,
                     Items = o.OrderDetails.Select(od => new GetOrderDetailDto
                     {
                         ProductId = od.ProductId,
@@ -101,6 +102,7 @@ namespace PicXAPI.Controllers
                 TotalAmount = order.TotalAmount,
                 OrderDate = order.OrderDate,
                 BuyerName = order.Buyer?.Name ?? "Unknown",
+                Status = order.Status,
                 Items = order.OrderDetails.Select(od => new GetOrderDetailDto
                 {
                     OrderDetailId = od.OrderDetailId,
@@ -134,6 +136,7 @@ namespace PicXAPI.Controllers
                     TotalAmount = o.TotalAmount,
                     OrderDate = o.OrderDate,
                     BuyerName = o.Buyer.Name ?? "Unknow",
+                    Status = o.Status,
                     Items = o.OrderDetails
                         .Where(od => od.Product.ArtistId == userId)
                         .Select(od => new GetOrderDetailDto
@@ -169,6 +172,7 @@ namespace PicXAPI.Controllers
                     TotalAmount = o.TotalAmount,
                     OrderDate = o.OrderDate,
                     BuyerName = o.Buyer.Name ?? "Unknow",
+                    Status = o.Status,
                     Items = o.OrderDetails.Select(od => new GetOrderDetailDto
                     {
                         ProductId = od.ProductId,
@@ -269,13 +273,14 @@ namespace PicXAPI.Controllers
                 BuyerId = userId.Value,
                 OrderDate = DateTime.Now,
                 TotalAmount = totalAmount,
-                OrderDetails = orderDetails
+                OrderDetails = orderDetails,
+                Status = "Pending" // Default status
             };
 
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 
-            foreach(var product in products)
+            foreach (var product in products)
             {
                 product.IsAvailable = false;
             }
@@ -333,6 +338,9 @@ namespace PicXAPI.Controllers
 
             if (order == null)
                 return NotFound(new { message = "Order not found" });
+
+            // Cập nhật trạng thái đơn hàng
+            order.Status = "Paid";
 
             // Lấy ví buyer và artist
             var buyerWallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == userId);

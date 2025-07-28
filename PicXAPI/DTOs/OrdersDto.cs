@@ -9,6 +9,7 @@ namespace PicXAPI.DTOs
         public decimal TotalAmount { get; set; }
         public DateTime? OrderDate { get; set; }
         public string BuyerName { get; set; } = string.Empty;
+        public string? Status { get; set; } = "Pending"; // e.g., "Pending", "Paid", "Cancelled"
         public List<GetOrderDetailDto> Items { get; set; } = new();
     }
 
