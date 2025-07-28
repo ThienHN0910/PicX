@@ -85,6 +85,16 @@ namespace PicXAPI.Controllers
                 ExternalTransactionId = orderCode
             };
             _context.WalletTransactions.Add(transaction);
+
+            var wallet2 = await _context.Wallets.FirstOrDefaultAsync(w => w.WalletId == transaction.WalletId);
+            if (wallet2 == null)
+                return NotFound(new { message = "Ví không tồn tại." });
+
+            wallet2.Balance += transaction.Amount;
+
+            transaction.Description = "Nạp tiền thành công qua PayOS";
+            transaction.CreatedAt = DateTime.UtcNow;
+
             await _context.SaveChangesAsync();
 
             return Ok(new
