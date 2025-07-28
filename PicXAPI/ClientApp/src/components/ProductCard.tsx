@@ -112,36 +112,51 @@ export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
     };
 
     return (
-        <div className="w-full mb-4 relative group">
-            {product.image_url ? (
-                <img
-                    src={product.image_url}
-                    alt={product.title || 'Product image'}
-                    className="w-full h-auto object-cover rounded-lg shadow-md transition-opacity duration-300 group-hover:opacity-80"
-                    onClick={handleImageClick}
-                    onError={(e) => {
-                        e.currentTarget.src = '../resource/img/placeholder-image.png';
-                    }}
-                />
-            ) : (
-                <div className="w-full h-48 bg-gray-200 flex items-center justify-center rounded-lg shadow-md">
-                    <span className="text-gray-400">No image</span>
+        <div className="w-full max-w-[480px] bg-white rounded-lg shadow group transition-transform duration-300 hover:scale-105 hover:shadow-2xl hover:-translate-y-2 p-0">
+            <div className="w-full aspect-[4/3] bg-gray-100 rounded-t-lg overflow-hidden cursor-pointer">
+                {product.image_url ? (
+                    <img
+                        src={product.image_url}
+                        alt={product.title || 'Product image'}
+                        className="w-full h-full object-cover"
+                        onClick={handleImageClick}
+                        onError={(e) => {
+                            e.currentTarget.src = '../resource/img/placeholder-image.png';
+                        }}
+                    />
+                ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                        <span className="text-gray-400">No image</span>
+                    </div>
+                )}
+            </div>
+            <div className="px-4 pt-3 pb-4">
+                <div className="flex items-center justify-between mb-1">
+                    <span className="text-lg font-semibold text-gray-900">
+                        {product.price?.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })}
+                    </span>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => handleFavoriteToggle(isFavorited ? 'dislike' : 'like')}
+                            className="p-1 rounded-full hover:bg-gray-100 transition"
+                        >
+                            <Heart
+                                className={`h-5 w-5 ${isFavorited ? 'text-red-500 fill-red-500' : 'text-gray-600'}`}
+                            />
+                        </button>
+                        <button
+                            onClick={handleAddToCart}
+                            className="p-1 rounded-full hover:bg-gray-100 transition"
+                        >
+                            <ShoppingCart className="h-5 w-5 text-gray-600" />
+                        </button>
+                    </div>
                 </div>
-            )}
-            <button
-                onClick={() => handleFavoriteToggle(isFavorited ? 'dislike' : 'like')}
-                className="absolute top-2 right-2 p-2 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
-            >
-                <Heart
-                    className={`h-5 w-5 ${isFavorited ? 'text-red-500 fill-red-500' : 'text-gray-600'}`}
-                />
-            </button>
-            <button
-                onClick={handleAddToCart}
-                className="absolute bottom-2 right-2 p-2 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
-            >
-                <ShoppingCart className="h-5 w-5 text-gray-600" />
-            </button>
+                <div className="font-bold text-base text-gray-900 leading-tight mb-1">{product.title}</div>
+                <div className="text-sm text-gray-700 mb-1">
+                    {product.artist?.name}
+                </div>
+            </div>
         </div>
     );
 };
