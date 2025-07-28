@@ -48,7 +48,7 @@ export interface Product {
   title: string;
   description?: string;
   price: number;
-  image_file_id?: string;
+  imageFileId?: string;
   image_url?: string;
   additional_images?: string[];
   dimensions?: string;
@@ -145,7 +145,7 @@ export interface OrderItem {
     productId: number;
     productTitle: string;
     totalPrice: number;
-    imageUrl: string;
+    image_url: string;
     artistName: string;
 }
 

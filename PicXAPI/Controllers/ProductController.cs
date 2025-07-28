@@ -17,7 +17,6 @@ namespace PicXAPI.Controllers
     {
         private readonly AppDbContext _context;
         private readonly ILogger<ProductController> _logger;
-        private readonly string _folderId;
         private readonly S3Service _s3Service;
         private readonly IWatermarkService _watermarkService;
 

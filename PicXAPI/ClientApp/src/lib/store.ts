@@ -93,7 +93,7 @@ export const useStore = create<AppState>((set, get) => ({
                 is_available: item.isAvailable,
                 tags: item.tags ? (typeof item.tags === 'string' ? item.tags.split(',').map((tag: string) => tag.trim()) : item.tags) : [],
                 image_file_id: item.imageFileId,
-                image_url: item.imageFileId ? `${API_BASE_URL}/api/product/image/${item.imageFileId}` : undefined,
+                image_url: item.imageFileId ? item.imageFileId : undefined,
                 artist: {
                     id: item.artist.id,
                     name: item.artist.name,

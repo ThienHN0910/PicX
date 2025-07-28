@@ -153,7 +153,7 @@ const Cart: React.FC = () => {
                                 onChange={() => toggleProduct(item.productId)}
                             />
                             <img
-                                src={`${API_BASE_URL}/api/product/image/${item.product.image_file_id}`}
+                                src={`${API_BASE_URL}/api/product/image/${item.product.image_url}`}
                                 alt={item.product.title}
                                 className="h-24 w-24 rounded object-cover"
                             />
