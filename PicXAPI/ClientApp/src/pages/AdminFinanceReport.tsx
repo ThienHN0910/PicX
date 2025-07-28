@@ -210,7 +210,7 @@ const AdminFinanceReport: React.FC = () => {
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="text-center mb-12 animate-fade-in">
-                    <h1 className="text-5xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-[rgb(66,230,149)] to-[rgb(59,178,184)] mb-3">
+                    <h1 className="text-5xl font-serif font-bold text-black mb-3">
                         Admin Financial Dashboard
                     </h1>
                     <p className="text-xl text-gray-700 font-light tracking-wide">Comprehensive analysis of your business performance</p>
