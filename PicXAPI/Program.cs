@@ -110,8 +110,9 @@ namespace PicXAPI
                 app.UseSwaggerUI();
             }
 
-            app.UseHttpsRedirection();
+            // Đặt UseCors trước các middleware khác
             app.UseCors("AllowReact");
+            app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();
 
@@ -129,8 +130,8 @@ namespace PicXAPI
             app.MapHub<PrivateChatHub>("/chatHub");
             app.MapHub<NotificationHub>("/notificationHub");
 
-            // Listen trên 0.0.0.0:7162
-            app.Run("http://0.0.0.0:7162");
+            // Để Render tự cấu hình endpoint và HTTPS
+            app.Run();
         }
     }
 }
