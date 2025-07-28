@@ -113,7 +113,7 @@ export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
 
     return (
         <div className="w-full max-w-[480px] bg-white rounded-lg shadow group transition-transform duration-300 hover:scale-105 hover:shadow-2xl hover:-translate-y-2 p-0">
-            <div className="w-full aspect-[4/3] bg-gray-100 rounded-t-lg overflow-hidden cursor-pointer">
+            <div className="w-full bg-gray-100 rounded-t-lg overflow-hidden cursor-pointer">
                 {product.image_url ? (
                     <img
                         src={`${API_BASE_URL}/api/product/image/${product.image_url}`}
