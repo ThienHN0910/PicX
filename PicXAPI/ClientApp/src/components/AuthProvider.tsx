@@ -41,17 +41,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const { user, setUser } = useStore();
 
     useEffect(() => {
-        const token = localStorage.getItem("authToken");
+        let lastToken = localStorage.getItem("authToken");
 
-        const checkAuthStatus = async (): Promise<void> => {
-            if (initialized) return;
-
+        const checkAuthStatus = async (token: string | null): Promise<void> => {
             if (!token) {
+                setUser(null);
                 setLoading(false);
                 setInitialized(true);
                 return;
             }
-
             try {
                 const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
                     method: 'GET',
@@ -59,7 +57,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                         "Authorization": `Bearer ${token}`
                     }
                 });
-
                 if (response.ok) {
                     const data = await response.json();
                     setUser(data.user);
@@ -75,8 +72,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             }
         };
 
-        checkAuthStatus();
-    }, [setUser, initialized]);
+        // Initial check
+        checkAuthStatus(lastToken);
+
+        // Listen for token changes in localStorage
+        const handleStorage = (e: StorageEvent) => {
+            if (e.key === "authToken") {
+                const newToken = e.newValue;
+                if (newToken !== lastToken) {
+                    lastToken = newToken;
+                    setLoading(true);
+                    setInitialized(false);
+                    checkAuthStatus(newToken);
+                }
+            }
+        };
+        window.addEventListener("storage", handleStorage);
+
+        // Listen for token changes in this tab (e.g. setItem)
+        const origSetItem = localStorage.setItem;
+        localStorage.setItem = function(key, value) {
+            const event = new Event('storage');
+            origSetItem.apply(this, [key, value]);
+            if (key === "authToken") {
+                window.dispatchEvent(new StorageEvent('storage', { key, newValue: value }));
+            }
+        };
+
+        return () => {
+            window.removeEventListener("storage", handleStorage);
+            localStorage.setItem = origSetItem;
+        };
+    }, [setUser]);
 
     const login = async (email: string, password: string): Promise<LoginResponse> => {
         try {
