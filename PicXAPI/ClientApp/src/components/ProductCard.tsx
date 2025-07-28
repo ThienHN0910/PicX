@@ -115,7 +115,7 @@ export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
         <div className="w-full mb-4 relative group">
             {product.image_url ? (
                 <img
-                    src={product.image_url}
+                    src={`${API_BASE_URL}/api/product/image/${product.image_url}`}
                     alt={product.title || 'Product image'}
                     className="w-full h-auto object-cover rounded-lg shadow-md transition-opacity duration-300 group-hover:opacity-80"
                     onClick={handleImageClick}
