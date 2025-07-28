@@ -94,6 +94,21 @@ namespace PicXAPI.Controllers
             });
         }
 
+        [HttpGet("deposit-callback")]
+        [AllowAnonymous]
+        public IActionResult DepositReturn([FromQuery] string status, [FromQuery] long orderCode)
+        {
+            if (status == "PAID")
+            {
+                return Redirect("https://picx-client.onrender.com");
+            }
+            else
+            {
+                return Redirect("https://picx-client.onrender.com?error=payment_failed");
+            }
+        }
+
+
         [HttpPost("deposit-callback")]
         [AllowAnonymous]
         public async Task<IActionResult> DepositCallback([FromBody] DepositCallbackDto dto)

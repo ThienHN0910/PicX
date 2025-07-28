@@ -1,7 +1,7 @@
 export const getGoogleOAuthURL = () => {
     const rootUrl = "https://accounts.google.com/o/oauth2/v2/auth";
     const options = {
-        redirect_uri: "https://localhost:5173/google-auth-success",
+        redirect_uri: "https://picx-client.onrender.com/google-auth-success",
         client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
         access_type: "offline",
         response_type: "code",
