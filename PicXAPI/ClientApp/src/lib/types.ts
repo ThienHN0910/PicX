@@ -48,7 +48,7 @@ export interface Product {
   title: string;
   description?: string;
   price: number;
-  imageFileId?: string;
+  image_url?: string;
   additional_images?: string[];
   dimensions?: string;
   is_available: boolean;
