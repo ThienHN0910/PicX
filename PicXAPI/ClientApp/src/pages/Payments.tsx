@@ -29,7 +29,7 @@ const Payments = () => {
                     Authorization: `Bearer ${token}`,
                 }
             });
-            const productIds = selectedItems.map(item => item.product.product_id);
+            const productIds = selectedItems.map(item => item.product.productId ?? item.product.product_id);
             console.log("selectedItems:", selectedItems);
             console.log("productIds:", selectedItems.map(item => item.product?.product_id));
             await axios.post(`${API_BASE_URL}/api/cart/remove-multiple`, productIds , {

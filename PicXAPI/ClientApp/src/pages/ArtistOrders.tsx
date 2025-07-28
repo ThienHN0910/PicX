@@ -167,11 +167,23 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
                                             {/* Status */}
                                             <div className="flex items-center">
-                                                <span
-                                                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700"
-                                                >
-                                                    Complete
-                                                </span>
+                                                {order.status === 'Paid' || order.status === 'Complete' ? (
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                                        {order.status}
+                                                    </span>
+                                                ) : order.status === 'Pending' ? (
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">
+                                                        Pending
+                                                    </span>
+                                                ) : order.status === 'Cancelled' ? (
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                                                        Cancelled
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                                                        {order.status || 'Unknown'}
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
                                     ))}
