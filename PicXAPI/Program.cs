@@ -88,8 +88,7 @@ namespace PicXAPI
                 options.AddPolicy("AllowReact", policy =>
                     policy
                         .WithOrigins(
-                            "https://picx-client.onrender.com", // Chỉ cho phép domain production
-                            "https://picxapi.onrender.com" // Chỉ cho phép domain production
+                            "https://picx-client.onrender.com"
                         )
                         .AllowAnyHeader()
                         .AllowAnyMethod()
