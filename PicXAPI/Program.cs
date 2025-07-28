@@ -92,7 +92,7 @@ namespace PicXAPI
                         )
                         .AllowAnyHeader()
                         .AllowAnyMethod()
-                        .AllowAnyOrigin());
+                        .AllowCredentials());
             });
 
             builder.Services.AddControllers().AddNewtonsoftJson();
