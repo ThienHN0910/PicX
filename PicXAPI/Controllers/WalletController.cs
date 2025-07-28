@@ -59,9 +59,10 @@ namespace PicXAPI.Controllers
                 amount: (int)(dto.Amount * 1000),
                 description: $"Nạp tiền ví #{userId}",
                 items: items,
-                cancelUrl: "https://picx-client.onrender.com/",
-                returnUrl: "https://picx-client.onrender.com/profile"
+                cancelUrl: "https://picxapi.onrender.com/api/wallet/deposit-callback",
+                returnUrl: "https://picxapi.onrender.com/api/wallet/deposit-callback"
             );
+
 
             CreatePaymentResult result;
             try
