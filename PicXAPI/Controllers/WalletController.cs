@@ -90,7 +90,7 @@ namespace PicXAPI.Controllers
             if (wallet2 == null)
                 return NotFound(new { message = "Ví không tồn tại." });
 
-            wallet2.Balance += transaction.Amount;
+            wallet2.Balance += transaction.Amount *1000;
 
             transaction.Description = "Nạp tiền thành công qua PayOS";
             transaction.CreatedAt = DateTime.UtcNow;
