@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Heart, Share2, ShoppingCart, Edit } from 'lucide-react';
 import axios from 'axios';
 import { Button } from '../components/ui/Button';
@@ -356,6 +356,7 @@ const ArtDetail = () => {
                     <div className="pt-6 border-t">
                         <h2 className="font-semibold text-gray-800 mb-2">About the Artist</h2>
                         <p className="text-gray-600">{product.artist.name} - Member since {new Date(product.artist.createdAt).getFullYear()}</p>
+                        <Link to={`/artist/${product.artist.id}`}>View Artist portfolio </Link>
                     </div>
 
                     {/* Comments */}
