@@ -41,7 +41,7 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
         const token = localStorage.getItem('authToken');
 
         const newConnection = new HubConnectionBuilder()
-            .withUrl('/chatHub', {
+            .withUrl('https://picxapi.onrender.com/chatHub', {
                 accessTokenFactory: () => token || ""
             })
             .withAutomaticReconnect()
