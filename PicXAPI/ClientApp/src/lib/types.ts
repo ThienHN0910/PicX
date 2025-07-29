@@ -26,7 +26,7 @@ export interface ArtistProfile {
   updated_at: Date;
 }
 
-interface ArtistProfileData {
+export interface ArtistProfileData {
     name: string;
     email: string;
     phone: string | null;

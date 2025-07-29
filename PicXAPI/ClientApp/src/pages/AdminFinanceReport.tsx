@@ -75,6 +75,13 @@ const formatMonth = (monthString: string): string => {
     return date.toLocaleString('en-US', { month: 'short', year: 'numeric' });
 };
 
+const formatDate = (dateString: string): string => {
+    if (!dateString || dateString === '-') return 'Unknown';
+    const [year, month, day] = dateString.split('-');
+    if (!day || !month || !year) return dateString;
+    return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
+};
+
 /* ---------- Main Component ---------- */
 const AdminFinanceReport: React.FC = () => {
     const [data, setData] = useState<StatsEntry[]>([]);
@@ -199,42 +206,43 @@ const AdminFinanceReport: React.FC = () => {
     if (error) return <ErrorState message={error} />;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 rounded-2xl p-8 font-sans">
             <div className="max-w-7xl mx-auto">
-                <div className="text-center mb-8 animate-fade-in">
-                    <h1 className="text-4xl font-bold text-gray-800 mb-2">
+                {/* Header */}
+                <div className="text-center mb-12 animate-fade-in">
+                    <h1 className="text-5xl font-serif font-bold text-black mb-3">
                         Admin Financial Dashboard
                     </h1>
-                    <p className="text-gray-600">Comprehensive analysis of your business performance</p>
+                    <p className="text-xl text-gray-700 font-light tracking-wide">Comprehensive analysis of your business performance</p>
                 </div>
 
                 {/* Summary Cards */}
                 {summary && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
                         <StatsCard
                             title="Total Revenue"
                             value={summary.totalRevenue}
-                            color="from-blue-500 to-blue-600"
+                            color="from-[rgb(100,240,180)] to-[rgb(100,200,210)]"
                             delay="0ms"
                         />
                         <StatsCard
                             title="Total Orders"
                             value={summary.totalOrders}
-                            color="from-emerald-500 to-emerald-600"
+                            color="from-[rgb(100,240,180)] to-[rgb(100,200,210)]"
                             isCurrency={false}
                             delay="100ms"
                         />
                         <StatsCard
                             title="Total Users"
                             value={summary.totalUsers}
-                            color="from-purple-500 to-purple-600"
+                            color="from-[rgb(100,240,180)] to-[rgb(100,200,210)]"
                             isCurrency={false}
                             delay="200ms"
                         />
                         <StatsCard
                             title="Total Products"
                             value={summary.totalProducts}
-                            color="from-amber-500 to-amber-600"
+                            color="from-[rgb(100,240,180)] to-[rgb(100,200,210)]"
                             isCurrency={false}
                             delay="300ms"
                         />
@@ -243,31 +251,35 @@ const AdminFinanceReport: React.FC = () => {
 
                 {/* Recent Performance */}
                 {summary && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                        <div className="bg-white rounded-xl p-6 shadow-lg">
-                            <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Activity (30 days)</h3>
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-600">Recent Orders</span>
-                                    <span className="text-2xl font-bold text-blue-600">{summary.recentOrders}</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+                        <div className="bg-white rounded-2xl p-8 shadow-lg">
+                            <h3 className="text-2xl font-serif font-bold text-gray-800 mb-6">
+                                Recent Activity <span className="text-sm font-normal ml-2 bg-green-100 text-green-800 px-3 py-1 rounded-full">(30 days)</span>
+                            </h3>
+                            <div className="space-y-6">
+                                <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
+                                    <span className="text-gray-700 font-medium">Recent Orders</span>
+                                    <span className="text-3xl font-bold text-teal-600">{summary.recentOrders}</span>
                                 </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-600">Recent Revenue</span>
-                                    <span className="text-2xl font-bold text-green-600">{currencyFormat(summary.recentRevenue)}</span>
+                                <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
+                                    <span className="text-gray-700 font-medium">Recent Revenue</span>
+                                    <span className="text-3xl font-bold text-green-600">{currencyFormat(summary.recentRevenue)}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-xl p-6 shadow-lg">
-                            <h3 className="text-lg font-semibold text-gray-800 mb-4">User Breakdown</h3>
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-600">Artists</span>
-                                    <span className="text-2xl font-bold text-purple-600">{summary.totalArtists}</span>
+                        <div className="bg-white rounded-2xl p-8 shadow-lg">
+                            <h3 className="text-2xl font-serif font-bold text-gray-800 mb-6">
+                                User Breakdown
+                            </h3>
+                            <div className="space-y-6">
+                                <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
+                                    <span className="text-gray-700 font-medium">Artists</span>
+                                    <span className="text-3xl font-bold text-teal-600">{summary.totalArtists}</span>
                                 </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-600">Buyers</span>
-                                    <span className="text-2xl font-bold text-orange-600">{summary.totalBuyers}</span>
+                                <div className="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
+                                    <span className="text-gray-700 font-medium">Buyers</span>
+                                    <span className="text-3xl font-bold text-green-600">{summary.totalBuyers}</span>
                                 </div>
                             </div>
                         </div>
@@ -275,7 +287,7 @@ const AdminFinanceReport: React.FC = () => {
                 )}
 
                 {/* Charts Section */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
                     <BarChartSection data={data} />
                     <TopProductsSection products={summary?.topProducts || []} />
                 </div>
@@ -293,36 +305,30 @@ const AdminFinanceReport: React.FC = () => {
 /* ---------- Components ---------- */
 
 const LoadingState: React.FC = () => (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-            <div className="relative">
-                <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-                <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-blue-400 rounded-full animate-spin mx-auto" style={{ animationDirection: 'reverse', animationDuration: '1s' }}></div>
-            </div>
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">Loading Financial Data</h2>
-            <p className="text-gray-500">Please wait while we fetch your reports...</p>
-            <div className="mt-4 flex justify-center space-x-1">
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-            </div>
+    <div className="min-h-screen bg-white rounded-2xl flex items-center justify-center font-sans"><div className="text-center">
+        <div className="relative mb-8">
+            <div className="w-16 h-16 border-4 border-[rgb(66,230,149)] border-t-[rgb(59,178,184)] rounded-full animate-spin mx-auto mb-4"></div>
+            <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-t-[rgb(59,178,184)] rounded-full animate-spin mx-auto" style={{ animationDirection: 'reverse', animationDuration: '1s' }}></div>
         </div>
+        <h2 className="text-xl font-semibold text-gray-800 mb-2">Loading Financial Data</h2>
+        <p className="text-gray-600">Please wait while we fetch your reports...</p>
+        <div className="mt-4 flex justify-center space-x-1">
+            <div className="w-2 h-2 bg-[rgb(66,230,149)] rounded-full animate-bounce"></div>
+            <div className="w-2 h-2 bg-[rgb(59,178,184)] rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+            <div className="w-2 h-2 bg-[rgb(66,230,149)] rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+        </div>
+    </div>
     </div>
 );
 
 const ErrorState: React.FC<{ message: string }> = ({ message }) => (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
-        <div className="bg-white rounded-xl shadow-lg p-8 max-w-md mx-auto text-center">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-            </div>
+    <div className="min-h-screen bg-white flex items-center justify-center font-sans">
+        <div className="bg-white rounded-2xl shadow-lg p-6 max-w-md mx-auto text-center">
             <h2 className="text-xl font-semibold text-gray-800 mb-2">Oops! Something went wrong</h2>
             <p className="text-red-600 mb-4">{message}</p>
             <button
                 onClick={() => window.location.reload()}
-                className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                className="bg-gradient-to-r from-[rgb(66,230,149)] to-[rgb(59,178,184)] text-white px-6 py-2 rounded-xl hover:from-[rgb(56,200,129)] hover:to-[rgb(49,158,164)] transition-all duration-300 font-semibold shadow-lg"
             >
                 Try Again
             </button>
@@ -338,11 +344,11 @@ const StatsCard: React.FC<{
     delay?: string;
 }> = ({ title, value, color, isCurrency = true, delay = "0ms" }) => (
     <div
-        className={`relative overflow-hidden bg-gradient-to-br ${color} rounded-xl p-6 text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl animate-slide-up`}
+        className={`relative overflow-hidden bg-gradient-to-br ${color} rounded-2xl p-8 text-gray-800 shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl animate-slide-up`}
         style={{ animationDelay: delay }}
     >
         <div className="relative z-10">
-            <div className="mb-2 text-sm opacity-90 font-medium">{title}</div>
+            <div className="mb-2 text-sm font-medium opacity-90">{title}</div>
             <div className="text-3xl font-bold">
                 {typeof value === 'number' && isCurrency ? currencyFormat(value) : value}
             </div>
@@ -352,8 +358,8 @@ const StatsCard: React.FC<{
 );
 
 const BarChartSection: React.FC<{ data: StatsEntry[] }> = ({ data }) => (
-    <div className="bg-white rounded-xl p-6 shadow-lg animate-fade-in-up">
-        <h3 className="text-xl font-semibold text-gray-800 mb-16">Monthly Revenue</h3>
+    <div className="bg-white rounded-2xl p-8 shadow-lg animate-fade-in-up">
+        <h3 className="text-xl font-semibold text-gray-800 mb-6">Monthly Revenue</h3>
         <ResponsiveContainer width="100%" height={300}>
             <BarChart data={data} barCategoryGap="5%" barGap={2}>
                 <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
@@ -368,27 +374,33 @@ const BarChartSection: React.FC<{ data: StatsEntry[] }> = ({ data }) => (
                     domain={[0, 'auto']}
                 />
                 <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="income" radius={[4, 4, 0, 0]} fill="#3b82f6" />
+                <Bar dataKey="income" radius={[4, 4, 0, 0]} fill="url(#themeGradient)" />
+                <defs>
+                    <linearGradient id="themeGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="rgb(66,230,149)" stopOpacity={0.9} />
+                        <stop offset="100%" stopColor="rgb(59,178,184)" stopOpacity={0.9} />
+                    </linearGradient>
+                </defs>
             </BarChart>
         </ResponsiveContainer>
     </div>
 );
 
 const TopProductsSection: React.FC<{ products: AdminSummary['topProducts'] }> = ({ products }) => (
-    <div className="bg-white rounded-xl p-6 shadow-lg animate-fade-in-up">
+    <div className="bg-white rounded-2xl p-8 shadow-lg animate-fade-in-up">
         <h3 className="text-xl font-semibold text-gray-800 mb-4">Top Products</h3>
         <div className="space-y-3">
             {products.length === 0 ? (
                 <p className="text-gray-500 text-center py-8">No products data available</p>
             ) : (
-                products.map((product) => (
+                products.slice(0, 4).map((product) => (
                     <div key={product.productId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div className="flex-1">
                             <h4 className="font-medium text-gray-800">{product.title}</h4>
                             <p className="text-sm text-gray-600">by {product.artist}</p>
                         </div>
                         <div className="text-right">
-                            <div className="font-semibold text-blue-600">{currencyFormat(product.totalRevenue)}</div>
+                            <div className="font-semibold text-green-600">{currencyFormat(product.totalRevenue)}</div>
                             <div className="text-sm text-gray-500">{product.totalSold} sold</div>
                         </div>
                     </div>
@@ -399,11 +411,11 @@ const TopProductsSection: React.FC<{ products: AdminSummary['topProducts'] }> = 
 );
 
 const ArtistPerformanceSection: React.FC<{ artists: ArtistPerformance[]; loading: boolean }> = ({ artists, loading }) => (
-    <div className="bg-white rounded-xl p-6 shadow-lg mb-8 animate-fade-in-up">
+    <div className="bg-white rounded-2xl p-8 shadow-lg mb-8 animate-fade-in-up">
         <h3 className="text-xl font-semibold text-gray-800 mb-4">Top Artists Performance</h3>
         {loading ? (
             <div className="text-center py-8">
-                <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                <div className="w-6 h-6 border-2 border-[rgb(66,230,149)] border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
                 <p className="text-gray-500">Loading artist performance...</p>
             </div>
         ) : (
@@ -422,7 +434,7 @@ const ArtistPerformanceSection: React.FC<{ artists: ArtistPerformance[]; loading
                             <tr key={artist.artistId} className="border-b border-gray-100 hover:bg-gray-50">
                                 <td className="py-3 px-4 text-center">
                                     <div className="flex items-center justify-center">
-                                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-semibold mr-3">
+                                        <div className="w-8 h-8 bg-gradient-to-br from-[rgb(66,230,149)] to-[rgb(59,178,184)] rounded-full flex items-center justify-center text-white font-semibold mr-3">
                                             {index + 1}
                                         </div>
                                         <span className="font-medium text-gray-800">{artist.artistName}</span>
@@ -446,14 +458,14 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label })
     if (active && payload?.length) {
         const { income, orderCount } = payload[0].payload;
         return (
-            <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200 text-sm">
+            <div className="bg-white p-4 rounded-lg border border-gray-200 text-sm">
                 <div className="font-semibold text-gray-800 mb-2 pb-2 border-b border-gray-100">
                     {formatMonth(label || '')}
                 </div>
                 <div className="space-y-1">
                     <div className="flex justify-between items-center">
                         <span className="text-gray-600">Revenue:</span>
-                        <span className="text-blue-600 font-semibold">{currencyFormat(income)}</span>
+                        <span className="text-green-600 font-semibold">{currencyFormat(income)}</span>
                     </div>
                     <div className="flex justify-between items-center">
                         <span className="text-gray-600">Orders:</span>
@@ -472,12 +484,12 @@ const OrderListSection: React.FC<{ orders: Order[]; loading: boolean }> = ({ ord
             <h3 className="text-xl font-semibold text-gray-800">Recent Orders</h3>
             <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2 mt-2">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                    <span className="text-sm text-gray-500" >{loading ? 'Loading...' : `${orders.length} orders`}</span>                   
+                    <div className="w-2 h-2 bg-[rgb(66,230,149)] rounded-full animate-pulse"></div>
+                    <span className="text-sm text-gray-500">{loading ? 'Loading...' : `${orders.length} orders`}</span>
                 </div>
                 <Link
                     to="/admin/orders"
-                    className="text-blue-600 hover:text-blue-800 font-semibold transition-colors duration-150"
+                    className="bg-gradient-to-r from-[rgb(66,230,149)] to-[rgb(59,178,184)] text-white px-6 py-2 rounded-xl hover:from-[rgb(56,200,129)] hover:to-[rgb(49,158,164)] font-semibold transition-all duration-300 shadow-lg"
                 >
                     View Order List
                 </Link>
@@ -485,14 +497,14 @@ const OrderListSection: React.FC<{ orders: Order[]; loading: boolean }> = ({ ord
         </div>
 
         {loading ? (
-            <div className="bg-white rounded-xl shadow-lg p-8">
+            <div className="bg-white rounded-2xl shadow-lg p-8">
                 <div className="text-center">
-                    <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                    <div className="w-6 h-6 border-2 border-[rgb(66,230,149)] border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
                     <p className="text-gray-500">Loading orders...</p>
                 </div>
             </div>
         ) : (
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
                 <div className="grid grid-cols-5 gap-4 px-6 py-4 bg-gray-50 border-b border-gray-200 font-semibold text-gray-700 text-sm">
                     <div className="text-center">Order ID</div>
                     <div className="text-center">Date</div>
@@ -515,8 +527,8 @@ const OrderListSection: React.FC<{ orders: Order[]; loading: boolean }> = ({ ord
                                 className="grid grid-cols-5 gap-4 px-6 py-4 hover:bg-gray-50 transition-colors duration-150 animate-fade-in"
                                 style={{ animationDelay: `${index * 50}ms` }}
                             >
-                                <div className="text-center font-medium text-blue-600">#{order.id}</div>
-                                <div className="text-center text-gray-500">{order.date}</div>
+                                <div className="text-center font-medium text-teal-600">#{order.id}</div>
+                                <div className="text-center text-gray-500">{formatDate(order.date)}</div>
                                 <div className="text-center text-gray-800 font-medium">{order.customer}</div>
                                 <div className="text-center text-gray-600">{order.itemCount} items</div>
                                 <div className="text-center text-green-600 font-bold">{currencyFormat(order.total)}</div>

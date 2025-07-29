@@ -59,8 +59,8 @@ namespace PicXAPI.Controllers
                 amount: (int)(dto.Amount * 1000),
                 description: $"Nạp tiền ví #{userId}",
                 items: items,
-                cancelUrl: "https://localhost:5173/cancel",
-                returnUrl: "https://localhost:5173/success"
+                cancelUrl: "https://localhost:5173",
+                returnUrl: "https://localhost:5173"
             );
 
             CreatePaymentResult result;
@@ -83,6 +83,14 @@ namespace PicXAPI.Controllers
                 ExternalTransactionId = orderCode
             };
             _context.WalletTransactions.Add(transaction);
+            var wallet2 = await _context.Wallets.FirstOrDefaultAsync(w => w.WalletId == transaction.WalletId);
+            if (wallet2 == null)
+                return NotFound(new { message = "Ví không tồn tại." });
+
+            wallet2.Balance += transaction.Amount * 1000;
+
+            transaction.Description = "Nạp tiền thành công qua PayOS";
+            transaction.CreatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
             return Ok(new

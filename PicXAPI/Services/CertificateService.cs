@@ -279,7 +279,7 @@ namespace PicXAPI.Services
                                 This certificate hereby authenticates and verifies the ownership and authenticity of the following digital artwork:
                             </div>
                             <div class='artwork-image-frame'>
-                                <img src='/api/product/image/{product.ImageDriveId}' alt='Artwork Image'/>
+                                <img src='https://localhost:7162/api/download/image/{product.ImageDriveId}' alt='Artwork Image'/>
                             </div>
                             <div class='artwork-info'>
                                 <div class='artwork-title'>{product.Title}</div>

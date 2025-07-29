@@ -181,56 +181,42 @@ namespace PicXAPI.Controllers
         }
 
         [HttpGet("artist/{artistId}")]
-        public async Task<IActionResult> GetProductsByArtist(int artistId, [FromQuery] int page = 1, [FromQuery] int limit = 10)
+        public async Task<IActionResult> GetProductsByArtist(int artistId, [FromQuery] int? limit = null)
         {
-            try
-            {
-                var artistExists = await _context.Users.AnyAsync(u => u.UserId == artistId && u.Role == "artist");
-                if (!artistExists)
+            var artistExists = await _context.Users.AnyAsync(u => u.UserId == artistId && u.Role == "artist");
+            if (!artistExists)
+                return NotFound(new { error = "Artist not found" });
+
+            var query = _context.Products
+                .Where(p => p.ArtistId == artistId && p.IsAvailable == true)
+                .Include(p => p.Category)
+                .Include(p => p.Artist)
+                .Select(p => new
                 {
-                    _logger.LogWarning($"Artist with ID {artistId} not found.");
-                    return NotFound(new { error = "Artist not found" });
-                }
-
-                var skip = (page - 1) * limit;
-                var products = await _context.Products
-                    .Where(p => p.ArtistId == artistId & p.IsAvailable == true)
-                    .Include(p => p.Category)
-                    .Include(p => p.Artist)
-                    .Select(p => new
+                    ProductId = p.ProductId,
+                    Title = p.Title,
+                    Description = p.Description,
+                    Price = p.Price,
+                    CategoryId = p.Category.CategoryId,
+                    CategoryName = p.Category.Name,
+                    Dimensions = p.Dimensions,
+                    IsAvailable = p.IsAvailable,
+                    Tags = p.Tags,
+                    ImageFileId = p.ImageDriveId,
+                    Artist = new
                     {
-                        ProductId = p.ProductId,
-                        Title = p.Title,
-                        Description = p.Description,
-                        Price = p.Price,
-                        CategoryId = p.Category.CategoryId,
-                        CategoryName = p.Category.Name,
-                        Dimensions = p.Dimensions,
-                        IsAvailable = p.IsAvailable,
-                        Tags = p.Tags,
-                        ImageFileId = p.ImageDriveId,
-                        Artist = new
-                        {
-                            Id = p.Artist.UserId,
-                            Name = p.Artist.Name
-                        },
-                        CreatedAt = p.CreatedAt,
-                        LikeCount = p.LikeCount
-                    })
-                    .Skip(skip)
-                    .Take(limit)
-                    .ToListAsync();
+                        Id = p.Artist.UserId,
+                        Name = p.Artist.Name
+                    },
+                    CreatedAt = p.CreatedAt,
+                    LikeCount = p.LikeCount
+                });
 
-                var totalProducts = await _context.Products.Where(p => p.ArtistId == artistId).CountAsync();
-                var hasMore = skip + products.Count < totalProducts;
+            var products = limit.HasValue && limit.Value > 0
+                ? await query.Take(limit.Value).ToListAsync()
+                : await query.ToListAsync();
 
-                return Ok(new { products, hasMore, totalPages = (int)Math.Ceiling((double)totalProducts / limit) });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Failed to retrieve products for artist ID: {artistId}");
-                return StatusCode(500, new { error = "An error occurred while retrieving products for this artist", details = ex.Message });
-            }
+            return Ok(new { products });
         }
 
         [HttpGet("{id}")]

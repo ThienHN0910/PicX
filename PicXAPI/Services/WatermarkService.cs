@@ -28,7 +28,7 @@ namespace PicXAPI.Services
 
                 var fontSize = Math.Max(image.Width, image.Height) / 15f;
                 var font = fontFamily.CreateFont(fontSize, FontStyle.Regular);
-                var color = Color.FromRgba(42, 214, 158, 80);
+                var color = Color.FromRgba(42, 214, 158, 20);
                 var textRect = TextMeasurer.MeasureBounds(watermarkText, new TextOptions(font));
                 var textWidth = textRect.Width;
                 var textHeight = textRect.Height;

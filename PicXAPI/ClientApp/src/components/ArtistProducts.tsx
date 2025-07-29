@@ -7,9 +7,10 @@ import { useStore } from '../lib/store';
 import { useNavigate } from 'react-router-dom';
 interface ArtistProductsProps {
     artistId: number;
+    numofart?: number;
 }
 
-export const ArtistProducts: React.FC<ArtistProductsProps> = ({ artistId }) => {
+export const ArtistProducts: React.FC<ArtistProductsProps> = ({ artistId, numofart }) => {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -25,7 +26,7 @@ export const ArtistProducts: React.FC<ArtistProductsProps> = ({ artistId }) => {
                 }));
 
                 const shuffled = allProducts.sort(() => 0.5 - Math.random());
-                const selected = shuffled.slice(0, 4);
+                const selected = shuffled
 
                 setProducts(selected);
             } catch (err: any) {

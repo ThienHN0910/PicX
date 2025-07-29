@@ -34,8 +34,8 @@ namespace PicXAPI.Controllers
                 .GroupBy(o => o.OrderDate?.ToString("yyyy-MM") ?? "Unknown")
                 .Select(g => new
                 {
-                month = g.Key,
-                income = g.Sum(x => x.TotalAmount),
+                    month = g.Key,
+                    income = g.Sum(x => x.TotalAmount),
                 })
                 .OrderBy(x => x.month)
                 .ToList();
@@ -76,14 +76,14 @@ namespace PicXAPI.Controllers
                     .ThenInclude(od => od.Product)
                     .ThenInclude(p => p.Artist)
                     .OrderByDescending(o => o.OrderDate)
-                    .Take(50) // Limit to recent 50 orders
+                    .Take(10)
                     .Select(o => new
                     {
                         id = o.OrderId,
                         customer = o.Buyer.Name ?? "Unknown",
                         total = o.TotalAmount,
                         date = o.OrderDate.HasValue ? o.OrderDate.Value.ToString("yyyy-MM-dd") : "Unknown",
-                        status = "Completed", 
+                        status = "Completed",
                         itemCount = o.OrderDetails.Count(),
                         products = o.OrderDetails.Select(od => new
                         {
