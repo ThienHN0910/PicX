@@ -47,7 +47,7 @@ namespace PicXAPI
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
-                    options.RequireHttpsMetadata = false; // true nếu production
+                    options.RequireHttpsMetadata = true; // true nếu production
                     options.SaveToken = true;
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
