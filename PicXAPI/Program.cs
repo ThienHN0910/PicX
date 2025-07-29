@@ -87,7 +87,7 @@ namespace PicXAPI
             {
                 options.AddPolicy("AllowReact", policy =>
                     policy
-                        .WithOrigins("http://localhost:5173", "https://localhost:5173", "http://localhost:5174", "https://localhost:5174")
+                        .WithOrigins("https://localhost:5173", "https://localhost:5174", "https://pay.payos.vn")
                         .AllowAnyHeader()
                         .AllowAnyMethod()
                         .AllowCredentials());
@@ -108,8 +108,8 @@ namespace PicXAPI
                 app.UseSwaggerUI();
             }
 
-            app.UseHttpsRedirection();
             app.UseCors("AllowReact");
+            app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
