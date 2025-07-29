@@ -31,7 +31,7 @@ export const ExhibitionCard = ({ exhibition }: ExhibitionCardProps) => {
                     className="w-full h-48 object-cover rounded-t-lg transition-opacity duration-300 group-hover:opacity-90"
                     onError={(e) => {
                         // Ảnh lỗi thì hiển thị ảnh placeholder
-                        e.currentTarget.src = '../resource/img/placeholder-image.png'; // Đảm bảo bạn có file này
+                        e.currentTarget.src = '/img/placeholder-image.png'; // Đảm bảo bạn có file này
                         e.currentTarget.onerror = null; // Tránh lặp lại lỗi
                     }}
                 />

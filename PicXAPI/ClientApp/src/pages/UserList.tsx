@@ -11,7 +11,7 @@ type User = {
     isActive: boolean;
     joined: string;
 };
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const UserList = () => {
     const [users, setUsers] = useState<User[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -25,7 +25,7 @@ const UserList = () => {
 
     const fetchUsers = async () => {
         try {
-            const res = await axios.get('/api/user/all', {
+            const res = await axios.get(`${API_BASE_URL}/api/user/all`, {
                 headers: getAuthHeader()
             });
             setUsers(res.data);
@@ -44,7 +44,7 @@ const UserList = () => {
         if (!confirm(confirmMsg)) return;
 
         try {
-            await axios.put(`/api/user/${action}/${userId}`, {}, {
+            await axios.put(`${API_BASE_URL}/api/user/${action}/${userId}`, {}, {
                 headers: getAuthHeader()
             });
             fetchUsers();

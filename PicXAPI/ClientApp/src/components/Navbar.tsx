@@ -57,7 +57,7 @@ export default function Navbar() {
     return (
         <nav className="w-20 bg-white border-r flex flex-col items-center space-y-4 fixed top-0 left-0 h-full z-20">
             <Link to="/" title="Home" className="flex items-center justify-center w-10 mt-3 mb-6">
-                <img src="./src/resource/img/logo.png" alt="PicX" className="w-24" />
+                <img src="/img/logo.png" alt="PicX" className="w-24" />
             </Link>
 
             <div className="flex-1 overflow-y-auto scrollbar-hide flex flex-col items-center gap-y-2">

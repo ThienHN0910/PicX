@@ -48,7 +48,7 @@ interface AdminSummary {
         totalRevenue: number;
     }>;
 }
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 interface ArtistPerformance {
     artistId: number;
     artistName: string;
@@ -96,7 +96,7 @@ const AdminFinanceReport: React.FC = () => {
                 setLoading(true);
                 setError(null);
 
-                const response = await fetch('/api/finance/admin-statistics', {
+                const response = await fetch(`${API_BASE_URL}/api/finance/admin-statistics`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
@@ -121,7 +121,7 @@ const AdminFinanceReport: React.FC = () => {
             try {
                 setOrdersLoading(true);
 
-                const response = await fetch('/api/finance/all-orders', {
+                const response = await fetch(`${API_BASE_URL}/api/finance/all-orders`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
@@ -145,7 +145,7 @@ const AdminFinanceReport: React.FC = () => {
             try {
                 setSummaryLoading(true);
 
-                const response = await fetch('/api/finance/admin-summary', {
+                const response = await fetch(`${API_BASE_URL}/api/finance/admin-summary`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
@@ -169,7 +169,7 @@ const AdminFinanceReport: React.FC = () => {
             try {
                 setArtistLoading(true);
 
-                const response = await fetch('/api/finance/artist-performance', {
+                const response = await fetch(`${API_BASE_URL}/api/finance/artist-performance`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'

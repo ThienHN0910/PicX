@@ -87,7 +87,9 @@ namespace PicXAPI
             {
                 options.AddPolicy("AllowReact", policy =>
                     policy
-                        .WithOrigins("https://localhost:5173", "https://localhost:5174", "https://pay.payos.vn")
+                        .WithOrigins(
+                            "https://picx-client.onrender.com", "https://pay.payos.vn/"
+                        )
                         .AllowAnyHeader()
                         .AllowAnyMethod()
                         .AllowCredentials());
@@ -108,14 +110,27 @@ namespace PicXAPI
                 app.UseSwaggerUI();
             }
 
+            // Đặt UseCors trước các middleware khác
             app.UseCors("AllowReact");
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();
+
+            // Serve static files FE build
+            app.UseDefaultFiles();
+            // app.UseStaticFiles(new StaticFileOptions
+            // {
+            //     FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+            //         Path.Combine(Directory.GetCurrentDirectory(), "ClientApp", "dist")
+            //     ),
+            //     RequestPath = ""
+            // });
+
             app.MapControllers();
             app.MapHub<PrivateChatHub>("/chatHub");
             app.MapHub<NotificationHub>("/notificationHub");
 
+            // Để Render tự cấu hình endpoint và HTTPS
             app.Run();
         }
     }

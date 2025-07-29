@@ -46,7 +46,7 @@ namespace PicXAPI.Controllers
             }
 
             // Map the User and ArtistProfile data to the ArtistProfileDto
-            var artistProfileDto = new ArtistProfileDto
+            var artistProfileDto = new 
             {
                 Name = user.Name,
                 Email = user.Email,
@@ -54,11 +54,9 @@ namespace PicXAPI.Controllers
                 Address = user.Address,
                 Role = user.Role,
                 Bio = user.ArtistProfile.Bio,
-                ProfilePicture = user.ArtistProfile.ProfilePicture,
                 Specialization = user.ArtistProfile.Specialization,
                 ExperienceYears = user.ArtistProfile.ExperienceYears,
                 WebsiteUrl = user.ArtistProfile.WebsiteUrl,
-                SocialMediaLinks = user.ArtistProfile.SocialMediaLinks
             };
 
             // Return the DTO

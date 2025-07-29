@@ -13,7 +13,7 @@ interface ArtistProfileFormProps {
     onSave: (data: ArtistProfileData) => void;
     onCancel: () => void;
 }
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const ArtistProfileForm: React.FC<ArtistProfileFormProps> = ({ initialData, onSave, onCancel }) => {
     const [formData, setFormData] = useState<ArtistProfileData>(initialData);
 
@@ -52,7 +52,7 @@ const ArtistProfileForm: React.FC<ArtistProfileFormProps> = ({ initialData, onSa
                         type="email"
                         value={formData.email}
                         onChange={handleChange}
-                        required
+                        readOnly
                     />
                 </div>
 
@@ -149,7 +149,7 @@ const ArtistProfile: React.FC = () => {
         const fetchProfile = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get(`/api/profile/artist/${id}`, {
+                const response = await axios.get(`${API_BASE_URL}/api/profile/artist/${id}`, {
                     headers: getAuthHeader()
                 });
                 setProfileData(response.data);
@@ -169,7 +169,7 @@ const ArtistProfile: React.FC = () => {
 
     const handleSave = async (updatedData: ArtistProfileData) => {
         try {
-            await axios.put('/api/profile/artist', updatedData, {
+            await axios.put(`${API_BASE_URL}/api/profile/artist`, updatedData, {
                 headers: getAuthHeader()
             });
             setProfileData(updatedData);
@@ -212,16 +212,7 @@ const ArtistProfile: React.FC = () => {
     return (
         <div className="max-w-5xl mx-auto p-6">
             <div className="bg-white/80 backdrop-blur-md rounded-3xl shadow-2xl p-0 md:p-0 overflow-hidden border border-gray-200">
-                {/* Cover Image */}
-                <div className="relative h-48 md:h-64 bg-gradient-to-r from-pink-200 via-purple-200 to-blue-200 flex items-end">
-                    <div className="absolute left-1/2 -bottom-16 transform -translate-x-1/2 z-20">
-                        <img
-                            src={profileData.profilePicture || '/default-profile.png'}
-                            alt={`${profileData.name}'s profile`}
-                            className="w-40 h-40 rounded-full object-cover border-4 border-white shadow-lg bg-white"
-                        />
-                    </div>
-                </div>
+                
                 {/* Main Content */}
                 <div className="pt-24 pb-10 px-6 md:px-16">
                     {/* Header */}

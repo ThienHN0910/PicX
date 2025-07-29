@@ -2,7 +2,7 @@
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import axios from "axios";
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const Deposit: React.FC = () => {
   const [amount, setAmount] = useState("");
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
@@ -25,7 +25,7 @@ const Deposit: React.FC = () => {
     try {
       console.log(token)
       const res = await axios.post(
-        "/api/wallet/deposit",
+        `${API_BASE_URL}/api/wallet/deposit`,
         { amount: value },
         {
           headers: {
@@ -77,12 +77,23 @@ const Deposit: React.FC = () => {
       </form>
 
       {paymentUrl && (
+         <div className="mt-8 text-center">
           <iframe
             src={paymentUrl}
             title="PayOS Payment"
             className="w-full h-[700px] mx-auto rounded-lg border"
             allow="payment"
           />
+          <p className="mb-2">Scan QR code or click link to pay</p>
+          <a
+            href={paymentUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 hover:underline"
+          >
+            Click here to pay
+          </a>
+          </div>
       )}
     </>
   );

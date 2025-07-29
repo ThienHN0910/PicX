@@ -156,7 +156,7 @@ namespace PicXAPI.Controllers
             var clientSecret = _config["Google:ClientSecret"];
             Console.WriteLine($"Client ID: {clientId}");
             Console.WriteLine($"Client Secret: {clientSecret}");
-            var redirectUri = "https://localhost:5173/google-auth-success";
+            var redirectUri = "https://picx-client.onrender.com/google-auth-success";
 
             var client = new HttpClient();
             var tokenRequest = new Dictionary<string, string>

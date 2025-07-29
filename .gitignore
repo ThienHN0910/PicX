@@ -118,5 +118,4 @@ TestResults/
 *.min.css
 
 /test/
-
 /PicXAPI/credentials.json

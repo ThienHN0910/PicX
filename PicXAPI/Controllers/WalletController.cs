@@ -59,9 +59,11 @@ namespace PicXAPI.Controllers
                 amount: (int)(dto.Amount * 1000),
                 description: $"Nạp tiền ví #{userId}",
                 items: items,
-                cancelUrl: "https://localhost:5173/cancel",
-                returnUrl: "https://localhost:5173/success"
+                cancelUrl: $"https://picxapi.onrender.com/api/wallet/cancel-handler?orderCode={orderCode}",
+                returnUrl: $"https://picxapi.onrender.com/api/wallet/return-handler?orderCode={orderCode}"
+
             );
+
 
             CreatePaymentResult result;
             try
@@ -83,6 +85,16 @@ namespace PicXAPI.Controllers
                 ExternalTransactionId = orderCode
             };
             _context.WalletTransactions.Add(transaction);
+
+            var wallet2 = await _context.Wallets.FirstOrDefaultAsync(w => w.WalletId == transaction.WalletId);
+            if (wallet2 == null)
+                return NotFound(new { message = "Ví không tồn tại." });
+
+            wallet2.Balance += transaction.Amount *1000;
+
+            transaction.Description = "Nạp tiền thành công qua PayOS";
+            transaction.CreatedAt = DateTime.UtcNow;
+
             await _context.SaveChangesAsync();
 
             return Ok(new
@@ -92,6 +104,21 @@ namespace PicXAPI.Controllers
                 transactionId = transaction.TransactionId
             });
         }
+
+        [HttpGet("return-handler")]
+        [AllowAnonymous]
+        public IActionResult HandleReturnFromPayOS([FromQuery] long orderCode)
+        {
+            return Redirect($"https://picx-client.onrender.com/deposit?status=paid&orderCode={orderCode}");
+        }
+
+        [HttpGet("cancel-handler")]
+        [AllowAnonymous]
+        public IActionResult HandleCancelFromPayOS([FromQuery] long orderCode)
+        {
+            return Redirect($"https://picx-client.onrender.com/deposit?status=cancel&orderCode={orderCode}");
+        }
+
 
         [HttpPost("deposit-callback")]
         [AllowAnonymous]

@@ -9,7 +9,7 @@ interface Notification {
     isRead: boolean;
     createdAt: string;
 }
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const NotificationPage: React.FC = () => {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [loading, setLoading] = useState(true);
@@ -19,7 +19,7 @@ const NotificationPage: React.FC = () => {
             setLoading(true);
             try {
                 const token = localStorage.getItem('authToken');
-                const res = await axios.get('/api/notification/me', {
+                const res = await axios.get(`${API_BASE_URL}/api/notification/me`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setNotifications(res.data);

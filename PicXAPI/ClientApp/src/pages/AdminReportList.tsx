@@ -15,7 +15,7 @@ interface Report {
     user?: { name: string };
     productImage?: string; // Add image field
 }
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const AdminReportList: React.FC = () => {
     const [reports, setReports] = useState<Report[]>([]);
     const [loading, setLoading] = useState(true);
@@ -31,7 +31,7 @@ const AdminReportList: React.FC = () => {
         setError('');
         try {
             const token = localStorage.getItem('authToken');
-            const res = await axios.get('/api/report', {
+            const res = await axios.get(`${API_BASE_URL}/api/report`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setReports(res.data);
@@ -58,11 +58,11 @@ const AdminReportList: React.FC = () => {
         try {
             const token = localStorage.getItem('authToken');
             if (status === 'approved') {
-                await axios.put(`/api/report/approve/${selectedReport.reviewId}`, { reason }, {
+                await axios.put(`${API_BASE_URL}/api/report/approve/${selectedReport.reviewId}`, { reason }, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
             } else {
-                await axios.put(`/api/report/reject/${selectedReport.reviewId}`, { reason }, {
+                await axios.put(`${API_BASE_URL}/api/report/reject/${selectedReport.reviewId}`, { reason }, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
             }
@@ -146,13 +146,13 @@ const AdminReportList: React.FC = () => {
                                 <td className="p-2 border">
                                     {r.productImage ? (
                                         <img
-                                            src={`/api/product/image/${r.productImage}`}
+                                            src={`${API_BASE_URL}/api/product/image/${r.productImage}`}
                                             alt={r.product?.title || 'Product image'}
                                             className="max-w-[80px] max-h-[80px] object-contain rounded-lg shadow-md transition-opacity duration-300 hover:opacity-80 mb-2 mx-auto"
                                             style={{ aspectRatio: '1 / 1' }}
                                             onClick={() => handleProductClick(r.productId)}
                                             onError={e => {
-                                                (e.currentTarget as HTMLImageElement).src = '/resource/img/placeholder-image.png';
+                                                (e.currentTarget as HTMLImageElement).src = '/img/placeholder-image.png';
                                             }}
                                         />
                                     ) : (

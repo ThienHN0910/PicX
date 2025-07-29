@@ -29,7 +29,7 @@ interface AppState {
     fetchAndSetUser: () => Promise<void>;
     setSearchQuery: (query: string) => void;
 }
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export const getAuthHeader = () => {
     const token = localStorage.getItem("authToken");
     return token ? { Authorization: `Bearer ${token}` } : {};
@@ -51,11 +51,11 @@ export const useStore = create<AppState>((set, get) => ({
     setCategories: (categories) => set({ categories }),
     addToCart: (product) =>
         set((state) => {
-            const existingItem = state.cart.find((item) => item.product.product_id === product.product_id);
+            const existingItem = state.cart.find((item) => item.product.productId === product.productId);
             if (existingItem) {
                 return {
                     cart: state.cart.map((item) =>
-                        item.product.product_id === product.product_id
+                        item.product.productId === product.productId
                             ? { ...item }
                             : item
                     ),
@@ -65,14 +65,14 @@ export const useStore = create<AppState>((set, get) => ({
         }),
     removeFromCart: (productId) =>
         set((state) => ({
-            cart: state.cart.filter((item) => item.product.product_id !== productId),
+            cart: state.cart.filter((item) => item.product.productId !== productId),
         })),
     clearCart: () => set({ cart: [] }),
     fetchProducts: async (initial = false) => {
         if (!initial && !get().hasMore) return;
         try {
             const currentPage = initial ? 1 : get().page + 1;
-            const response = await axios.get('/api/product/all', {
+            const response = await axios.get(`${API_BASE_URL}/api/product/all`, {
                 params: { page: currentPage, limit: 10 },
             });
             const data = response.data;
@@ -93,7 +93,7 @@ export const useStore = create<AppState>((set, get) => ({
                 is_available: item.isAvailable,
                 tags: item.tags ? (typeof item.tags === 'string' ? item.tags.split(',').map((tag: string) => tag.trim()) : item.tags) : [],
                 image_file_id: item.imageFileId,
-                image_url: item.imageFileId ? `/api/product/image/${item.imageFileId}` : undefined,
+                image_url: item.imageFileId ? item.imageFileId : undefined,
                 artist: {
                     id: item.artist.id,
                     name: item.artist.name,
@@ -114,7 +114,7 @@ export const useStore = create<AppState>((set, get) => ({
     },
     fetchCategories: async () => {
         try {
-            const response = await axios.get('/api/product/categories');
+            const response = await axios.get(`${API_BASE_URL}/api/product/categories`);
             const categories: Category[] = response.data.map((item: any) => ({
                 category_id: item.categoryId,
                 name: item.name,
@@ -127,7 +127,7 @@ export const useStore = create<AppState>((set, get) => ({
     setFavorites: (favorites) => set({ favorites }),
     fetchFavorites: async (id) => {
         try {
-            const response = await axios.get(`/api/favorites/user/${id}`, {
+            const response = await axios.get(`${API_BASE_URL}/api/favorites/user/${id}`, {
                 headers: getAuthHeader()
             });
             const favorites = response.data;
@@ -146,7 +146,7 @@ export const useStore = create<AppState>((set, get) => ({
                 dimensions: item.dimensions,
                 is_available: item.isAvailable,
                 tags: item.tags || [],
-                image_url: item.imageUrl ? `/api/product/image/${item.imageUrl}` : undefined,
+                image_url: item.imageUrl ? item.imageUrl : undefined,
                 artist: {
                     id: item.artist.id,
                     name: item.artist.name,
@@ -168,7 +168,7 @@ export const useStore = create<AppState>((set, get) => ({
                 set({ user: null });
                 return;
             }
-            const response = await axios.get('/api/auth/me', {
+            const response = await axios.get(`${API_BASE_URL}/api/auth/me`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (response.data && response.data.user) {

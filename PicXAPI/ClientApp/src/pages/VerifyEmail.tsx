@@ -1,7 +1,7 @@
 ﻿import React, { useState, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const VerifyEmail = () => {
     const [otp, setOtp] = useState<string[]>(['', '', '', '', '', '']);
     const [message, setMessage] = useState('');
@@ -41,7 +41,7 @@ const VerifyEmail = () => {
         setMessage('');
 
         try {
-            await axios.post('/api/email/verify-otp', {
+            await axios.post(`${API_BASE_URL}/api/email/verify-otp`, {
                 email,
                 otp: fullOtp
             });
@@ -58,7 +58,7 @@ const VerifyEmail = () => {
 
     const handleResend = async () => {
         try {
-            await axios.post('/api/email/send-otp', email, {
+            await axios.post(`${API_BASE_URL}/api/email/send-otp`, email, {
                 headers: { 'Content-Type': 'text/plain' }
             });
             setMessage('Mã OTP mới đã được gửi đến email.');
@@ -113,4 +113,3 @@ const VerifyEmail = () => {
 };
 
 export default VerifyEmail;
-

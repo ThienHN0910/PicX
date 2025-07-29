@@ -11,7 +11,7 @@ interface ProductCardProps {
     onLike?: () => void;
     onAddToCart?: () => void;
 }
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
     const navigate = useNavigate();
     const { isAuthenticated, user } = useAuth(); 
@@ -29,7 +29,7 @@ export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
         const checkFavoriteStatus = async () => {
             if (!isAuthenticated || !user?.id || !product) return;
             try {
-                const response = await axios.get(`/api/favorites/user/${user.id}`, {
+                const response = await axios.get(`${API_BASE_URL}/api/favorites/user/${user.id}`, {
                     headers: {
                         'Content-Type': 'application/json',
                         ...getAuthHeader(),
@@ -68,7 +68,7 @@ export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
                     userId: user.id,
                     productId: product.product_id,
                 };
-                const response = await axios.post('/api/favorites', favoriteDto, {
+                const response = await axios.post(`${API_BASE_URL}/api/favorites`, favoriteDto, {
                     headers: {
                         'Content-Type': 'application/json',
                         ...getAuthHeader(),
@@ -82,7 +82,7 @@ export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
                     toast.error('Product is not favorited.');
                     return;
                 }
-                await axios.delete(`/api/favorites/${favoriteId}`, {
+                await axios.delete(`${API_BASE_URL}/api/favorites/${favoriteId}`, {
                     headers: {
                         'Content-Type': 'application/json',
                         ...getAuthHeader(),
@@ -113,15 +113,15 @@ export const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
 
     return (
         <div className="w-full max-w-[480px] bg-white rounded-lg shadow group transition-transform duration-300 hover:scale-105 hover:shadow-2xl hover:-translate-y-2 p-0">
-            <div className="w-full aspect-[4/3] bg-gray-100 rounded-t-lg overflow-hidden cursor-pointer">
+            <div className="w-full bg-gray-100 rounded-t-lg overflow-hidden cursor-pointer">
                 {product.image_url ? (
                     <img
-                        src={product.image_url}
+                        src={`${API_BASE_URL}/api/product/image/${product.image_url}`}
                         alt={product.title || 'Product image'}
                         className="w-full h-full object-cover"
                         onClick={handleImageClick}
                         onError={(e) => {
-                            e.currentTarget.src = '../resource/img/placeholder-image.png';
+                            e.currentTarget.src = '/img/placeholder-image.png';
                         }}
                     />
                 ) : (

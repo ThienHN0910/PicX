@@ -6,22 +6,13 @@ export default defineConfig({
     optimizeDeps: {
         exclude: ['lucide-react'],
     },
+    base: '/',
     server: {
-        port: 5173,
         proxy: {
             '/api': {
-                target: 'https://localhost:7162',
+                target: 'https://picxapi.onrender.com',
                 changeOrigin: true,
-                secure: false,
-                cookieDomainRewrite: "localhost",
-                configure: (proxy, options) => {
-                    proxy.on('proxyReq', (proxyReq, req, res) => {
-                        console.log(`Proxying ${req.url} to ${options.target}${req.url}`);
-                    });
-                    proxy.on('error', (err, req, res) => {
-                        console.error(`Proxy error: ${err.message}`);
-                    });
-                },
+                secure: true,
             },
         },
     },

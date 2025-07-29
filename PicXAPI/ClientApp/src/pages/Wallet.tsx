@@ -4,7 +4,7 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const Wallet = () => {
     const [balance, setBalance] = useState<number>(0);
     const [amount, setAmount] = useState<number>(0);
@@ -15,7 +15,7 @@ const Wallet = () => {
 
     const fetchWallet = async () => {
         try {
-            const res = await axios.get('/api/wallet/me', {
+            const res = await axios.get(`${API_BASE_URL}/api/wallet/me`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 }
@@ -28,7 +28,7 @@ const Wallet = () => {
 
     const fetchRequests = async () => {
         try {
-            const res = await axios.get('/api/withdraw-request/my-requests', {
+            const res = await axios.get(`${API_BASE_URL}/api/withdraw-request/my-requests`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 }
@@ -43,7 +43,7 @@ const Wallet = () => {
         if (amount <= 0) return toast.warning('Please enter a valid amount.');
         setLoading(true);
         try {
-            await axios.post('/api/withdraw-request', { amount }, {
+            await axios.post(`${API_BASE_URL}/api/withdraw-request`, { amount }, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 }

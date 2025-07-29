@@ -18,7 +18,7 @@ interface Product {
     imageFileId: string;
     additionalImages: string; // JSON string
 }
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export default function ProductManagement() {
     const [searchQuery, setSearchQuery] = useState('');
     const [products, setProducts] = useState<Product[]>([]);
@@ -36,7 +36,7 @@ export default function ProductManagement() {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const response = await axios.get('/api/product', {
+                const response = await axios.get(`${API_BASE_URL}/api/product`, {
                     headers: getAuthHeader()
                 });
                 setProducts(response.data);
@@ -155,7 +155,7 @@ export default function ProductManagement() {
                                             <div className="h-10 w-10 flex-shrink-0">
                                                 <img
                                                     className="h-10 w-10 rounded-lg object-cover"
-                                                    src={`/api/product/image/${product.imageFileId}`}
+                                                    src={`${API_BASE_URL}/api/product/image/${product.imageFileId}`}
                                                     alt={product.title}
                                                     loading="lazy"
                                                     onError={(e) => {
@@ -229,7 +229,7 @@ export default function ProductManagement() {
                                     onClick={async () => {
                                         try {
                                             setDeleting(true);
-                                            await axios.delete(`/api/product/${productToDelete.productId}`, {
+                                            await axios.delete(`${API_BASE_URL}/api/product/${productToDelete.productId}`, {
                                                 headers: getAuthHeader()
                                             });
                                             setProducts((prev) =>

@@ -7,7 +7,7 @@ import { getAuthHeader } from '../lib/store'; // Nhập getAuthHeader
 import { Package, Search } from 'lucide-react';
 import { formatDate, sortOrders } from '../lib/utils'
 import { Order, Artist } from '../lib/types'
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export default function AdminOrders() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [artists, setArtists] = useState<Artist[]>([]);
@@ -23,7 +23,7 @@ export default function AdminOrders() {
     useEffect(() => {
         const fetchArtists = async () => {
             try {
-                const response = await axios.get('/api/orders/admin/artists', {
+                const response = await axios.get(`${API_BASE_URL}/api/orders/admin/artists`, {
                     headers: getAuthHeader(), 
                 });
                 setArtists(response.data);
@@ -38,7 +38,7 @@ export default function AdminOrders() {
 
         const fetchOrders = async () => {
             try {
-                const response = await axios.get('/api/orders/admin', {
+                const response = await axios.get(`${API_BASE_URL}/api/orders/admin`, {
                     headers: getAuthHeader(), 
                 });
                 setOrders(response.data.orders || []);
@@ -59,11 +59,11 @@ export default function AdminOrders() {
         try {
             let response;
             if (artistId === "all") {
-                response = await axios.get('/api/orders/admin', {
+                response = await axios.get(`${API_BASE_URL}/api/orders/admin`, {
                     headers: getAuthHeader(),
                 });
             } else {
-                response = await axios.get(`/api/orders/admin/by-artist/${artistId}`, {
+                response = await axios.get(`${API_BASE_URL}/api/orders/admin/by-artist/${artistId}`, {
                     headers: getAuthHeader(), 
                 });
             }

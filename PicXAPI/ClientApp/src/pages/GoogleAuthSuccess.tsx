@@ -1,7 +1,7 @@
 ﻿import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useStore } from "../lib/store";
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export default function GoogleAuthSuccess() {
     const navigate = useNavigate();
     const setUser = useStore(state => state.setUser);
@@ -10,7 +10,7 @@ export default function GoogleAuthSuccess() {
     useEffect(() => {
         const code = new URLSearchParams(window.location.search).get("code");
         if (code) {
-            fetch("https://localhost:7162/api/auth/oauth/google", {
+            fetch(`${API_BASE_URL}/api/auth/oauth/google`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
